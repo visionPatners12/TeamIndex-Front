@@ -1,0 +1,16 @@
+packages:
+  "framer-motion": "For premium scroll reveal animations and smooth transitions"
+  "clsx": "For dynamic class name merging in components"
+  "tailwind-merge": "For resolving tailwind class conflicts"
+
+images:
+  - path: "artifacts/team-index/public/images/hero-glow.png"
+    description: "Dark, abstract, premium glowing gradient mesh in deep navy, cyan, and subtle teal. Very dark background with soft, high-tech financial energy light leaks."
+    aspect_ratio: "16:9"
+  - path: "artifacts/team-index/public/images/dashboard-preview.png"
+    description: "A dark mode, sleek financial dashboard UI mockup showing sports team token assets, line charts, and portfolio balance. High-end fintech aesthetic."
+    aspect_ratio: "16:9"
+
+notes:
+  - Landing page is frontend-only, utilizing mock data for the live pools.
+  - Using Framer Motion for scroll animations to meet the 'premium feel' requirement.

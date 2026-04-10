@@ -1,0 +1,286 @@
+Build a premium, responsive single-page landing page for a product called “Team Index”.
+
+Tech stack:
+- React
+- Tailwind CSS
+- Clean component structure
+- Smooth modern animations
+- Dark premium UI
+- Sports x fintech visual style
+- No backend needed
+- Use local mock data for the live pools
+- Make it production-looking, not a generic template
+
+Overall goal:
+Create a landing page for a “Mainnet Pilot” launch of Team Index.
+
+Product concept:
+Team Index is a new way to back a team beyond a single match.
+Instead of placing a one-off bet, users enter a team-based pool represented by a live token.
+The underlying funds of each Team Index are deployed on Polymarket through the index strategy.
+Users can enter with:
+- USDC on Polygon and receive the core token on Polygon
+- CHZ or supported fan tokens and receive the wrapped Team Index token
+In case of victory, gains are distributed to eligible holders who hold the required amount of the token.
+The token is not publicly listed yet, so display “Listing Soon”.
+During the pilot, token value is derived from the live index value.
+
+Important messaging rules:
+- Do NOT make the page feel too technical
+- Do NOT lead with cross-chain jargon
+- Do NOT over-explain blockchain mechanics in the hero
+- Present this first as a new way to bet on a team over time
+- Polygon and wrapped access should appear later as infrastructure details
+- Use clear, premium, consumer-friendly language
+
+Design direction:
+- Dark background
+- Premium, sleek, immersive feel
+- Blend sports energy with financial/product UI
+- Soft glows, clean cards, gradients, modern spacing
+- Slight motion on cards and section reveals
+- Large, confident typography
+- The page should feel like a real launch page, not a dashboard
+- Responsive for desktop and mobile
+- Add subtle hover states and transitions
+- Include simple charts/sparklines in cards if possible
+
+Page structure:
+
+1. HERO SECTION
+Headline:
+“Bet on the team, not just the next match”
+
+Subheadline:
+“Team Index is a new way to back your favorite team through a live team-based token. Instead of placing a one-off bet, users enter a pool whose underlying funds are deployed on Polymarket through the index strategy.”
+
+Supporting line:
+“Enter with USDC on Polygon, or with CHZ and supported fan tokens through wrapped access. In case of victory, gains are distributed to eligible holders.”
+
+Primary CTA:
+“Explore Live Team Indexes”
+
+Secondary CTA:
+“Join the Pilot”
+
+Add premium badges or compact stat pills under the hero:
+- 4 Teams Live
+- Mainnet Pilot
+- Polygon Issuance
+- CHZ + Fan Token Access
+- Listing Soon
+
+On the hero right side, create a visual product mockup card showing:
+- Team Index token value
+- Pool status
+- Listing soon badge
+- 24h move
+- current holders
+- enter pool button
+
+2. WHAT IS A TEAM INDEX
+Section title:
+“A new way to back a team over time”
+
+Body:
+“A Team Index lets users take a position on a team beyond a single match. Instead of betting on one result, you enter a team-based pool represented by a live token that follows the team’s momentum over time.”
+
+Create 3 feature cards:
+- Beyond one match
+  “Take exposure to a team over time instead of relying on a single game outcome.”
+- Powered by live market strategy
+  “The underlying funds of each Team Index are deployed on Polymarket through the index strategy.”
+- Victory-based gains
+  “In case of victory, gains are distributed to eligible holders.”
+
+3. HOW IT WORKS
+Section title:
+“How Team Index works”
+
+Create 4 clean steps:
+1. Choose a live team
+   “Pick one of the live Team Index pools available during the pilot.”
+2. Enter with your preferred asset
+   “Use USDC on Polygon, or enter through CHZ and supported fan tokens.”
+3. Receive your Team Index token
+   “Users entering with USDC receive the core token on Polygon. Users entering with CHZ or fan tokens receive the wrapped Team Index version.”
+4. Follow the index live
+   “Track token value, pool status, and performance from the dashboard while the underlying strategy runs on Polymarket.”
+
+4. LIVE TEAM INDEXES SECTION
+This is the key section.
+
+Section title:
+“Live Team Indexes”
+
+Subtitle:
+“Explore the Team Index pools currently live in the pilot. If a pool is still open, you can still enter before it closes.”
+
+Create 4 beautiful live pool cards with mock data.
+Use example teams such as:
+- PSG Team Index
+- FC Barcelona Team Index
+- Juventus Team Index
+- AC Milan Team Index
+
+Each card should include:
+- team name
+- team logo placeholder or stylized badge
+- status: Open / Closing Soon / Closed
+- current pool size
+- pool cap
+- entry progress bar
+- current token value
+- accepted assets
+- gains distribution badge
+- listing soon badge
+- CTA button
+
+CTA rules:
+- If status is Open: “Enter Pool”
+- If status is Closing Soon: “Enter Before Close”
+- If Closed: “Pool Closed”
+
+Also add a note below the cards:
+“Pools are available only during their live entry window. Once a pool reaches its cap or closes, new entries are paused until the next phase.”
+
+5. ENTRY OPTIONS SECTION
+Section title:
+“Enter the way that fits you”
+
+Short intro:
+“Team Index is designed to make access simple for both crypto-native users and sports-native communities.”
+
+Create 3 cards:
+- USDC on Polygon
+  “Enter directly with USDC and receive the Team Index token on Polygon.”
+- CHZ access
+  “Use CHZ to enter the pool and receive the wrapped Team Index token.”
+- Supported fan tokens
+  “Selected team fan tokens can also be used to access the pool through the wrapped entry flow.”
+
+6. VALUE / TOKEN PRICING SECTION
+Section title:
+“What drives the value of a Team Index”
+
+Body:
+“Each Team Index represents exposure to an active team-based strategy. During the pilot phase, the token is not yet publicly listed, so its value is derived from the live value of the underlying index.”
+
+Display a formula card:
+“Token Value = Index Value / Circulating Supply”
+
+Add 4 metric cards:
+- Index Value
+- Circulating Supply
+- Current Token Value
+- Listing Status: Coming Soon
+
+Supporting line:
+“The underlying funds are deployed on Polymarket through the index strategy, while public secondary listing is planned for a later stage.”
+
+7. GAINS DISTRIBUTION SECTION
+Section title:
+“Win with the team”
+
+Body:
+“Team Index is not only about token value. In case of victory, gains are distributed to eligible holders who maintain the required amount of the token.”
+
+Create 3 cards:
+- Team victory payouts
+  “In case of victory, gains are distributed to eligible holders.”
+- Holder qualification
+  “Users must hold the required minimum amount of the Team Index token to qualify.”
+- More than price exposure
+  “The product combines team-based market exposure with direct win-based distribution.”
+
+8. MAINNET PILOT SECTION
+Section title:
+“A controlled mainnet pilot”
+
+Body:
+“This is the first live release of Team Index. Access is intentionally limited to monitor pool behavior, user experience, and index performance before wider rollout and public listing.”
+
+Add compact stats/cards:
+- Pilot Status: Live
+- Access: Limited
+- Entry: Capped per pool
+- Listing: Coming Soon
+
+9. DASHBOARD PREVIEW SECTION
+Section title:
+“Inside the Team Index dashboard”
+
+Body:
+“Pilot participants can track their holdings, token value, live pool status, and index performance from one clean interface.”
+
+Create a stylized preview panel with:
+- team logo
+- current token value
+- pool status
+- your holdings
+- eligible for gains / not yet eligible
+- accepted assets
+- listing soon badge
+- enter / closed state
+
+10. FINAL CTA SECTION
+Section title:
+“Join a live Team Index pool”
+
+Body:
+“The pilot is now live with 4 teams. Enter with USDC on Polygon, or with CHZ and supported fan tokens while pools remain open.”
+
+Primary CTA:
+“Explore Live Pools”
+
+Secondary CTA:
+“Enter the Pilot”
+
+Small note:
+“Pool access is only available while capacity remains open. Closed pools no longer accept new entries during the current phase.”
+
+11. FAQ SECTION
+Add a clean FAQ accordion with these questions and answers:
+
+- What is a Team Index?
+  “A Team Index is a team-based token that gives users a new way to back a team over time instead of betting on a single match.”
+
+- Where are the funds deployed?
+  “The underlying funds of each Team Index are deployed on Polymarket through the index strategy.”
+
+- How can I enter?
+  “Users can enter with USDC on Polygon, or with CHZ and supported fan tokens through the wrapped access flow.”
+
+- What do I receive?
+  “USDC users receive the core token on Polygon. CHZ and fan token users receive the wrapped Team Index token.”
+
+- Can I still join a live pool?
+  “Yes, as long as the pool is still open and has not reached its cap.”
+
+- Is the token publicly listed?
+  “Not yet. During the pilot phase, the token value is based on the live index value. Public listing is planned later.”
+
+- Do holders receive gains when the team wins?
+  “Yes. In case of victory, gains are distributed to eligible holders who hold the required amount of the token.”
+
+Implementation requirements:
+- Make the landing page feel polished and premium
+- Create reusable components for sections and cards
+- Use mock JSON data for the 4 live team pools
+- Add responsive layout behavior
+- Use tasteful motion and hover effects
+- Add clean icons where useful
+- Use gradients and subtle glow effects
+- No lorem ipsum
+- Use the exact copy above or improve it slightly without changing the meaning
+- Keep the UI coherent from top to bottom
+- Make the result look like a real web3 sports launch page
+
+Optional enhancements:
+- sticky top nav with anchors to sections
+- animated progress bars for live pools
+- fake sparkline mini charts
+- scroll reveal animations
+- soft ambient background effects
+
+Return a complete working React/Tailwind page.
