@@ -1,0 +1,5 @@
+{
+  "framework": "vite",
+  "buildCommand": "pnpm build",
+  "outputDirectory": "artifacts/team-index/dist/public"
+}
