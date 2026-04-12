@@ -3,7 +3,7 @@ import { GradientHeading } from "@/components/ui/GradientHeading";
 import { GoldButton } from "@/components/ui/GoldButton";
 
 export const HeroTextBlock: React.FC = () => (
-  <div className="w-full max-w-full sm:max-w-155.75 lg:w-155.75 flex flex-col gap-6">
+  <div className="w-full xl:flex-1 xl:min-w-0 flex flex-col gap-6">
     {/* Heading — gradient white → gold across two lines */}
     <GradientHeading
       as="h2"

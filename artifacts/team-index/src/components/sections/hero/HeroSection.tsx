@@ -9,7 +9,7 @@ export const HeroSection: React.FC<{ children?: React.ReactNode }> = ({ children
       className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none select-none"
       aria-hidden="true"
     />
-    <div className="relative z-10 w-full px-4 sm:px-6 lg:px-[120px] flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-[108px] pt-28 pb-16 sm:pt-32 lg:py-[108px]">
+    <div className="relative z-10 w-full px-4 sm:px-6 lg:px-30 flex flex-col md:flex-row items-center justify-between gap-10 md:gap-8 xl:gap-16 pt-28 pb-16 sm:pt-32 xl:py-27">
       {children}
     </div>
   </section>

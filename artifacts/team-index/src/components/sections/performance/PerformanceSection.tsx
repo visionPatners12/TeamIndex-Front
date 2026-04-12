@@ -50,11 +50,9 @@ export const PerformanceSection: React.FC = () => (
       </div>
 
       {/* ── Right: heading + content ─────────────────────────────────────── */}
-      <div className="flex flex-col gap-8">
-        <GradientHeading className="text-4xl md:text-5xl lg:text-6xl">
-          WHERE THE PERFORMANCE
-          <br />
-          COMES FROM
+      <div className="flex flex-col gap-8 min-w-0">
+        <GradientHeading className="text-4xl lg:text-5xl xl:text-6xl">
+          WHERE THE PERFORMANCE COMES FROM
         </GradientHeading>
 
         <p className="font-golos text-base text-white/60 leading-relaxed">

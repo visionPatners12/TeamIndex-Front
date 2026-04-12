@@ -52,7 +52,7 @@ export default function Home() {
       {/* 1. HERO */}
       <HeroSection>
         <HeroTextBlock />
-        <div className="hidden lg:block">
+        <div className="hidden md:block">
           <IndexCard />
         </div>
       </HeroSection>
