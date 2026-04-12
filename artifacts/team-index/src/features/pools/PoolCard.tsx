@@ -3,25 +3,12 @@ import { motion } from 'framer-motion';
 import { Sparkline } from './Sparkline';
 import { Shield, TrendingUp, Users, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-export interface PoolData {
-  id: string;
-  team: string;
-  symbol: string;
-  status: 'Open' | 'Closing Soon' | 'Closed';
-  poolSize: number;
-  poolCap: number;
-  tokenValue: number;
-  change24h: number;
-  holders: number;
-  sparklineData: number[];
-  vaultAddress?: string;
-}
+import type { PoolData } from '@/types/pool';
 
 export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: number; onEnter?: (pool: PoolData) => void }) {
   const isClosed = pool.status === 'Closed';
   const isClosingSoon = pool.status === 'Closing Soon';
-  
+
   const progressPercentage = Math.min(100, (pool.poolSize / pool.poolCap) * 100);
   const isPositive = pool.change24h >= 0;
 
@@ -33,14 +20,13 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className="group relative"
     >
-      {/* Glow effect on hover */}
       <div className={cn(
         "absolute -inset-0.5 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500",
         isClosed ? "bg-white/10" : "bg-gradient-to-br from-primary/50 to-transparent"
       )} />
-      
+
       <div className="relative h-full bg-glass-card rounded-2xl p-6 flex flex-col premium-shadow transition-transform duration-300 group-hover:-translate-y-1">
-        
+
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-4">
@@ -89,14 +75,13 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
               <Users className="w-4 h-4 text-muted-foreground" />
               <span className="text-lg font-bold">{pool.holders.toLocaleString()}</span>
             </div>
-            {/* Sparkline integrated into holders card for space efficiency */}
             <div className="absolute bottom-0 right-0 opacity-50">
-               <Sparkline 
-                 data={pool.sparklineData} 
-                 width={60} 
-                 height={24} 
-                 color={isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"} 
-               />
+              <Sparkline
+                data={pool.sparklineData}
+                width={60}
+                height={24}
+                color={isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+              />
             </div>
           </div>
         </div>
@@ -110,7 +95,7 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
             </span>
           </div>
           <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-            <motion.div 
+            <motion.div
               className={cn(
                 "h-full rounded-full relative",
                 isClosed ? "bg-muted-foreground" : "bg-primary"
@@ -141,13 +126,13 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
         </div>
 
         {/* CTA */}
-        <button 
+        <button
           disabled={isClosed}
           onClick={() => !isClosed && onEnter?.(pool)}
           className={cn(
             "w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2",
-            isClosed 
-              ? "bg-white/5 text-muted-foreground cursor-not-allowed border border-white/5" 
+            isClosed
+              ? "bg-white/5 text-muted-foreground cursor-not-allowed border border-white/5"
               : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_0_20px_-5px_hsl(var(--primary))] border border-primary/50"
           )}
         >
