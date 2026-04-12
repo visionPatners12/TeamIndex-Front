@@ -83,7 +83,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
       <div className="flex gap-2 sm:gap-3 w-full">
         <div className="flex-1 bg-[#23201A] min-h-[69px] rounded-lg px-2 sm:px-2.5 py-2 flex flex-col items-start min-w-0">
           <span className="text-[#B3B3B3] text-xs font-medium mb-1">TOKEN VALUE</span>
-          <div className="flex flex-wrap gap-x-2 gap-y-0.5 items-center">
+          <div className="mt-2 flex justify-between w-full items-center">
             <span className="text-white text-base font-bold">${indexValue.toFixed(2)}</span>
             <span className={`text-xs font-semibold ${change >= 0 ? "text-[#3FC86A]" : "text-[#FF5A5A]"}`}>
               {change >= 0 ? "+" : ""}
@@ -93,7 +93,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
         </div>
         <div className="flex-1 bg-[#23201A] rounded-lg px-2 sm:px-2.5 py-2 flex flex-col items-start min-w-0">
           <span className="text-[#B3B3B3] text-xs font-medium mb-1">HOLDERS</span>
-          <div className="flex items-center gap-2">
+          <div className="mt-2 flex items-center justify-between w-full">
             <span className="text-white text-base font-bold">{holders ?? "--"}</span>
             <img src={import.meta.env.BASE_URL + "icons/signal.svg"} alt=""/>
           </div>
