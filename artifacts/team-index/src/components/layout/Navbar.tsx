@@ -90,7 +90,7 @@ export const Navbar: React.FC = () => {
                 <button
                   key={id}
                   onClick={() => scrollToId(id)}
-                  className={`relative font-jura text-sm font-medium transition-colors pb-0.5 ${
+                  className={`relative font-jura text-[18px] font-medium transition-colors pb-0.5 ${
                     isActive ? "text-white" : "text-white/60 hover:text-white"
                   }`}
                 >
@@ -127,7 +127,7 @@ export const Navbar: React.FC = () => {
                 ) : (
                   <button
                     onClick={login}
-                    className="font-jura text-sm font-medium text-white/60 hover:text-white transition-colors"
+                    className="font-jura text-[18px] font-medium text-white/60 hover:text-white transition-colors"
                   >
                     Login
                   </button>
