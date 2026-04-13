@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Info, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { PoolData } from './PoolCard';
+import type { PoolData } from '@/types/pool';
+import { truncateAddr } from '@/utils/address';
 import { api } from '@/lib/api';
 import { usePolygonDeposit, useChilizDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
 import { POLYGON_CHAIN, CHILIZ_CHAIN } from '@/lib/config';
@@ -59,17 +60,13 @@ const PRESET_AMOUNTS: Record<Network, number[]> = {
   chiliz: [500, 1000, 5000, 10000],
 };
 
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
-}
-
 function statusLabel(s: TxStatus): string {
   switch (s) {
-    case 'switching': return 'Switching network…';
-    case 'approving': return 'Approve token in wallet…';
-    case 'sending': return 'Confirm deposit in wallet…';
-    case 'confirming': return 'Waiting for confirmation…';
-    default: return '';
+    case 'switching':   return 'Switching network…';
+    case 'approving':   return 'Approve token in wallet…';
+    case 'sending':     return 'Confirm deposit in wallet…';
+    case 'confirming':  return 'Waiting for confirmation…';
+    default:            return '';
   }
 }
 
@@ -87,7 +84,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const config = NETWORK_CONFIG[network];
   const numAmount = parseFloat(amount) || 0;
   const usdValue = numAmount * config.rate;
-  // Polygon vault charges 10% fee (FEE_BPS=1000). Chiliz has no additional fee here.
   const FEE_PCT = network === 'polygon' ? 0.10 : 0;
   const usdValueAfterFee = usdValue * (1 - FEE_PCT);
   const tokensReceived = pool ? usdValueAfterFee / pool.tokenValue : 0;
@@ -114,20 +110,13 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
       if (network === 'polygon') {
         const rawAmount = BigInt(Math.floor(numAmount * 10 ** config.decimals));
         const { tx } = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
-
         const hash = await polygonHook.deposit(tx.to, rawAmount, tx);
         setFinalTxHash(hash ?? null);
         setStep('success');
       } else {
         const rawAmount = BigInt(Math.floor(numAmount * 10 ** config.decimals));
         const { tx, receiverAddress } = await api.prepareChilizDepositChz(pool.id);
-
-        const hash = await chilizHook.depositCHZ(
-          receiverAddress,
-          '',
-          tx,
-          rawAmount.toString()
-        );
+        const hash = await chilizHook.depositCHZ(receiverAddress, '', tx, rawAmount.toString());
         setFinalTxHash(hash ?? null);
         setStep('success');
       }
@@ -206,7 +195,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
             <div className="p-6">
               <AnimatePresence mode="wait">
 
-                {/* STEP: SELECT NETWORK + AMOUNT */}
+                {/* STEP: SELECT */}
                 {step === 'select' && (
                   <motion.div key="select" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.18 }}>
                     {!walletAddress && onConnectWallet && (
@@ -304,6 +293,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         <span>Vault contract not yet deployed on Polygon. Contact admin to activate this pool.</span>
                       </div>
                     )}
+
                     <button onClick={() => setStep('confirm')} disabled={!isValidAmount || !walletAddress || !vaultReady}
                       className={cn('w-full py-4 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2',
                         isValidAmount && walletAddress && vaultReady ? 'text-white hover:opacity-90 hover:shadow-lg' : 'bg-white/5 text-muted-foreground cursor-not-allowed border border-white/10'
@@ -337,7 +327,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       {walletAddress && (
                         <div className="flex justify-between px-4 py-3 text-sm">
                           <span className="text-muted-foreground">From wallet</span>
-                          <span className="font-mono font-semibold text-primary">{truncateAddress(walletAddress)}</span>
+                          <span className="font-mono font-semibold text-primary">{truncateAddr(walletAddress)}</span>
                         </div>
                       )}
                     </div>
@@ -395,20 +385,17 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     >
                       <CheckCircle className="w-10 h-10" style={{ color: config.color }} />
                     </motion.div>
-
                     <h3 className="text-2xl font-bold font-display text-white mb-2">Deposit Confirmed!</h3>
                     <p className="text-muted-foreground text-sm mb-6">
                       Your entry into <span className="text-white font-semibold">{pool.team}</span> was confirmed on {config.chain}.
                       {network === 'chiliz' && ' Wrapped shares will be minted by the relayer shortly.'}
                     </p>
-
                     {finalTxHash && (
                       <a href={explorerUrl} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm font-medium mb-6 hover:underline" style={{ color: config.color }}>
                         View on explorer <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
-
                     <div className="bg-white/5 border border-white/10 rounded-xl p-4 mb-6 text-left">
                       <div className="flex justify-between text-sm mb-2">
                         <span className="text-muted-foreground">Amount sent</span>
@@ -419,7 +406,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         <span className="font-mono font-bold" style={{ color: config.color }}>{tokensReceived.toFixed(4)} ${pool.symbol}</span>
                       </div>
                     </div>
-
                     <div className="flex gap-3">
                       <button onClick={handleReset} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-semibold text-muted-foreground hover:bg-white/10 transition-all">
                         Enter Another Pool

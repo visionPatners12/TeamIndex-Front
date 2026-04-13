@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/lib/config";
-import type { PoolData } from "@/components/PoolCard";
+import type { PoolData } from "@/types/pool";
 
 export interface BackendPool {
   id: string;
