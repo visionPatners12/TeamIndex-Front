@@ -1,0 +1,66 @@
+modules = ["nodejs-20", "web", "bash"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+PORT = "5000"
+BASE_PATH = "/"
+NODE_ENV = "development"
+VITE_API_BASE_URL = "http://localhost:3001"
+VITE_PRIVY_APP_ID = "cmm4v0w96002i0cjpvq6joks6"
+VITE_USDC_ADDRESS = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+VITE_CHILIZ_WRAPPED_SHARE_ADDRESS = "0xd1f873ee848Bf601Ec4070f3bDf6B1A5C70744a9"
+VITE_CHILIZ_DEPOSIT_RECEIVER_ADDRESS = "0x04b1B0B86BbCB886FcbAA657deFE72ED394fD5bb"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "API Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Frontend"
+
+[[workflows.workflow]]
+name = "API Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash -c 'PORT=3001 node --enable-source-maps ./artifacts/api-server/dist/index.mjs'"
+waitForPort = 3001
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Frontend"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash -c 'cd artifacts/team-index && PORT=5000 BASE_PATH=/ pnpm run dev'"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 3001
+externalPort = 80
+
+[[ports]]
+localPort = 5000
+externalPort = 80
