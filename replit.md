@@ -19,8 +19,10 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## Replit Workflows
 
-- **Frontend** — `cd artifacts/team-index && PORT=5000 BASE_PATH=/ pnpm run dev` (port 5000, webview)
-- **API Server** — `PORT=3001 node --enable-source-maps ./artifacts/api-server/dist/index.mjs` (port 3001, console)
+- **Start application** (webview, port 5000) — `cd artifacts/team-index && PORT=5000 BASE_PATH=/ pnpm run dev`. This is the primary webview workflow that serves the frontend in the preview pane. It must explicitly set `PORT=5000` because artifact-managed workflows use system-assigned ports that cannot be overridden.
+- **artifacts/api-server: API Server** (artifact-managed) — runs `pnpm --filter @workspace/api-server run dev`, serves the Express API.
+- **artifacts/team-index: web** (artifact-managed) — runs the frontend on a system-assigned port for internal artifact purposes. The "Start application" workflow above is what actually serves the preview pane.
+- **artifacts/mockup-sandbox: Component Preview Server** (artifact-managed) — component preview sandbox.
 
 ## Environment Variables
 
