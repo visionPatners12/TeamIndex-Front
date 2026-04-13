@@ -109,30 +109,29 @@ export const Navbar: React.FC = () => {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            {/* Auth — desktop only (≥1200px) */}
-            {ready && (
+            {/* Auth — desktop only (≥1200px): identity + logout */}
+            {ready && authenticated && (
               <div className="hidden min-[1200px]:flex items-center gap-3">
-                {authenticated ? (
-                  <>
-                    <span className="font-mono text-sm text-white/50 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
-                      {displayIdentity}
-                    </span>
-                    <button
-                      onClick={logout}
-                      className="font-jura text-sm font-medium text-white/70 hover:text-white transition-colors"
-                    >
-                      Log Out
-                    </button>
-                  </>
-                ) : (
-                  <GoldButton
-                    onClick={login}
-                    className="min-h-9 min-[1200px]:min-h-12 px-5 text-sm font-semibold"
-                  >
-                    Login
-                  </GoldButton>
-                )}
+                <span className="font-mono text-sm text-white/50 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                  {displayIdentity}
+                </span>
+                <button
+                  onClick={logout}
+                  className="font-jura text-sm font-medium text-white/70 hover:text-white transition-colors"
+                >
+                  Log Out
+                </button>
               </div>
+            )}
+
+            {/* Login CTA — always visible when not authenticated */}
+            {ready && !authenticated && (
+              <GoldButton
+                onClick={login}
+                className="min-h-9 min-[1200px]:min-h-12 px-5 text-sm font-semibold"
+              >
+                Login
+              </GoldButton>
             )}
 
             {/* Admin gear — always visible */}
