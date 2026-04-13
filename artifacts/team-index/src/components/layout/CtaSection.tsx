@@ -1,4 +1,5 @@
 import React from "react";
+import { GoldButton } from "../ui/GoldButton";
 
 interface CtaSectionProps {
   onExplore?: () => void;
@@ -21,12 +22,9 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onExplore }) => (
       </p>
 
       {/* Button */}
-      <button
-        onClick={onExplore}
-        className="mt-2 px-8 py-3 rounded-full bg-white text-black font-golos font-semibold text-sm hover:bg-white/90 active:scale-95 transition-all shadow-md"
-      >
+      <GoldButton backgroundImage="icons/btn-bg-footer.svg" onClick={onExplore}>
         Explore Live Indexes
-      </button>
+      </GoldButton>
     </div>
   </section>
 );
