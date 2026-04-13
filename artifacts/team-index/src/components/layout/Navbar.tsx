@@ -125,23 +125,15 @@ export const Navbar: React.FC = () => {
                     </button>
                   </>
                 ) : (
-                  <button
+                  <GoldButton
                     onClick={login}
-                    className="font-jura text-[18px] font-medium text-white/60 hover:text-white transition-colors"
+                    className="min-h-9 min-[1200px]:min-h-12 px-5 text-sm font-semibold"
                   >
                     Login
-                  </button>
+                  </GoldButton>
                 )}
               </div>
             )}
-
-            {/* Enter App CTA — always visible */}
-            <GoldButton
-              onClick={() => handleNavClick("live-indexes")}
-              className="min-h-9 min-[1200px]:min-h-12 px-5 text-sm font-semibold"
-            >
-              Enter App
-            </GoldButton>
 
             {/* Admin gear — always visible */}
             <button
@@ -235,7 +227,7 @@ export const Navbar: React.FC = () => {
                 })}
               </div>
 
-              {/* Auth + CTA footer */}
+              {/* Auth footer */}
               <div className="flex flex-col gap-3 px-6 py-6 border-t border-white/10">
                 {ready && (
                   <>
@@ -252,21 +244,15 @@ export const Navbar: React.FC = () => {
                         </button>
                       </>
                     ) : (
-                      <button
+                      <GoldButton
                         onClick={() => { login(); closeMenu(); }}
-                        className="w-full py-2.5 rounded-xl border border-white/10 font-jura text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all"
+                        className="w-full min-h-12 text-sm font-semibold"
                       >
                         Login
-                      </button>
+                      </GoldButton>
                     )}
                   </>
                 )}
-                <GoldButton
-                  onClick={() => handleNavClick("live-indexes")}
-                  className="w-full min-h-12 text-sm font-semibold"
-                >
-                  Enter App
-                </GoldButton>
               </div>
             </motion.div>
           </>
