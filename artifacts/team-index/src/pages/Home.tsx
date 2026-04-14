@@ -18,7 +18,7 @@ import { HowItWorksSection } from "@/components/sections/how-it-works/HowItWorks
 import { LiveIndexesSection } from "@/components/sections/live-indexes/LiveIndexesSection";
 import { WhyDifferentSection } from "@/components/sections/why-different/WhyDifferentSection";
 import { ExoticIndexesSection } from "@/components/sections/exotic-indexes/ExoticIndexesSection";
-import { PerformanceSection } from "@/components/sections/performance/PerformanceSection";
+import { MarketplaceSection } from "@/components/sections/marketplace/MarketplaceSection";
 import { WhyPolymarketSection } from "@/components/sections/why-polymarket/WhyPolymarketSection";
 import { SimpleSmartSection } from "@/components/sections/simple-smart/SimpleSmartSection";
 import { FaqSection } from "@/components/sections/faq/FaqSection";
@@ -74,14 +74,12 @@ export default function Home() {
       {/* 5. EXOTIC INDEXES (Coming Soon) */}
       <ExoticIndexesSection />
 
-      {/* 6. WHY IT FEELS DIFFERENT */}
+      {/* 6. MARKETPLACE (Coming Soon) */}
+      <MarketplaceSection />
+
+      {/* 7. WHY IT FEELS DIFFERENT */}
       <section id="why-different">
         <WhyDifferentSection />
-      </section>
-
-      {/* 6. WHERE THE PERFORMANCE COMES FROM */}
-      <section id="performance">
-        <PerformanceSection />
       </section>
 
       {/* 7. WHY POLYMARKET */}
