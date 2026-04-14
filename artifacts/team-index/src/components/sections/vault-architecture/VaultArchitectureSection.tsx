@@ -124,11 +124,7 @@ export const VaultArchitectureSection: React.FC = () => (
           <div className="w-px h-10 bg-gradient-to-b from-transparent via-[#FEB413]/30 to-[#FEB413]/50" />
           <div className="flex flex-col items-center gap-2 px-5 py-5 rounded-2xl border border-[#FEB413]/30 bg-[#161104]/80 backdrop-blur-sm" style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(254,180,19,0.08) 0%, rgba(22,17,4,0.8) 70%)" }}>
             <div className="w-14 h-14 rounded-xl flex items-center justify-center border border-[#FEB413]/30 bg-[#FEB413]/10">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="7" width="18" height="13" rx="2" stroke="#FEB413" strokeWidth="1.5" />
-                <path d="M7 7V5a5 5 0 0 1 10 0v2" stroke="#FEB413" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="12" cy="14" r="2" fill="#FEB413" />
-              </svg>
+              <UsdcIcon />
             </div>
             <p className="font-jura font-bold text-xs text-[#FEB413] uppercase tracking-wider">PTeam Index</p>
             <p className="font-jura font-bold text-[10px] text-white/30 uppercase tracking-wider">Vault</p>
@@ -143,11 +139,7 @@ export const VaultArchitectureSection: React.FC = () => (
           <div className="flex items-center gap-4 w-full">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#FEB413]/20 to-[#FEB413]/40" />
             <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl border border-[#FEB413]/30 bg-[#161104]/80">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="3" y="7" width="18" height="13" rx="2" stroke="#FEB413" strokeWidth="1.5" />
-                <path d="M7 7V5a5 5 0 0 1 10 0v2" stroke="#FEB413" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="12" cy="14" r="2" fill="#FEB413" />
-              </svg>
+              <UsdcIcon />
               <p className="font-jura font-bold text-[10px] text-[#FEB413] uppercase tracking-wider">PTeam Index Vault</p>
             </div>
             <div className="flex-1 h-px bg-gradient-to-r from-[#FEB413]/40 via-[#FEB413]/20 to-transparent" />
