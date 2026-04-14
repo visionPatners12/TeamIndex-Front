@@ -66,7 +66,7 @@ export const VaultArchitectureSection: React.FC = () => (
         {...staggerDelay(0)}
         className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed -mt-2"
       >
-        Deposit in USDC on Polygon or use CHZ & Fan Tokens on Chiliz — each path gives you exposure to the same team index.
+        Collateral is held in USDC. Deposit directly on Polygon or use CHZ & Fan Tokens on Chiliz — each path gives you exposure to the same team index.
       </motion.p>
 
       <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-0 mt-4 items-stretch">
@@ -165,7 +165,7 @@ export const VaultArchitectureSection: React.FC = () => (
         >
           <div className="w-full px-6 pt-7 pb-4 flex flex-col items-center gap-3">
             <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#CD0124]" style={{ borderColor: "rgba(205,1,36,0.3)", background: "rgba(205,1,36,0.12)" }}>
-              Path 2 — Chiliz Chain
+              Path 2 — Supported by Chiliz
             </span>
             <h3 className="font-jura font-bold text-lg text-white">Pay in CHZ or Fan Tokens</h3>
           </div>
