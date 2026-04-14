@@ -1,0 +1,389 @@
+L1:import { useQuery, useQueryClient } from "@tanstack/react-query";
+L2:import { API_BASE_URL } from "@/lib/config";
+L3:import type { PoolData } from "@/components/PoolCard";
+L4:
+L5:/** On-chain / DB deposit cap is always USDC 6-decimal integer (human = raw / 1e6). */
+L6:export function depositCapToHuman(raw: string | undefined | null): number {
+L7:  if (raw === undefined || raw === null || raw === "") return 0;
+L8:  const n = Number(raw);
+L9:  if (!Number.isFinite(n) || n <= 0) return 0;
+L10:  return n / 1_000_000;
+L11:}
+L12:
+L13:/**
+L14: * `totalPoolValue`: backend stores human USD (often with decimals). Legacy rows may be plain
+L15: * integers meaning raw USDC base units (e.g. 180000 → $0.18).
+L16: */
+L17:export function totalPoolValueToHuman(raw: string | undefined | null): number {
+L18:  if (raw === undefined || raw === null || raw === "") return 0;
+L19:  const s = String(raw).trim();
+L20:  const n = Number(s);
+L21:  if (!Number.isFinite(n) || n <= 0) return 0;
+L22:  if (s.includes(".") || /[eE]/i.test(s)) return n;
+L23:  if (/^\d+$/.test(s)) return n / 1_000_000;
+L24:  return n;
+L25:}
+L26:
+L27:export interface BackendPool {
+L28:  id: string;
+L29:  clubName: string;
+L30:  symbol: string;
+L31:  polymarketTeamId?: string | null;
+L32:  /** Distinct users with vault shares synced into club_pool_users */
+L33:  holdersCount?: number;
+L34:  vaultAddress: string | null;
+L35:  depositCap: string;
+L36:  cash: string;
+L37:  totalPoolValue: string;
+L38:  totalTokenSupply: string;
+L39:  officialTokenPrice: string;
+L40:  status: string;
+L41:  createdAt: string;
+L42:}
+L43:
+L44:/** Matches on-chain `USDC4626Vault.decimals()` — `totalTokenSupply` from DB is raw units. */
+L45:const VAULT_SHARE_DECIMALS = 6;
+L46:
+L47:/**
+L48: * USD per **1.0** vault share for UI + deposit estimates.
+L49: * Backend used to store `officialTokenPrice` as TVL/rawSupply (per 1e-6 share); detect and fix.
+L50: */
+L51:export function tokenPriceUsdPerWholeShare(p: BackendPool): number {
+L52:  const stored = parseFloat(p.officialTokenPrice);
+L53:  const tvl = totalPoolValueToHuman(p.totalPoolValue);
+L54:  const rawSup = Number(p.totalTokenSupply);
+L55:  const sharesHuman =
+L56:    Number.isFinite(rawSup) && rawSup > 0 ? rawSup / 10 ** VAULT_SHARE_DECIMALS : 0;
+L57:
+L58:  if (sharesHuman > 0 && tvl > 0) {
+L59:    const nav = tvl / sharesHuman;
+L60:    if (Number.isFinite(nav) && nav > 0 && Number.isFinite(stored) && stored > 0) {
+L61:      const ratio = nav / stored;
+L62:      if (ratio > 10_000) return nav;
+L63:    }
+L64:    if ((!Number.isFinite(stored) || stored <= 0) && Number.isFinite(nav) && nav > 0) return nav;
+L65:  }
+L66:
+L67:  if (Number.isFinite(stored) && stored > 0) return stored;
+L68:  return 1.0;
+L69:}
+L70:
+L71:export function mapToPoolData(p: BackendPool): PoolData {
+L72:  const tokenValue = tokenPriceUsdPerWholeShare(p);
+L73:  const poolSize = totalPoolValueToHuman(p.totalPoolValue);
+L74:  const rawCap = Number(p.depositCap);
+L75:  const capUnlimited = !Number.isFinite(rawCap) || rawCap <= 0;
+L76:  const poolCap = capUnlimited ? 0 : depositCapToHuman(p.depositCap);
+L77:
+L78:  // Status from backend
+L79:  let status: PoolData["status"] = "Open";
+L80:  if (p.status === "PAUSED") status = "Closed";
+L81:  else if (!capUnlimited && poolCap > 0 && poolSize / poolCap > 0.9) status = "Closing Soon";
+L82:
+L83:  return {
+L84:    id: p.id,
+L85:    team: p.clubName,
+L86:    symbol: p.symbol,
+L87:    status,
+L88:    poolSize,
+L89:    poolCap,
+L90:    capUnlimited,
+L91:    tokenValue,
+L92:    change24h: 0,
+L93:    holders: typeof p.holdersCount === "number" ? p.holdersCount : 0,
+L94:    sparklineData: [tokenValue],
+L95:    vaultAddress: p.vaultAddress ?? undefined,
+L96:  };
+L97:}
+L98:
+L99:export function usePools() {
+L100:  return useQuery<PoolData[]>({
+L101:    queryKey: ["pools"],
+L102:    queryFn: async () => {
+L103:      const res = await fetch(`${API_BASE_URL}/health`);
+L104:      if (!res.ok) throw new Error("Backend unreachable");
+L105:
+L106:      const poolsRes = await fetch(`${API_BASE_URL}/pools`, {
+L107:        headers: { "Content-Type": "application/json" },
+L108:      });
+L109:      if (poolsRes.status === 404) return [];
+L110:      if (!poolsRes.ok) throw new Error(`Failed to fetch pools: ${poolsRes.status}`);
+L111:
+L112:      const data = await poolsRes.json();
+L113:      const pools: BackendPool[] = data.pools || [];
+L114:      return pools.map(mapToPoolData);
+L115:    },
+L116:    refetchInterval: 30_000,
+L117:    retry: 2,
+L118:  });
+L119:}
+L120:
+L121:export function usePool(poolId: string | undefined) {
+L122:  return useQuery<PoolData | null>({
+L123:    queryKey: ["pool", poolId],
+L124:    enabled: !!poolId,
+L125:    queryFn: async () => {
+L126:      if (!poolId) return null;
+L127:      const res = await fetch(`${API_BASE_URL}/pools/${poolId}`);
+L128:      if (!res.ok) return null;
+L129:      const data = await res.json();
+L130:      return data.pool ? mapToPoolData(data.pool) : null;
+L131:    },
+L132:  });
+L133:}
+L134:
+L135:export function useAdminPools(adminKey: string) {
+L136:  return useQuery<BackendPool[]>({
+L137:    queryKey: ["admin-pools", adminKey],
+L138:    enabled: !!adminKey,
+L139:    queryFn: async () => {
+L140:      const res = await fetch(`${API_BASE_URL}/pools`, {
+L141:        headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+L142:      });
+L143:      if (!res.ok) throw new Error("Failed to fetch pools");
+L144:      const data = await res.json();
+L145:      return data.pools || [];
+L146:    },
+L147:    refetchInterval: 15_000,
+L148:  });
+L149:}
+L150:
+src/components/PoolCard.tsx
+L1:import React from 'react';
+L2:import { motion } from 'framer-motion';
+L3:import { Sparkline } from './Sparkline';
+L4:import { Shield, TrendingUp, Users, ArrowRight } from 'lucide-react';
+L5:import { cn } from '@/lib/utils';
+L6:
+L7:export interface PoolData {
+L8:  id: string;
+L9:  team: string;
+L10:  symbol: string;
+L11:  status: 'Open' | 'Closing Soon' | 'Closed';
+L12:  poolSize: number;
+L13:  poolCap: number;
+L14:  /** When true, deposit cap is unlimited (backend depositCap <= 0). */
+L15:  capUnlimited?: boolean;
+L16:  tokenValue: number;
+L17:  change24h: number;
+L18:  holders: number;
+L19:  sparklineData: number[];
+L20:  vaultAddress?: string;
+L21:}
+L22:
+L23:function fmtUsdShort(n: number): string {
+L24:  if (!Number.isFinite(n) || n <= 0) return "0";
+L25:  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+L26:  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+L27:  if (n >= 1) return `${n.toFixed(0)}`;
+L28:  return `${n.toFixed(2)}`;
+L29:}
+L30:
+L31:export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: number; onEnter?: (pool: PoolData) => void }) {
+L32:  const isClosed = pool.status === 'Closed';
+L33:  const isClosingSoon = pool.status === 'Closing Soon';
+L34:  /** Any non-positive / non-finite cap must not drive % fill (avoids ÷0 and $0k when mapper uses 0 for “unlimited”). */
+L35:  const hasFiniteCap = Number.isFinite(pool.poolCap) && pool.poolCap > 0;
+L36:  const capUnlimited = pool.capUnlimited === true || !hasFiniteCap;
+L37:
+L38:  const progressPercentage = !hasFiniteCap
+L39:    ? 0
+L40:    : Math.min(100, (pool.poolSize / pool.poolCap) * 100);
+L41:  const isPositive = pool.change24h >= 0;
+L42:
+L43:  return (
+L44:    <motion.div
+L45:      initial={{ opacity: 0, y: 30 }}
+L46:      whileInView={{ opacity: 1, y: 0 }}
+L47:      viewport={{ once: true, margin: "-50px" }}
+L48:      transition={{ duration: 0.5, delay: index * 0.1 }}
+L49:      className="group relative"
+L50:    >
+L51:      {/* Glow effect on hover */}
+L52:      <div className={cn(
+L53:        "absolute -inset-0.5 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500",
+L54:        isClosed ? "bg-white/10" : "bg-gradient-to-br from-primary/50 to-transparent"
+L55:      )} />
+L56:      
+L57:      <div className="relative h-full bg-glass-card rounded-2xl p-6 flex flex-col premium-shadow transition-transform duration-300 group-hover:-translate-y-1">
+L58:        
+L59:        {/* Header */}
+L60:        <div className="flex justify-between items-start mb-6">
+L61:          <div className="flex items-center gap-4">
+L62:            <div className={cn(
+L63:              "w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold font-display shadow-lg border",
+L64:              isClosed ? "bg-muted border-white/5 text-muted-foreground" : "bg-secondary border-primary/20 text-foreground"
+L65:            )}>
+L66:              {pool.symbol[0]}
+L67:            </div>
+L68:            <div>
+L69:              <h3 className="text-xl font-bold text-foreground font-display">{pool.team}</h3>
+L70:              <div className="flex items-center gap-2 mt-1">
+L71:                <span className="text-xs font-medium text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md border border-white/10">
+L72:                  ${pool.symbol}
+L73:                </span>
+L74:                <span className={cn(
+L75:                  "text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full",
+L76:                  pool.status === 'Open' ? "bg-primary/20 text-primary border border-primary/30" :
+L77:                  pool.status === 'Closing Soon' ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
+L78:                  "bg-white/5 text-muted-foreground border border-white/10"
+L79:                )}>
+L80:                  {pool.status}
+L81:                </span>
+L82:              </div>
+L83:            </div>
+L84:          </div>
+L85:        </div>
+L86:
+L87:        {/* Stats Grid */}
+L88:        <div className="grid grid-cols-2 gap-4 mb-6">
+L89:          <div className="bg-black/20 rounded-xl p-3 border border-white/5">
+L90:            <p className="text-xs text-muted-foreground mb-1">Token Value</p>
+L91:            <div className="flex items-end justify-between">
+L92:              <span className="text-lg font-bold font-mono">${pool.tokenValue.toFixed(2)}</span>
+L93:              <span className={cn(
+L94:                "text-xs font-medium flex items-center mb-0.5",
+L95:                isPositive ? "text-success" : "text-destructive"
+L96:              )}>
+L97:                {isPositive ? '+' : ''}{pool.change24h}%
+L98:              </span>
+L99:            </div>
+L100:          </div>
+L101:          <div className="bg-black/20 rounded-xl p-3 border border-white/5 relative overflow-hidden">
+L102:            <p className="text-xs text-muted-foreground mb-1">Holders</p>
+L103:            <div className="flex items-center gap-2">
+L104:              <Users className="w-4 h-4 text-muted-foreground" />
+L105:              <span className="text-lg font-bold">{pool.holders.toLocaleString()}</span>
+L106:            </div>
+L107:            {/* Sparkline integrated into holders card for space efficiency */}
+L108:            <div className="absolute bottom-0 right-0 opacity-50">
+L109:               <Sparkline 
+L110:                 data={pool.sparklineData} 
+L111:                 width={60} 
+L112:                 height={24} 
+L113:                 color={isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"} 
+L114:               />
+L115:            </div>
+L116:          </div>
+L117:        </div>
+L118:
+L119:        {/* Progress Bar */}
+L120:        <div className="mb-6">
+L121:          <div className="flex justify-between text-xs mb-2">
+L122:            <span className="text-muted-foreground">Pool Fill</span>
+L123:            <span className="font-medium text-foreground">
+L124:              ${fmtUsdShort(pool.poolSize)}
+L125:              {" / "}
+L126:              {capUnlimited ? "∞" : `$${fmtUsdShort(pool.poolCap)}`}
+L127:            </span>
+L128:          </div>
+L129:          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+L130:            <motion.div 
+L131:              className={cn(
+L132:                "h-full rounded-full relative",
+L133:                isClosed ? "bg-muted-foreground" : "bg-primary"
+L134:              )}
+L135:              initial={{ width: 0 }}
+L136:              whileInView={{ width: `${progressPercentage}%` }}
+L137:              viewport={{ once: true }}
+L138:              transition={{ duration: 1, delay: 0.2 + index * 0.1, ease: "easeOut" }}
+L139:            >
+L140:              {!isClosed && (
+L141:                <div className="absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-r from-transparent to-white/30 animate-[shimmer_2s_infinite]" />
+L142:              )}
+L143:            </motion.div>
+L144:          </div>
+L145:        </div>
+L146:
+L147:        {/* Badges */}
+L148:        <div className="flex flex-wrap gap-2 mb-8 mt-auto">
+L149:          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground bg-white/5 px-2 py-1 rounded border border-white/5">
+L150:            <Shield className="w-3 h-3" /> USDC / CHZ
+L151:          </span>
+L152:          <span className="inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
+L153:            <TrendingUp className="w-3 h-3" /> Gains Eligible
+L154:          </span>
+L155:          <span className="inline-flex items-center gap-1 text-[10px] text-accent bg-accent/10 px-2 py-1 rounded border border-accent/20">
+L156:            Listing Soon
+L157:          </span>
+L158:        </div>
+L159:
+L160:        {/* CTA */}
+L161:        <button 
+L162:          disabled={isClosed}
+L163:          onClick={() => !isClosed && onEnter?.(pool)}
+L164:          className={cn(
+L165:            "w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2",
+L166:            isClosed 
+L167:              ? "bg-white/5 text-muted-foreground cursor-not-allowed border border-white/5" 
+L168:              : "bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-[0_0_20px_-5px_hsl(var(--primary))] border border-primary/50"
+L169:          )}
+L170:        >
+L171:          {isClosed ? "Pool Closed" : isClosingSoon ? "Enter Before Close" : "Enter Pool"}
+L172:          {!isClosed && <ArrowRight className="w-4 h-4" />}
+L173:        </button>
+L174:      </div>
+L175:    </motion.div>
+L176:  );
+L177:}
+L178:
+src/components/Sparkline.tsx
+
+L1:import React from 'react';
+L2:
+L3:interface SparklineProps {
+L4:  data: number[];
+L5:  color?: string;
+L6:  width?: number;
+L7:  height?: number;
+L8:  className?: string;
+L9:}
+L10:
+L11:export function Sparkline({ 
+L12:  data, 
+L13:  color = "hsl(var(--primary))", 
+L14:  width = 100, 
+L15:  height = 30,
+L16:  className = ""
+L17:}: SparklineProps) {
+L18:  if (!data || data.length === 0) return null;
+L19:
+L20:  const clean = data.map((v) => (Number.isFinite(v) ? v : 0));
+L21:  if (clean.length === 0) return null;
+L22:
+L23:  const min = Math.min(...clean);
+L24:  const max = Math.max(...clean);
+L25:  const range = max - min || 1; // Prevent division by zero
+L26:  
+L27:  const padding = 2;
+L28:  const graphWidth = width - padding * 2;
+L29:  const graphHeight = height - padding * 2;
+L30:  const xDenom = Math.max(1, clean.length - 1);
+L31:
+L32:  const points = clean.map((val, i) => {
+L33:    const x = padding + (i / xDenom) * graphWidth;
+L34:    const y = height - padding - ((val - min) / range) * graphHeight;
+L35:    return `${x},${y}`;
+L36:  }).join(' ');
+L37:
+L38:  return (
+L39:    <svg 
+L40:      width={width} 
+L41:      height={height} 
+L42:      viewBox={`0 0 ${width} ${height}`}
+L43:      className={className}
+L44:      preserveAspectRatio="none"
+L45:    >
+L46:      <polyline
+L47:        fill="none"
+L48:        stroke={color}
+L49:        strokeWidth="2"
+L50:        strokeLinecap="round"
+L51:        strokeLinejoin="round"
+L52:        points={points}
+L53:        className="drop-shadow-[0_0_3px_rgba(0,255,255,0.5)]"
+L54:      />
+L55:    </svg>
+L56:  );
+L57:}
+L58:
