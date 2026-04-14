@@ -17,6 +17,7 @@ import { NewWaySection } from "@/components/sections/new-way/NewWaySection";
 import { HowItWorksSection } from "@/components/sections/how-it-works/HowItWorksSection";
 import { LiveIndexesSection } from "@/components/sections/live-indexes/LiveIndexesSection";
 import { WhyDifferentSection } from "@/components/sections/why-different/WhyDifferentSection";
+import { ExoticIndexesSection } from "@/components/sections/exotic-indexes/ExoticIndexesSection";
 import { PerformanceSection } from "@/components/sections/performance/PerformanceSection";
 import { WhyPolymarketSection } from "@/components/sections/why-polymarket/WhyPolymarketSection";
 import { SimpleSmartSection } from "@/components/sections/simple-smart/SimpleSmartSection";
@@ -70,7 +71,10 @@ export default function Home() {
         <LiveIndexesSection pools={livePools} onEnterPool={handleEnterPool} />
       </section>
 
-      {/* 5. WHY IT FEELS DIFFERENT */}
+      {/* 5. EXOTIC INDEXES (Coming Soon) */}
+      <ExoticIndexesSection />
+
+      {/* 6. WHY IT FEELS DIFFERENT */}
       <section id="why-different">
         <WhyDifferentSection />
       </section>

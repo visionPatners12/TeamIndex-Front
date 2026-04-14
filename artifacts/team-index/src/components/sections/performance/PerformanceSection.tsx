@@ -59,8 +59,7 @@ export const PerformanceSection: React.FC = () => (
           Team Index performance is driven by how the pool performs on Polymarket.
         </p>
 
-        {/* Highlight block with yellow left border */}
-        <div className=" py-1 flex flex-col gap-5">
+        <div className="py-1 flex flex-col gap-5">
           <p className="font-golos text-sm text-white/50">
             The pool can take positions on:
           </p>
@@ -68,13 +67,8 @@ export const PerformanceSection: React.FC = () => (
           <div className="flex flex-col gap-3">
             <CheckItem text="Upcoming team matches" />
             <CheckItem text="Team-related futures opportunities" />
-            <CheckItem text="The pool can take positions on:" />
+            <CheckItem text="Broader competition outcomes and season-level markets tied to the team" />
           </div>
-
-          <p className="font-golos text-sm text-white/50">
-            The pool can also take positions on broader competition outcomes and
-            season-level markets tied to the team.
-          </p>
         </div>
 
         <p className="font-golos text-sm text-white/40 leading-relaxed">
