@@ -4,25 +4,25 @@ import { ExoticIndexCard } from "./ExoticIndexCard";
 
 const EXOTIC_INDEXES = [
   {
-    name: "English Clubs",
-    symbol: "pENGL",
+    name: "NFL Powerhouse",
+    symbol: "pNFL",
     description:
-      "An index tracking English club performances in international competitions. Covers Champions League, Europa League, and Conference League futures and match markets.",
-    clubs: ["Arsenal", "Man City", "Liverpool", "Chelsea", "Man United"],
+      "An index tracking the top NFL franchises across regular season, playoffs, and Super Bowl futures markets. Back the league's elite contenders in one position.",
+    clubs: ["Chiefs", "Eagles", "49ers", "Bills", "Cowboys"],
   },
   {
-    name: "Top English Clubs",
-    symbol: "pTOP4",
+    name: "NBA Elite",
+    symbol: "pNBA",
     description:
-      "A concentrated index covering the top-performing English football clubs. Focused on Premier League title contenders and their domestic + European campaigns.",
-    clubs: ["Arsenal", "Man City", "Liverpool"],
+      "A concentrated index covering the NBA's top championship contenders. Covers regular season wins, playoff series, and Finals futures markets.",
+    clubs: ["Celtics", "Nuggets", "Lakers", "Bucks"],
   },
   {
-    name: "La Liga Elite",
-    symbol: "pLIGA",
+    name: "MLB Contenders",
+    symbol: "pMLB",
     description:
-      "Tracks the top Spanish clubs across La Liga and European competition markets. Covers both match outcomes and season-level futures.",
-    clubs: ["Real Madrid", "Barcelona", "Atletico Madrid"],
+      "Tracks the top MLB teams across World Series futures and pennant race markets. Covers both match outcomes and season-level performance.",
+    clubs: ["Dodgers", "Yankees", "Braves", "Astros"],
   },
 ];
 
