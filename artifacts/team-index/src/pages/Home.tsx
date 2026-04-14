@@ -58,7 +58,7 @@ export default function Home() {
       <HeroSection>
         <HeroTextBlock />
         <div className="hidden md:block">
-          <IndexCard />
+          <IndexCard pool={backendPools?.[0] ?? null} />
         </div>
       </HeroSection>
 
