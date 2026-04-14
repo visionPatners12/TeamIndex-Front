@@ -56,7 +56,7 @@ export const HeroTextBlock: React.FC = () => (
           className="w-5 h-5 rounded-full"
         />
         <span className="font-golos text-sm text-white/50">
-          Chiliz &nbsp;·&nbsp; Pay with CHZ & Fan Tokens on Chiliz Chain.
+          Supported by Chiliz
         </span>
       </div>
     </div>
