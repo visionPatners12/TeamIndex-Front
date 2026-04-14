@@ -67,6 +67,9 @@ export default function Home() {
         <HowItWorksSection />
       </section>
 
+      {/* 3b. VAULT ARCHITECTURE — Two deposit paths */}
+      <VaultArchitectureSection />
+
       {/* 4. LIVE TEAM INDEXES */}
       <section id="live-indexes">
         <LiveIndexesSection pools={livePools} onEnterPool={handleEnterPool} />
@@ -86,10 +89,7 @@ export default function Home() {
       {/* 7. WHY POLYMARKET */}
       <WhyPolymarketSection />
 
-      {/* 8. VAULT ARCHITECTURE */}
-      <VaultArchitectureSection />
-
-      {/* 9. SIMPLE ON THE SURFACE. SMART UNDERNEATH. */}
+      {/* 8. SIMPLE ON THE SURFACE. SMART UNDERNEATH. */}
       <SimpleSmartSection />
 
       {/* 9. FAQ */}
