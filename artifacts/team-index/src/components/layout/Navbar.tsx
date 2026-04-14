@@ -70,17 +70,27 @@ export const Navbar: React.FC = () => {
         }`}
       >
         <div className="w-full px-4 sm:px-6 lg:px-30 flex items-center justify-between">
-          {/* Logo */}
-          <button
-            className="flex items-center gap-2.5 shrink-0"
-            onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
-          >
-            <img
-              src={import.meta.env.BASE_URL + "images/logo_img.svg"}
-              alt="Team Index"
-              className="h-8 w-auto"
-            />
-          </button>
+          {/* Back arrow + Logo */}
+          <div className="flex items-center gap-2.5 shrink-0">
+            <a
+              href="https://pryzen.io"
+              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/10 transition-all"
+              title="Back to Pryzen"
+              aria-label="Back to Pryzen"
+            >
+              <ArrowLeft className="w-4 h-4 text-white/50 hover:text-white transition-colors" />
+            </a>
+            <button
+              className="flex items-center gap-2.5"
+              onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
+            >
+              <img
+                src={import.meta.env.BASE_URL + "images/logo_img.svg"}
+                alt="Team Index"
+                className="h-8 w-auto"
+              />
+            </button>
+          </div>
 
           {/* Desktop nav links — visible ≥1200px */}
           <div className="hidden min-[1200px]:flex items-center gap-7">
@@ -133,15 +143,6 @@ export const Navbar: React.FC = () => {
                 Login
               </GoldButton>
             )}
-
-            <button
-              onClick={() => window.history.back()}
-              className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/10 transition-all"
-              title="Back"
-              aria-label="Go back"
-            >
-              <ArrowLeft className="w-4 h-4 text-white/50 hover:text-white transition-colors" />
-            </button>
 
             {/* Hamburger — visible below 1200px */}
             <button
