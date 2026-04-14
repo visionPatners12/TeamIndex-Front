@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useLocation } from "wouter";
-import { Settings, Menu, X } from "lucide-react";
+import { ArrowLeft, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { GoldButton } from "@/components/ui/GoldButton";
@@ -134,13 +134,13 @@ export const Navbar: React.FC = () => {
               </GoldButton>
             )}
 
-            {/* Admin gear — always visible */}
             <button
-              onClick={() => navigate("/admin")}
+              onClick={() => window.history.back()}
               className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/10 transition-all"
-              title="Admin"
+              title="Back"
+              aria-label="Go back"
             >
-              <Settings className="w-4 h-4 text-white/40 hover:text-white transition-colors" />
+              <ArrowLeft className="w-4 h-4 text-white/50 hover:text-white transition-colors" />
             </button>
 
             {/* Hamburger — visible below 1200px */}
