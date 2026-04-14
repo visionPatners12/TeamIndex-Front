@@ -1,8 +1,17 @@
 import type { PoolData, LiveIndexPool } from "@/types/pool";
 
+export function fmtUsdShort(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
+  return `$${n.toFixed(0)}`;
+}
+
 /** Convert backend PoolData → LiveIndexPool for section components */
 export function toLiveIndexPool(p: PoolData): LiveIndexPool {
-  const fillPct = Math.min(100, Math.round((p.poolSize / p.poolCap) * 100));
+  const hasFiniteCap = !p.capUnlimited && p.poolCap > 0;
+  const fillPct = hasFiniteCap
+    ? Math.min(100, Math.round((p.poolSize / p.poolCap) * 100))
+    : 0;
   const statusMap: Record<PoolData["status"], LiveIndexPool["status"]> = {
     Open: "open",
     "Closing Soon": "closing soon",
@@ -17,8 +26,8 @@ export function toLiveIndexPool(p: PoolData): LiveIndexPool {
     change: p.change24h,
     holders: p.holders,
     poolFill: `${fillPct}%`,
-    poolSize: `$${(p.poolSize / 1000).toFixed(1)}K`,
-    poolCap: `$${(p.poolCap / 1000).toFixed(0)}K`,
+    poolSize: fmtUsdShort(p.poolSize),
+    poolCap: hasFiniteCap ? fmtUsdShort(p.poolCap) : "∞",
     tags: ["USDC / CHZ", "Gains Eligible", "Listing Soon"],
     disabled: p.status === "Closed",
   };

@@ -13,6 +13,7 @@ export interface PoolData {
   holders: number;
   sparklineData: number[];
   vaultAddress?: string;
+  capUnlimited?: boolean;
 }
 
 export interface LiveIndexPool {

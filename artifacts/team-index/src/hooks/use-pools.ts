@@ -15,19 +15,48 @@ export interface BackendPool {
   officialTokenPrice: string;
   status: string;
   createdAt: string;
+  holdersCount?: number;
+}
+
+function depositCapToHuman(raw: string): { cap: number; unlimited: boolean } {
+  const n = parseFloat(raw) || 0;
+  if (n <= 0 || n >= 1e18) return { cap: 0, unlimited: true };
+  return { cap: n / 1e6, unlimited: false };
+}
+
+function totalPoolValueToHuman(raw: string): number {
+  const value = parseFloat(raw) || 0;
+  if (value === 0) return 0;
+  if (raw.includes(".") && value < 1e6) return value;
+  return value / 1e6;
+}
+
+function tokenPriceUsdPerWholeShare(
+  officialTokenPrice: string,
+  totalPoolValue: string,
+  totalTokenSupply: string
+): number {
+  const price = parseFloat(officialTokenPrice) || 0;
+  if (price > 0 && price < 100) return price;
+  const navHuman = totalPoolValueToHuman(totalPoolValue);
+  const rawSupply = parseFloat(totalTokenSupply) || 0;
+  const supplyHuman = rawSupply / 1e6;
+  if (supplyHuman > 0) return navHuman / supplyHuman;
+  return 1.0;
 }
 
 export function mapToPoolData(p: BackendPool): PoolData {
-  const tokenValue = parseFloat(p.officialTokenPrice) || 1.0;
-  const poolSize = parseFloat(p.totalPoolValue) || 0;
-  const depositCap = parseFloat(p.depositCap) || 0;
-  // Convert USDC 6-decimal cap to human readable
-  const poolCap = depositCap > 0 ? depositCap / 1e6 : 200_000;
+  const tokenValue = tokenPriceUsdPerWholeShare(
+    p.officialTokenPrice,
+    p.totalPoolValue,
+    p.totalTokenSupply
+  );
+  const poolSize = totalPoolValueToHuman(p.totalPoolValue);
+  const { cap: poolCap, unlimited: capUnlimited } = depositCapToHuman(p.depositCap);
 
-  // Status from backend
   let status: PoolData["status"] = "Open";
   if (p.status === "PAUSED") status = "Closed";
-  else if (poolCap > 0 && poolSize / poolCap > 0.9) status = "Closing Soon";
+  else if (!capUnlimited && poolCap > 0 && poolSize / poolCap > 0.9) status = "Closing Soon";
 
   return {
     id: p.id,
@@ -38,9 +67,10 @@ export function mapToPoolData(p: BackendPool): PoolData {
     poolCap,
     tokenValue,
     change24h: 0,
-    holders: 0,
+    holders: p.holdersCount ?? 0,
     sparklineData: [tokenValue],
     vaultAddress: p.vaultAddress ?? undefined,
+    capUnlimited,
   };
 }
 

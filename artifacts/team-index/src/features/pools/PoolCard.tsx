@@ -4,12 +4,16 @@ import { Sparkline } from './Sparkline';
 import { Shield, TrendingUp, Users, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
+import { fmtUsdShort } from '@/utils/pool';
 
 export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: number; onEnter?: (pool: PoolData) => void }) {
   const isClosed = pool.status === 'Closed';
   const isClosingSoon = pool.status === 'Closing Soon';
+  const hasFiniteCap = !pool.capUnlimited && pool.poolCap > 0;
 
-  const progressPercentage = Math.min(100, (pool.poolSize / pool.poolCap) * 100);
+  const progressPercentage = hasFiniteCap
+    ? Math.min(100, (pool.poolSize / pool.poolCap) * 100)
+    : 0;
   const isPositive = pool.change24h >= 0;
 
   return (
@@ -91,7 +95,7 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
           <div className="flex justify-between text-xs mb-2">
             <span className="text-muted-foreground">Pool Fill</span>
             <span className="font-medium text-foreground">
-              ${(pool.poolSize / 1000).toFixed(1)}k / ${(pool.poolCap / 1000).toFixed(0)}k
+              {fmtUsdShort(pool.poolSize)} / {hasFiniteCap ? fmtUsdShort(pool.poolCap) : '∞'}
             </span>
           </div>
           <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
