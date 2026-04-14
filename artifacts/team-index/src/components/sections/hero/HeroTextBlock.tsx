@@ -1,6 +1,7 @@
 import React from "react";
 import { GradientHeading } from "@/components/ui/GradientHeading";
 import { GoldButton } from "@/components/ui/GoldButton";
+import chzLogo from "@assets/CHZ_1776150749884.png";
 
 export const HeroTextBlock: React.FC = () => (
   <div className="w-full xl:flex-1 xl:min-w-0 flex flex-col gap-6">
@@ -36,16 +37,28 @@ export const HeroTextBlock: React.FC = () => (
       </button>
     </div>
 
-    {/* Polymarket badge */}
-    <div className="flex items-center gap-2 mt-2">
-      <img
-        src={import.meta.env.BASE_URL + "icons/polymart.svg"}
-        alt="Polymarket"
-        className="w-5 h-5"
-      />
-      <span className="font-golos text-sm text-white/50">
-        Polymarket &nbsp;·&nbsp; Powered by Polymarket. Built for fans.
-      </span>
+    {/* Partner badges */}
+    <div className="flex flex-col gap-2 mt-2">
+      <div className="flex items-center gap-2">
+        <img
+          src={import.meta.env.BASE_URL + "icons/polymart.svg"}
+          alt="Polymarket"
+          className="w-5 h-5"
+        />
+        <span className="font-golos text-sm text-white/50">
+          Polymarket &nbsp;·&nbsp; Powered by Polymarket. Built for fans.
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <img
+          src={chzLogo}
+          alt="Chiliz"
+          className="w-5 h-5 rounded-full"
+        />
+        <span className="font-golos text-sm text-white/50">
+          Chiliz &nbsp;·&nbsp; Pay with CHZ & Fan Tokens on Chiliz Chain.
+        </span>
+      </div>
     </div>
   </div>
 );

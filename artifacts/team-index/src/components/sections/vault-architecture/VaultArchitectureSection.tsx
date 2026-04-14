@@ -2,6 +2,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { GradientHeading } from "@/components/ui/GradientHeading";
 import { ANIMATION, staggerDelay } from "@/utils/animation";
+import chzLogo from "@assets/CHZ_1776150749884.png";
+import afcLogo from "@assets/AFC_1776150749882.png";
+import barLogo from "@assets/BAR_1776150749883.png";
+import acmLogo from "@assets/ACM_1776150749863.png";
+import cityLogo from "@assets/CITY_1776150749884.png";
 
 const UsdcIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24">
@@ -25,10 +30,7 @@ const PolygonIcon = () => (
 );
 
 const ChilizIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="9" fill="#CD0124" />
-    <path fill="#fff" d="M14.5 7.5c-.4-.6-1.2-.9-1.8-.5-.3.2-.5.5-.5.9 0 .5.3 1 .7 1.3.8.6 1.5 1.4 1.8 2.4.4 1.2.2 2.5-.5 3.5-.5.7-1.2 1.2-2 1.5-.6.2-1.2.3-1.8.2-.4 0-.7-.2-.9-.5-.2-.3-.1-.7.2-.9.2-.1.4-.1.6 0 .3.1.7.1 1-.1.5-.2.9-.5 1.2-.9.5-.7.6-1.6.3-2.4-.2-.5-.5-1-1-1.4-.6-.5-1-1.2-1-2 0-.9.5-1.7 1.2-2.1 1.1-.7 2.5-.4 3.2.7.1.2.2.4.3.7z" />
-  </svg>
+  <img src={chzLogo} alt="Chiliz" className="w-10 h-10 rounded-full" />
 );
 
 const ArrowConnector = () => {
@@ -71,13 +73,20 @@ const CARDS = [
   },
   {
     icon: <ChilizIcon />,
-    title: "Wrapped on Chiliz",
-    description: "A wrapped version of PTeam Index tokens is available on Chiliz Chain — bridging sports DeFi to the fan token ecosystem.",
+    title: "Pay with CHZ & Fan Tokens",
+    description: "Enter pools with CHZ or your favorite Fan Tokens — $AFC, $BAR, $ACM, $CITY and more. A wrapped PTeam Index token is minted on Chiliz Chain.",
     color: "#CD0124",
     colorLight: "rgba(205, 1, 36, 0.12)",
     colorBorder: "rgba(205, 1, 36, 0.3)",
-    tag: "Wrapped Token",
+    tag: "Fan Token Payments",
   },
+];
+
+const FAN_TOKENS = [
+  { src: afcLogo, alt: "$AFC" },
+  { src: barLogo, alt: "$BAR" },
+  { src: acmLogo, alt: "$ACM" },
+  { src: cityLogo, alt: "$CITY" },
 ];
 
 export const VaultArchitectureSection: React.FC = () => (
@@ -135,6 +144,16 @@ export const VaultArchitectureSection: React.FC = () => (
               <p className="font-golos text-sm text-white/40 leading-relaxed max-w-xs">
                 {card.description}
               </p>
+
+              {card.tag === "Fan Token Payments" && (
+                <div className="flex items-center gap-2 mt-1">
+                  <img src={chzLogo} alt="CHZ" className="w-7 h-7 rounded-full ring-1 ring-white/10" />
+                  {FAN_TOKENS.map((t) => (
+                    <img key={t.alt} src={t.src} alt={t.alt} className="w-7 h-7 rounded-full ring-1 ring-white/10" />
+                  ))}
+                  <span className="font-golos text-[10px] text-white/30 ml-1">+ more</span>
+                </div>
+              )}
             </motion.div>
           </React.Fragment>
         ))}
@@ -146,7 +165,7 @@ export const VaultArchitectureSection: React.FC = () => (
       >
         <span className="text-white/20 text-lg">💡</span>
         <p className="font-golos text-xs sm:text-sm text-white/30 leading-relaxed text-center sm:text-left">
-          Deposits in USDC on Polygon are direct. Deposits in CHZ on Chiliz go through a cross-chain bridge to mint wrapped PTeam Index tokens.
+          Deposits in USDC on Polygon are direct. Deposits in CHZ or Fan Tokens on Chiliz go through a cross-chain bridge to mint wrapped PTeam Index tokens.
         </p>
       </motion.div>
     </div>
