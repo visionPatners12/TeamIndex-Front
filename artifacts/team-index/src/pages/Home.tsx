@@ -20,6 +20,7 @@ import { WhyDifferentSection } from "@/components/sections/why-different/WhyDiff
 import { ExoticIndexesSection } from "@/components/sections/exotic-indexes/ExoticIndexesSection";
 import { MarketplaceSection } from "@/components/sections/marketplace/MarketplaceSection";
 import { WhyPolymarketSection } from "@/components/sections/why-polymarket/WhyPolymarketSection";
+import { VaultArchitectureSection } from "@/components/sections/vault-architecture/VaultArchitectureSection";
 import { SimpleSmartSection } from "@/components/sections/simple-smart/SimpleSmartSection";
 import { FaqSection } from "@/components/sections/faq/FaqSection";
 import { CtaSection } from "@/components/layout/CtaSection";
@@ -85,7 +86,10 @@ export default function Home() {
       {/* 7. WHY POLYMARKET */}
       <WhyPolymarketSection />
 
-      {/* 8. SIMPLE ON THE SURFACE. SMART UNDERNEATH. */}
+      {/* 8. VAULT ARCHITECTURE */}
+      <VaultArchitectureSection />
+
+      {/* 9. SIMPLE ON THE SURFACE. SMART UNDERNEATH. */}
       <SimpleSmartSection />
 
       {/* 9. FAQ */}
