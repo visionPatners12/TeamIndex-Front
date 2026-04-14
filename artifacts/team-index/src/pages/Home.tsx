@@ -49,6 +49,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0D0A06] selection:bg-[#FEB413]/30 selection:text-white">
+      <div className="w-full bg-[#FEB413] text-[#0D0A06] text-center py-1.5 font-jura font-bold text-xs sm:text-sm uppercase tracking-widest">
+        ⚠️ Mainnet Test — This is a live test environment
+      </div>
       <Navbar />
 
       {/* 1. HERO */}
