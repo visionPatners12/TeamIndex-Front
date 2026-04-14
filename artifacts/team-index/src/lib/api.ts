@@ -118,6 +118,15 @@ export const api = {
       body: JSON.stringify({ assets, receiver }),
     }),
 
+  confirmPoolDeposit: (poolId: string, txHash: string) =>
+    apiFetch<{ ok: boolean; pool: PoolResponse["pool"] & { holdersCount?: number } }>(
+      `/pools/${poolId}/deposit/confirm`,
+      {
+        method: "POST",
+        body: JSON.stringify({ txHash }),
+      }
+    ),
+
   prepareMint: (poolId: string, shares: string, receiver: string) =>
     apiFetch<TxResponse>(`/pools/${poolId}/tx/mint`, {
       method: "POST",

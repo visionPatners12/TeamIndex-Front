@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Info, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
 import { truncateAddr } from '@/utils/address';
@@ -71,6 +72,7 @@ function statusLabel(s: TxStatus): string {
 }
 
 export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: DepositModalProps) {
+  const queryClient = useQueryClient();
   const [network, setNetwork] = useState<Network>('polygon');
   const [amount, setAmount] = useState('');
   const [step, setStep] = useState<Step>('select');
@@ -100,6 +102,20 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     };
   }, [onClose]);
 
+  const refreshPoolViews = useCallback(async () => {
+    if (!pool) return;
+    await queryClient.invalidateQueries({ queryKey: ["pools"] });
+    await queryClient.invalidateQueries({ queryKey: ["pool", pool.id] });
+    await queryClient.refetchQueries({ queryKey: ["pools"] });
+    await queryClient.refetchQueries({ queryKey: ["pool", pool.id] });
+    const bump = () => {
+      void queryClient.invalidateQueries({ queryKey: ["pools"] });
+      void queryClient.invalidateQueries({ queryKey: ["pool", pool.id] });
+    };
+    setTimeout(bump, 3000);
+    setTimeout(bump, 12_000);
+  }, [pool, queryClient]);
+
   const handleDeposit = useCallback(async () => {
     if (!pool || !walletAddress || !isValidAmount) return;
 
@@ -112,19 +128,28 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
         const { tx } = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
         const hash = await polygonHook.deposit(tx.to, rawAmount, tx);
         setFinalTxHash(hash ?? null);
+        if (hash) {
+          try {
+            await api.confirmPoolDeposit(pool.id, hash);
+          } catch (e) {
+            console.warn("POST /pools/:id/deposit/confirm failed", e);
+          }
+        }
+        await refreshPoolViews();
         setStep('success');
       } else {
         const rawAmount = BigInt(Math.floor(numAmount * 10 ** config.decimals));
         const { tx, receiverAddress } = await api.prepareChilizDepositChz(pool.id);
         const hash = await chilizHook.depositCHZ(receiverAddress, '', tx, rawAmount.toString());
         setFinalTxHash(hash ?? null);
+        await refreshPoolViews();
         setStep('success');
       }
     } catch (err: any) {
       setDepositError(err.message || 'Transaction failed');
       setStep('error');
     }
-  }, [pool, walletAddress, isValidAmount, network, numAmount, config.decimals, polygonHook, chilizHook]);
+  }, [pool, walletAddress, isValidAmount, network, numAmount, config.decimals, polygonHook, chilizHook, refreshPoolViews]);
 
   const handleReset = () => {
     setNetwork('polygon');

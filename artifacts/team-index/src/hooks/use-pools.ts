@@ -24,14 +24,14 @@ function depositCapToHuman(raw: string): { cap: number; unlimited: boolean } {
   return { cap: n / 1e6, unlimited: false };
 }
 
-function totalPoolValueToHuman(raw: string): number {
+export function totalPoolValueToHuman(raw: string): number {
   const value = parseFloat(raw) || 0;
   if (value === 0) return 0;
   if (raw.includes(".") && value < 1e6) return value;
   return value / 1e6;
 }
 
-function tokenPriceUsdPerWholeShare(
+export function tokenPriceUsdPerWholeShare(
   officialTokenPrice: string,
   totalPoolValue: string,
   totalTokenSupply: string
