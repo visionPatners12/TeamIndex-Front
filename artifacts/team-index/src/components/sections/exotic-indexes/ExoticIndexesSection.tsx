@@ -6,6 +6,7 @@ const EXOTIC_INDEXES = [
   {
     name: "NFL Powerhouse",
     symbol: "pNFL",
+    emoji: "🏈",
     description:
       "An index tracking the top NFL franchises across regular season, playoffs, and Super Bowl futures markets. Back the league's elite contenders in one position.",
     clubs: ["Chiefs", "Eagles", "49ers", "Bills", "Cowboys"],
@@ -13,6 +14,7 @@ const EXOTIC_INDEXES = [
   {
     name: "NBA Elite",
     symbol: "pNBA",
+    emoji: "🏀",
     description:
       "A concentrated index covering the NBA's top championship contenders. Covers regular season wins, playoff series, and Finals futures markets.",
     clubs: ["Celtics", "Nuggets", "Lakers", "Bucks"],
@@ -20,6 +22,7 @@ const EXOTIC_INDEXES = [
   {
     name: "MLB Contenders",
     symbol: "pMLB",
+    emoji: "⚾",
     description:
       "Tracks the top MLB teams across World Series futures and pennant race markets. Covers both match outcomes and season-level performance.",
     clubs: ["Dodgers", "Yankees", "Braves", "Astros"],
@@ -36,7 +39,7 @@ export const ExoticIndexesSection: React.FC = () => (
             className="text-[38px] sm:text-[52px] lg:text-[63px] leading-[108%]"
             style={{ letterSpacing: "0.8px" }}
           >
-            EXOTIC INDEXES
+            🌴 EXOTIC INDEXES
           </GradientHeading>
           <span className="px-4 py-1.5 rounded-full bg-[#FEB413]/15 border border-[#FEB413]/30 font-jura text-xs font-bold text-[#FEB413] uppercase tracking-wider self-center">
             Coming Soon
@@ -50,12 +53,13 @@ export const ExoticIndexesSection: React.FC = () => (
       </div>
     </div>
 
-    <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 items-stretch">
+    <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
       {EXOTIC_INDEXES.map((idx) => (
         <ExoticIndexCard
           key={idx.symbol}
           name={idx.name}
           symbol={idx.symbol}
+          emoji={idx.emoji}
           description={idx.description}
           clubs={idx.clubs}
         />
