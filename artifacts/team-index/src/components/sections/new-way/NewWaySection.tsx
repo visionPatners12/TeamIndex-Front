@@ -25,7 +25,7 @@ export const NewWaySection: React.FC = () => (
       />
       <FeatureCard
         icon={import.meta.env.BASE_URL + "icons/anw02.svg"}
-        title="MATCH MARKETS"
+        title="FUTURES MARKETS"
         description="Longer-term positions tied to the team's broader season path, momentum, or performance outlook."
       />
     </div>
