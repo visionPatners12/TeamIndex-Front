@@ -9,11 +9,12 @@ import { fmtUsdShort } from '@/utils/pool';
 export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: number; onEnter?: (pool: PoolData) => void }) {
   const isClosed = pool.status === 'Closed';
   const isClosingSoon = pool.status === 'Closing Soon';
-  const hasFiniteCap = !pool.capUnlimited && pool.poolCap > 0;
+  const hasFiniteCap = Number.isFinite(pool.poolCap) && pool.poolCap > 0;
+  const capUnlimited = pool.capUnlimited === true || !hasFiniteCap;
 
-  const progressPercentage = hasFiniteCap
-    ? Math.min(100, (pool.poolSize / pool.poolCap) * 100)
-    : 0;
+  const progressPercentage = !hasFiniteCap
+    ? 0
+    : Math.min(100, (pool.poolSize / pool.poolCap) * 100);
   const isPositive = pool.change24h >= 0;
 
   return (
@@ -95,7 +96,7 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
           <div className="flex justify-between text-xs mb-2">
             <span className="text-muted-foreground">Pool Fill</span>
             <span className="font-medium text-foreground">
-              {fmtUsdShort(pool.poolSize)} / {hasFiniteCap ? fmtUsdShort(pool.poolCap) : '∞'}
+              {fmtUsdShort(pool.poolSize)} / {capUnlimited ? '∞' : fmtUsdShort(pool.poolCap)}
             </span>
           </div>
           <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">

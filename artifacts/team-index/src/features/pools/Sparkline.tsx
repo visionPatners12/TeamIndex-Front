@@ -17,17 +17,21 @@ export function Sparkline({
 }: SparklineProps) {
   if (!data || data.length === 0) return null;
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  const clean = data.map((v) => (Number.isFinite(v) ? v : 0));
+  if (clean.length === 0) return null;
+
+  const min = Math.min(...clean);
+  const max = Math.max(...clean);
   const range = max - min || 1;
 
   const padding = 2;
   const graphWidth = width - padding * 2;
   const graphHeight = height - padding * 2;
+  const xDenom = Math.max(1, clean.length - 1);
 
-  const points = data
+  const points = clean
     .map((val, i) => {
-      const x = padding + (i / (data.length - 1)) * graphWidth;
+      const x = padding + (i / xDenom) * graphWidth;
       const y = height - padding - ((val - min) / range) * graphHeight;
       return `${x},${y}`;
     })

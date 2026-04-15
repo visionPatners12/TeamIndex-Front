@@ -41,7 +41,8 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
   disabled = false,
   onEnter,
 }) => {
-  const fillPercent = poolFill ? parseFloat(poolFill) : 0;
+  const fillPercent = poolFill != null && poolFill !== "" ? parseFloat(poolFill) : NaN;
+  const barWidth = Number.isFinite(fillPercent) ? fillPercent : 0;
   const cfg = statusConfig[status];
   const isClosed = status === "closed";
 
@@ -112,7 +113,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
         <div className="w-full h-2 bg-[#232323] rounded-full overflow-hidden">
           <div
             className="h-2 bg-[#FEB413] rounded-full transition-all"
-            style={{ width: `${fillPercent || 71}%` }}
+            style={{ width: `${Math.min(100, Math.max(0, barWidth))}%` }}
           />
         </div>
       </div>
