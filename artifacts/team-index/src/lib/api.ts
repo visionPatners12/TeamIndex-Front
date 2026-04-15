@@ -118,6 +118,7 @@ export const api = {
       body: JSON.stringify({ assets, receiver }),
     }),
 
+  /** After on-chain deposit succeeds: ingest tx into DB + refresh pool totals (small RPC read). */
   confirmPoolDeposit: (poolId: string, txHash: string) =>
     apiFetch<{ ok: boolean; pool: PoolResponse["pool"] & { holdersCount?: number } }>(
       `/pools/${poolId}/deposit/confirm`,
