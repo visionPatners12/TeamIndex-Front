@@ -40,7 +40,7 @@ const FAN_TOKEN_MAP: Record<string, { name: string; symbol: string; logo: string
 };
 
 function getFanTokenForPool(symbol: string) {
-  const clean = symbol.replace(/^p/, '').toUpperCase();
+  const clean = symbol.replace(/^[\$]?p?/i, '').toUpperCase();
   return FAN_TOKEN_MAP[clean] ?? null;
 }
 
@@ -290,11 +290,11 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                           <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-[#FEB413]/20 border border-[#FEB413]/30">
                             <span className="font-jura font-bold text-[8px] uppercase tracking-wider text-[#FEB413]">Soon</span>
                           </div>
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-1.5">
                             <img src={fanToken.logo} alt={fanToken.symbol} className="w-[22px] h-[22px] rounded-full" />
                             <span className="font-jura font-bold text-sm text-white">{fanToken.symbol}</span>
                           </div>
-                          <p className="text-[10px] font-golos text-white/40 leading-tight">Chiliz Chain</p>
+                          <p className="text-[10px] font-golos text-white/40 leading-tight truncate">{fanToken.name}</p>
                           <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider text-white/20">→ Fan Token</p>
                         </div>
                       )}
