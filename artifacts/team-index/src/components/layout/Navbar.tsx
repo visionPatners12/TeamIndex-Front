@@ -91,7 +91,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                 className="h-7 w-auto"
                 style={{ clipPath: 'inset(0 83% 0 0)' }}
               />
-              <div className="flex flex-col items-start leading-none -ml-5">
+              <div className="flex flex-col items-start leading-none -ml-[26px]">
                 <span className="font-jura font-bold text-white text-sm tracking-wide">Pryzen</span>
                 <div className="flex items-center gap-1">
                   <span className="font-jura text-[10px] text-white/40 tracking-wide">Team Index</span>
