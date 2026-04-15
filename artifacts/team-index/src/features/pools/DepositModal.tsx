@@ -258,11 +258,11 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">1. Choose your entry token</p>
 
                     <div className={cn("grid gap-3 mb-4", fanToken ? "grid-cols-3" : "grid-cols-2")}>
-                      {(['polygon', 'chiliz'] as Network[]).map((net) => {
-                        const c = NETWORK_CONFIG[net];
-                        const active = network === net;
+                      {(() => {
+                        const c = NETWORK_CONFIG['polygon'];
+                        const active = network === 'polygon';
                         return (
-                          <button key={net} onClick={() => { setNetwork(net); setAmount(''); }}
+                          <button key="polygon" onClick={() => { setNetwork('polygon'); setAmount(''); }}
                             className={cn('relative p-3.5 rounded-xl border text-left transition-all duration-200',
                               active ? '' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20'
                             )}
@@ -270,18 +270,26 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                           >
                             {active && <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background: c.color }} />}
                             <div className="flex items-center gap-2 mb-2">
-                              {net === 'polygon' ? (
-                                <UsdcIcon size={22} />
-                              ) : (
-                                <img src={chzLogo} alt="CHZ" className="w-[22px] h-[22px] rounded-full" />
-                              )}
+                              <UsdcIcon size={22} />
                               <span className="font-jura font-bold text-sm text-white">{c.asset}</span>
                             </div>
                             <p className="text-[10px] font-golos text-white/40 leading-tight">{c.chain}</p>
                             <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider" style={{ color: c.color }}>→ {c.receives}</p>
                           </button>
                         );
-                      })}
+                      })()}
+
+                      <div className="relative p-3.5 rounded-xl border border-white/10 bg-white/[0.02] opacity-50 cursor-not-allowed select-none">
+                        <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-[#FEB413]/20 border border-[#FEB413]/30">
+                          <span className="font-jura font-bold text-[8px] uppercase tracking-wider text-[#FEB413]">Soon</span>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <img src={chzLogo} alt="CHZ" className="w-[22px] h-[22px] rounded-full" />
+                          <span className="font-jura font-bold text-sm text-white">CHZ</span>
+                        </div>
+                        <p className="text-[10px] font-golos text-white/40 leading-tight">Chiliz Chain</p>
+                        <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider text-white/20">→ Wrapped pToken</p>
+                      </div>
 
                       {fanToken && (
                         <div
