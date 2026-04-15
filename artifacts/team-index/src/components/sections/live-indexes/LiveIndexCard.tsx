@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export type LiveIndexStatus = "open" | "closing soon" | "closed";
 
@@ -6,23 +7,17 @@ export type LiveIndexCardProps = {
   teamName: string;
   teamLogoUrl?: string;
   indexValue: number;
-  change: number; // e.g. +2.5 or -1.3
+  change: number;
   status: LiveIndexStatus;
   symbol?: string;
   holders?: number;
-  poolFill?: string; // e.g. "71%"
-  poolCap?: string; // e.g. "$200K"
-  poolSize?: string; // e.g. "$142.5K"
+  poolFill?: string;
+  poolCap?: string;
+  poolSize?: string;
   tags?: string[];
   buttonLabel?: string;
   disabled?: boolean;
   onEnter?: () => void;
-};
-
-const statusConfig: Record<LiveIndexStatus, { label: string; dotColor: string; textColor: string }> = {
-  open: { label: "open", dotColor: "bg-green-500", textColor: "text-green-400" },
-  "closing soon": { label: "closing soon", dotColor: "bg-yellow-400", textColor: "text-yellow-400" },
-  closed: { label: "closed", dotColor: "bg-red-500", textColor: "text-red-400" },
 };
 
 export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
@@ -41,20 +36,27 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
   disabled = false,
   onEnter,
 }) => {
+  const { t } = useTranslation();
   const fillPercent = poolFill != null && poolFill !== "" ? parseFloat(poolFill) : NaN;
   const barWidth = Number.isFinite(fillPercent) ? fillPercent : 0;
-  const cfg = statusConfig[status];
   const isClosed = status === "closed";
 
+  const statusConfig: Record<LiveIndexStatus, { label: string; dotColor: string; textColor: string }> = {
+    open: { label: t('liveIndexes.open'), dotColor: "bg-green-500", textColor: "text-green-400" },
+    "closing soon": { label: t('liveIndexes.closingSoon'), dotColor: "bg-yellow-400", textColor: "text-yellow-400" },
+    closed: { label: t('liveIndexes.closed'), dotColor: "bg-red-500", textColor: "text-red-400" },
+  };
+
+  const cfg = statusConfig[status];
+
   const resolvedButtonLabel =
-    buttonLabel ?? (isClosed ? "Pool Closed" : status === "closing soon" ? "Enter Before Close" : "Enter Pool");
+    buttonLabel ?? (isClosed ? t('liveIndexes.poolClosed') : status === "closing soon" ? t('liveIndexes.enterBeforeClose') : t('liveIndexes.enterPool'));
 
   return (
     <div
       className="flex flex-col rounded-[10px] border border-[#232323] bg-[#18140F] p-5 sm:p-[25px] w-full min-h-[340px] sm:min-h-[390px] gap-4 sm:gap-5"
       style={{ boxShadow: "0 2px 16px 0 rgba(0,0,0,0.25)" }}
     >
-      {/* Header */}
       <div className="flex items-center gap-3">
         {teamLogoUrl ? (
           <img
@@ -80,10 +82,9 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
         </div>
       </div>
 
-      {/* Token Value & Holders */}
       <div className="flex gap-2 sm:gap-3 w-full">
         <div className="flex-1 bg-[#23201A] min-h-[69px] rounded-lg px-2 sm:px-2.5 py-2 flex flex-col items-start min-w-0">
-          <span className="text-[#B3B3B3] text-xs font-medium mb-1">TOKEN VALUE</span>
+          <span className="text-[#B3B3B3] text-xs font-medium mb-1">{t('liveIndexes.tokenValue')}</span>
           <div className="mt-2 flex justify-between w-full items-center">
             <span className="text-white text-base font-bold">${indexValue.toFixed(2)}</span>
             <span className={`text-xs font-semibold ${change >= 0 ? "text-[#3FC86A]" : "text-[#FF5A5A]"}`}>
@@ -93,7 +94,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
           </div>
         </div>
         <div className="flex-1 bg-[#23201A] rounded-lg px-2 sm:px-2.5 py-2 flex flex-col items-start min-w-0">
-          <span className="text-[#B3B3B3] text-xs font-medium mb-1">HOLDERS</span>
+          <span className="text-[#B3B3B3] text-xs font-medium mb-1">{t('liveIndexes.holders')}</span>
           <div className="mt-2 flex items-center justify-between w-full">
             <span className="text-white text-base font-bold">{holders ?? "--"}</span>
             <img src={import.meta.env.BASE_URL + "icons/signal.svg"} alt=""/>
@@ -101,10 +102,9 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
         </div>
       </div>
 
-      {/* Pool Fill */}
       <div className="flex flex-col gap-1.5 w-full">
         <div className="flex items-center justify-between text-xs text-[#B3B3B3] font-medium">
-          <span>POOL FILL</span>
+          <span>{t('liveIndexes.poolFill')}</span>
           <span>
             <span className="text-white font-bold">{poolSize ?? "$142.5K"}</span>
             <span className="text-[#B3B3B3] font-normal"> / {poolCap ?? "$200K"}</span>
@@ -118,7 +118,6 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
         </div>
       </div>
 
-      {/* Tags */}
       <div className="flex flex-wrap gap-2 w-full">
         {tags.map((tag, i) => {
           const icon =
@@ -139,7 +138,6 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
         })}
       </div>
 
-      {/* CTA Button */}
       <button
         className={`w-full h-10 mt-auto rounded-full text-base font-semibold transition-all ${
           disabled || isClosed

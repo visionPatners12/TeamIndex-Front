@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Info, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation, Trans } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
 import { truncateAddr } from '@/utils/address';
@@ -53,8 +54,6 @@ const NETWORK_CONFIG = {
     colorLight: 'rgba(130, 71, 229, 0.15)',
     colorBorder: 'rgba(130, 71, 229, 0.3)',
     chain: 'Polygon PoS',
-    receives: 'Core Token',
-    receiveDesc: 'You receive the core Team Index token on Polygon. Signed & sent from your wallet.',
     minAmount: 0.1,
     maxAmount: 100000,
     placeholder: '100',
@@ -69,8 +68,6 @@ const NETWORK_CONFIG = {
     colorLight: 'rgba(205, 1, 36, 0.12)',
     colorBorder: 'rgba(205, 1, 36, 0.3)',
     chain: 'Chiliz Chain',
-    receives: 'Wrapped Token',
-    receiveDesc: 'You receive a wrapped Pryzen Team Index token on Chiliz Chain after cross-chain processing.',
     minAmount: 1,
     maxAmount: 1000000,
     placeholder: '500',
@@ -84,17 +81,8 @@ const PRESET_AMOUNTS: Record<Network, number[]> = {
   chiliz: [500, 1000, 5000, 10000],
 };
 
-function statusLabel(s: TxStatus): string {
-  switch (s) {
-    case 'switching':   return 'Switching network…';
-    case 'approving':   return 'Approve token in wallet…';
-    case 'sending':     return 'Confirm deposit in wallet…';
-    case 'confirming':  return 'Waiting for confirmation…';
-    default:            return '';
-  }
-}
-
 export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: DepositModalProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [network, setNetwork] = useState<Network>('polygon');
   const [amount, setAmount] = useState('');
@@ -116,6 +104,19 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const vaultReady = network === 'chiliz' || !!pool?.vaultAddress;
 
   const fanToken = pool ? getFanTokenForPool(pool.symbol) : null;
+
+  const receives = network === 'polygon' ? t('deposit.coreToken') : t('deposit.wrappedToken');
+  const receiveDesc = network === 'polygon' ? t('deposit.receiveDescPolygon') : t('deposit.receiveDescChiliz');
+
+  function statusLabel(s: TxStatus): string {
+    switch (s) {
+      case 'switching':   return t('deposit.statusSwitching');
+      case 'approving':   return t('deposit.statusApproving');
+      case 'sending':     return t('deposit.statusSending');
+      case 'confirming':  return t('deposit.statusConfirming');
+      default:            return '';
+    }
+  }
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -230,7 +231,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                 </div>
                 <div>
                   <h2 className="font-jura font-bold text-white text-base leading-tight">{pool.team}</h2>
-                  <p className="text-xs font-golos text-white/40">${pool.symbol} · ${pool.tokenValue.toFixed(2)} per token</p>
+                  <p className="text-xs font-golos text-white/40">${pool.symbol} · ${pool.tokenValue.toFixed(2)} {t('deposit.perToken')}</p>
                 </div>
               </div>
               <button
@@ -248,14 +249,14 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                   <motion.div key="select" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.18 }}>
                     {!walletAddress && onConnectWallet && (
                       <div className="flex items-center justify-between gap-3 bg-[#FEB413]/10 border border-[#FEB413]/20 p-3 rounded-xl mb-5 text-xs text-[#FEB413]/90 font-golos">
-                        <span>Connect your wallet to enter the pool</span>
+                        <span>{t('deposit.connectWallet')}</span>
                         <button onClick={onConnectWallet} className="shrink-0 px-3 py-1.5 rounded-lg bg-[#FEB413]/20 hover:bg-[#FEB413]/30 border border-[#FEB413]/30 text-[#FEB413] font-jura font-semibold transition-colors">
-                          Connect
+                          {t('deposit.connect')}
                         </button>
                       </div>
                     )}
 
-                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">1. Choose your entry token</p>
+                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">{t('deposit.chooseToken')}</p>
 
                     <div className={cn("grid gap-3 mb-4", fanToken ? "grid-cols-3" : "grid-cols-2")}>
                       {(() => {
@@ -274,21 +275,21 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                               <span className="font-jura font-bold text-sm text-white">{c.asset}</span>
                             </div>
                             <p className="text-[10px] font-golos text-white/40 leading-tight">{c.chain}</p>
-                            <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider" style={{ color: c.color }}>→ {c.receives}</p>
+                            <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider" style={{ color: c.color }}>→ {t('deposit.coreToken')}</p>
                           </button>
                         );
                       })()}
 
                       <div className="relative p-3.5 rounded-xl border border-white/10 bg-white/[0.02] opacity-50 cursor-not-allowed select-none">
                         <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-[#FEB413]/20 border border-[#FEB413]/30">
-                          <span className="font-jura font-bold text-[8px] uppercase tracking-wider text-[#FEB413]">Soon</span>
+                          <span className="font-jura font-bold text-[8px] uppercase tracking-wider text-[#FEB413]">{t('deposit.soon')}</span>
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           <img src={chzLogo} alt="CHZ" className="w-[22px] h-[22px] rounded-full" />
                           <span className="font-jura font-bold text-sm text-white">CHZ</span>
                         </div>
                         <p className="text-[10px] font-golos text-white/40 leading-tight">Chiliz Chain</p>
-                        <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider text-white/20">→ Wrapped pToken</p>
+                        <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider text-white/20">→ {t('deposit.wrappedPToken')}</p>
                       </div>
 
                       {fanToken && (
@@ -296,24 +297,24 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                           className="relative p-3.5 rounded-xl border border-white/10 bg-white/[0.02] opacity-50 cursor-not-allowed select-none"
                         >
                           <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-[#FEB413]/20 border border-[#FEB413]/30">
-                            <span className="font-jura font-bold text-[8px] uppercase tracking-wider text-[#FEB413]">Soon</span>
+                            <span className="font-jura font-bold text-[8px] uppercase tracking-wider text-[#FEB413]">{t('deposit.soon')}</span>
                           </div>
                           <div className="flex items-center gap-2 mb-1.5">
                             <img src={fanToken.logo} alt={fanToken.symbol} className="w-[22px] h-[22px] rounded-full" />
                             <span className="font-jura font-bold text-sm text-white">{fanToken.symbol}</span>
                           </div>
                           <p className="text-[10px] font-golos text-white/40 leading-tight truncate">{fanToken.name}</p>
-                          <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider text-white/20">→ Fan Token</p>
+                          <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider text-white/20">→ {t('deposit.fanToken')}</p>
                         </div>
                       )}
                     </div>
 
                     <div className="flex gap-3 p-3 rounded-xl mb-5 text-xs font-golos" style={{ background: config.colorLight, border: `1px solid ${config.colorBorder}` }}>
                       <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: config.color }} />
-                      <p className="text-white/60 leading-relaxed">{config.receiveDesc}</p>
+                      <p className="text-white/60 leading-relaxed">{receiveDesc}</p>
                     </div>
 
-                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">2. Enter amount</p>
+                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">{t('deposit.enterAmount')}</p>
 
                     <div className="relative rounded-xl border overflow-hidden mb-3 transition-all" style={{ borderColor: amount ? config.colorBorder : 'rgba(255,255,255,0.1)' }}>
                       <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={config.placeholder} min={config.minAmount} max={config.maxAmount}
@@ -340,17 +341,17 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     {numAmount > 0 && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-5">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-golos text-white/40">You send</span>
+                          <span className="text-xs font-golos text-white/40">{t('deposit.youSend')}</span>
                           <span className="text-sm font-mono text-white">≈ ${usdValue.toFixed(4)}</span>
                         </div>
                         {FEE_PCT > 0 && (
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs font-golos text-white/40">Protocol fee ({(FEE_PCT * 100).toFixed(0)}%)</span>
+                            <span className="text-xs font-golos text-white/40">{t('deposit.protocolFee', { pct: (FEE_PCT * 100).toFixed(0) })}</span>
                             <span className="text-sm font-mono text-red-400">− ${(usdValue * FEE_PCT).toFixed(4)}</span>
                           </div>
                         )}
                         <div className="flex justify-between items-center pt-2 border-t border-white/[0.06]">
-                          <span className="text-xs font-golos text-white/40">Estimated tokens</span>
+                          <span className="text-xs font-golos text-white/40">{t('deposit.estimatedTokens')}</span>
                           <span className="text-sm font-mono font-bold text-white">
                             {tokensReceived.toFixed(4)} <span className="text-white/30 text-xs">${pool.symbol}</span>
                           </span>
@@ -360,14 +361,14 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
 
                     {numAmount > 0 && !isValidAmount && (
                       <p className="text-xs font-golos text-red-400 mb-4">
-                        Min: {config.minAmount.toLocaleString()} {config.asset} · Max: {config.maxAmount.toLocaleString()} {config.asset}
+                        {t('deposit.minMax', { min: config.minAmount.toLocaleString(), max: config.maxAmount.toLocaleString(), asset: config.asset })}
                       </p>
                     )}
 
                     {!vaultReady && (
                       <div className="flex items-center gap-2 p-3 rounded-xl bg-[#FEB413]/10 border border-[#FEB413]/20 text-xs font-golos text-[#FEB413]/80 mb-3">
                         <Info className="w-4 h-4 shrink-0 text-[#FEB413]" />
-                        <span>Vault contract not yet deployed on Polygon. Contact admin to activate this pool.</span>
+                        <span>{t('deposit.vaultNotDeployed')}</span>
                       </div>
                     )}
 
@@ -377,23 +378,23 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       )}
                       style={isValidAmount && walletAddress && vaultReady ? { background: config.color } : {}}
                     >
-                      Review Deposit <ArrowRight className="w-4 h-4" />
+                      {t('deposit.reviewDeposit')} <ArrowRight className="w-4 h-4" />
                     </button>
                   </motion.div>
                 )}
 
                 {step === 'confirm' && (
                   <motion.div key="confirm" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.18 }}>
-                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-4">Review your deposit</p>
+                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-4">{t('deposit.reviewYourDeposit')}</p>
 
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl divide-y divide-white/[0.06] mb-5">
                       {[
-                        { label: 'Network', value: config.chain },
-                        { label: 'You send', value: `${numAmount.toLocaleString()} ${config.asset}` },
-                        { label: 'USD equivalent', value: `≈ $${usdValue.toFixed(2)}` },
-                        { label: 'Estimated tokens', value: `${tokensReceived.toFixed(4)} $${pool.symbol}` },
-                        { label: 'Token type', value: config.receives },
-                        { label: 'Signed by', value: 'Your wallet (MetaMask)' },
+                        { label: t('deposit.network'), value: config.chain },
+                        { label: t('deposit.youSend'), value: `${numAmount.toLocaleString()} ${config.asset}` },
+                        { label: t('deposit.usdEquivalent'), value: `≈ $${usdValue.toFixed(2)}` },
+                        { label: t('deposit.estimatedTokens'), value: `${tokensReceived.toFixed(4)} $${pool.symbol}` },
+                        { label: t('deposit.tokenType'), value: receives },
+                        { label: t('deposit.signedBy'), value: t('deposit.yourWallet') },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex justify-between px-4 py-3 text-sm">
                           <span className="font-golos text-white/40">{label}</span>
@@ -402,7 +403,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       ))}
                       {walletAddress && (
                         <div className="flex justify-between px-4 py-3 text-sm">
-                          <span className="font-golos text-white/40">From wallet</span>
+                          <span className="font-golos text-white/40">{t('deposit.fromWallet')}</span>
                           <span className="font-mono font-semibold text-[#FEB413]">{truncateAddr(walletAddress)}</span>
                         </div>
                       )}
@@ -410,7 +411,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
 
                     <div className="flex gap-3 bg-[#FEB413]/10 border border-[#FEB413]/20 p-3 rounded-xl mb-5 text-xs font-golos text-[#FEB413]/80">
                       <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#FEB413]" />
-                      <p>You will sign {network === 'polygon' ? '2 transactions' : '1 transaction'} in MetaMask: {network === 'polygon' ? 'approve USDC + deposit' : 'send CHZ to deposit receiver'}.</p>
+                      <p>{network === 'polygon' ? t('deposit.signTxPolygon') : t('deposit.signTxChiliz')}</p>
                     </div>
 
                     <label className="flex items-start gap-3 mb-5 cursor-pointer group">
@@ -422,13 +423,13 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         {agreed && <CheckCircle className="w-3.5 h-3.5 text-[#0D0A06] fill-current" />}
                       </div>
                       <span className="text-xs font-golos text-white/40 leading-relaxed">
-                        I understand this deposit is signed from my own wallet. Smart contracts carry risks.
+                        {t('deposit.disclaimer')}
                       </span>
                     </label>
 
                     <div className="flex gap-3">
                       <button onClick={() => setStep('select')} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-jura font-semibold text-white/40 hover:bg-white/10 transition-all">
-                        Back
+                        {t('deposit.back')}
                       </button>
                       <button onClick={handleDeposit} disabled={!agreed}
                         className={cn('flex-1 py-3 rounded-xl font-jura font-bold text-sm transition-all flex items-center justify-center gap-2',
@@ -436,7 +437,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         )}
                         style={agreed ? { background: config.color } : {}}
                       >
-                        Confirm Deposit
+                        {t('deposit.confirmDeposit')}
                       </button>
                     </div>
                   </motion.div>
@@ -445,9 +446,9 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                 {step === 'processing' && (
                   <motion.div key="processing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-8">
                     <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: config.color }} />
-                    <h3 className="text-lg font-jura font-bold text-white mb-2">Processing deposit…</h3>
+                    <h3 className="text-lg font-jura font-bold text-white mb-2">{t('deposit.processingDeposit')}</h3>
                     <p className="text-sm font-golos text-white/40 mb-4">{statusLabel(activeHook.status)}</p>
-                    <p className="text-xs font-golos text-white/25">Do not close this window or switch tabs.</p>
+                    <p className="text-xs font-golos text-white/25">{t('deposit.doNotClose')}</p>
                   </motion.div>
                 )}
 
@@ -459,33 +460,37 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     >
                       <CheckCircle className="w-10 h-10" style={{ color: config.color }} />
                     </motion.div>
-                    <h3 className="text-2xl font-jura font-bold text-white mb-2">Deposit Confirmed!</h3>
+                    <h3 className="text-2xl font-jura font-bold text-white mb-2">{t('deposit.depositConfirmed')}</h3>
                     <p className="font-golos text-white/40 text-sm mb-6">
-                      Your entry into <span className="text-white font-semibold">{pool.team}</span> was confirmed on {config.chain}.
-                      {network === 'chiliz' && ' Wrapped shares will be minted by the relayer shortly.'}
+                      <Trans
+                        i18nKey="deposit.confirmedOn"
+                        values={{ team: pool.team, chain: config.chain }}
+                        components={{ 1: <span className="text-white font-semibold" /> }}
+                      />
+                      {network === 'chiliz' && t('deposit.wrappedNote')}
                     </p>
                     {finalTxHash && (
                       <a href={explorerUrl} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 text-sm font-jura font-medium mb-6 hover:underline" style={{ color: config.color }}>
-                        View on explorer <ExternalLink className="w-3.5 h-3.5" />
+                        {t('deposit.viewOnExplorer')} <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-6 text-left">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="font-golos text-white/40">Amount sent</span>
+                        <span className="font-golos text-white/40">{t('deposit.amountSent')}</span>
                         <span className="font-mono font-bold text-white">{numAmount.toLocaleString()} {config.asset}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="font-golos text-white/40">Estimated tokens</span>
+                        <span className="font-golos text-white/40">{t('deposit.estimatedTokens')}</span>
                         <span className="font-mono font-bold" style={{ color: config.color }}>{tokensReceived.toFixed(4)} ${pool.symbol}</span>
                       </div>
                     </div>
                     <div className="flex gap-3">
                       <button onClick={handleReset} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-jura font-semibold text-white/40 hover:bg-white/10 transition-all">
-                        Enter Another Pool
+                        {t('deposit.enterAnother')}
                       </button>
                       <button onClick={onClose} className="flex-1 py-3 rounded-xl font-jura font-bold text-sm text-white transition-all hover:opacity-90" style={{ background: config.color }}>
-                        Done
+                        {t('deposit.done')}
                       </button>
                     </div>
                   </motion.div>
@@ -496,14 +501,14 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <div className="w-16 h-16 rounded-full bg-red-500/20 border-2 border-red-500/40 flex items-center justify-center mx-auto mb-4">
                       <X className="w-8 h-8 text-red-400" />
                     </div>
-                    <h3 className="text-xl font-jura font-bold text-white mb-2">Deposit Failed</h3>
-                    <p className="text-sm font-golos text-white/40 mb-6 max-w-xs mx-auto">{depositError || 'Something went wrong. Please try again.'}</p>
+                    <h3 className="text-xl font-jura font-bold text-white mb-2">{t('deposit.depositFailed')}</h3>
+                    <p className="text-sm font-golos text-white/40 mb-6 max-w-xs mx-auto">{depositError || t('deposit.defaultError')}</p>
                     <div className="flex gap-3">
                       <button onClick={handleReset} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-jura font-semibold text-white/40 hover:bg-white/10 transition-all">
-                        Try Again
+                        {t('deposit.tryAgain')}
                       </button>
                       <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-jura font-semibold text-white/40 hover:bg-white/10 transition-all">
-                        Close
+                        {t('deposit.close')}
                       </button>
                     </div>
                   </motion.div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { GradientHeading } from "@/components/ui/GradientHeading";
 import { ANIMATION, staggerDelay } from "@/utils/animation";
@@ -45,159 +46,158 @@ const DownArrow = ({ color }: { color: string }) => (
   </div>
 );
 
-export const VaultArchitectureSection: React.FC = () => (
-  <section className="w-full py-20 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
-    <div className="w-full flex flex-col items-center gap-8 text-center">
-      <motion.span
-        initial={{ y: ANIMATION.y, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        transition={{ duration: ANIMATION.duration, delay: 0 }}
-        viewport={{ once: ANIMATION.once, amount: 0.2 }}
-        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#3f392b] bg-[#161104]/60 text-xs font-jura font-bold uppercase tracking-widest text-[#FEB413]"
-      >
-        🔒 Two Ways In
-      </motion.span>
-
-      <GradientHeading className="text-[28px] sm:text-4xl lg:text-5xl max-w-3xl">
-        CHOOSE YOUR PATH INTO THE INDEX
-      </GradientHeading>
-
-      <motion.p
-        {...staggerDelay(0)}
-        className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed -mt-2"
-      >
-        Collateral is held in USDC. Deposit directly on Polygon or use CHZ & Fan Tokens on Chiliz — each path gives you exposure to the same team index.
-      </motion.p>
-
-      <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-0 mt-4 items-stretch">
-
-        {/* ── PATH 1: POLYGON / USDC ── */}
-        <motion.div
-          {...staggerDelay(1, 0.15)}
-          className="flex flex-col items-center gap-0 rounded-2xl border backdrop-blur-sm overflow-hidden"
-          style={{
-            borderColor: "rgba(130, 71, 229, 0.3)",
-            background: "radial-gradient(ellipse at 50% 0%, rgba(130, 71, 229, 0.08) 0%, transparent 70%), rgba(22, 17, 4, 0.6)",
-          }}
+export const VaultArchitectureSection: React.FC = () => {
+  const { t } = useTranslation();
+  return (
+    <section className="w-full py-20 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
+      <div className="w-full flex flex-col items-center gap-8 text-center">
+        <motion.span
+          initial={{ y: ANIMATION.y, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          transition={{ duration: ANIMATION.duration, delay: 0 }}
+          viewport={{ once: ANIMATION.once, amount: 0.2 }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#3f392b] bg-[#161104]/60 text-xs font-jura font-bold uppercase tracking-widest text-[#FEB413]"
         >
-          <div className="w-full px-6 pt-7 pb-4 flex flex-col items-center gap-3">
-            <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#8247E5]" style={{ borderColor: "rgba(130,71,229,0.3)", background: "rgba(130,71,229,0.12)" }}>
-              Path 1 — Polygon
-            </span>
-            <h3 className="font-jura font-bold text-lg text-white">Pay in USDC</h3>
-          </div>
+          {t('vault.badge')}
+        </motion.span>
 
-          <div className="flex items-center gap-3 px-6 py-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(11,83,191,0.12)", borderColor: "rgba(11,83,191,0.3)" }}>
-              <UsdcIcon />
-            </div>
-            <div className="text-left">
-              <p className="font-jura font-bold text-sm text-white">USDC</p>
-              <p className="font-golos text-xs text-white/40">Stablecoin on Polygon</p>
-            </div>
-          </div>
+        <GradientHeading className="text-[28px] sm:text-4xl lg:text-5xl max-w-3xl">
+          {t('vault.heading')}
+        </GradientHeading>
 
-          <DownArrow color="#8247E5" />
-
-          <div className="flex items-center gap-3 px-6 py-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(130,71,229,0.12)", borderColor: "rgba(130,71,229,0.3)" }}>
-              <PolygonIcon />
-            </div>
-            <div className="text-left">
-              <p className="font-jura font-bold text-sm text-white">PTeam Index Token</p>
-              <p className="font-golos text-xs text-white/40">Core token on Polygon</p>
-            </div>
-          </div>
-
-          <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
-            <p className="font-golos text-xs text-white/30 leading-relaxed">
-              Direct deposit — your USDC enters the vault and you receive the native PTeam Index token on Polygon. Fast, cheap, instant.
-            </p>
-          </div>
-        </motion.div>
-
-        {/* ── CENTER: SHARED VAULT NODE ── */}
-        <motion.div
-          {...staggerDelay(1.5, 0.15)}
-          className="hidden lg:flex flex-col items-center justify-center self-center gap-3 px-3"
+        <motion.p
+          {...staggerDelay(0)}
+          className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed -mt-2"
         >
-          <div className="w-px h-10 bg-gradient-to-b from-transparent via-[#FEB413]/30 to-[#FEB413]/50" />
-          <div className="flex flex-col items-center gap-2 px-5 py-5 rounded-2xl border border-[#FEB413]/30 bg-[#161104]/80 backdrop-blur-sm" style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(254,180,19,0.08) 0%, rgba(22,17,4,0.8) 70%)" }}>
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center border border-[#FEB413]/30 bg-[#FEB413]/10">
-              <UsdcIcon />
+          {t('vault.body')}
+        </motion.p>
+
+        <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-0 mt-4 items-stretch">
+          <motion.div
+            {...staggerDelay(1, 0.15)}
+            className="flex flex-col items-center gap-0 rounded-2xl border backdrop-blur-sm overflow-hidden"
+            style={{
+              borderColor: "rgba(130, 71, 229, 0.3)",
+              background: "radial-gradient(ellipse at 50% 0%, rgba(130, 71, 229, 0.08) 0%, transparent 70%), rgba(22, 17, 4, 0.6)",
+            }}
+          >
+            <div className="w-full px-6 pt-7 pb-4 flex flex-col items-center gap-3">
+              <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#8247E5]" style={{ borderColor: "rgba(130,71,229,0.3)", background: "rgba(130,71,229,0.12)" }}>
+                {t('vault.path1Label')}
+              </span>
+              <h3 className="font-jura font-bold text-lg text-white">{t('vault.path1Title')}</h3>
             </div>
-            <p className="font-jura font-bold text-xs text-[#FEB413] uppercase tracking-wider">PTeam Index</p>
-            <p className="font-jura font-bold text-[10px] text-white/30 uppercase tracking-wider">Vault</p>
-          </div>
-          <div className="w-px h-10 bg-gradient-to-b from-[#FEB413]/50 via-[#FEB413]/30 to-transparent" />
-        </motion.div>
 
-        <motion.div
-          {...staggerDelay(1.5, 0.15)}
-          className="flex lg:hidden flex-col items-center gap-2 py-3"
-        >
-          <div className="flex items-center gap-4 w-full">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#FEB413]/20 to-[#FEB413]/40" />
-            <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl border border-[#FEB413]/30 bg-[#161104]/80">
-              <UsdcIcon />
-              <p className="font-jura font-bold text-[10px] text-[#FEB413] uppercase tracking-wider">PTeam Index Vault</p>
+            <div className="flex items-center gap-3 px-6 py-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(11,83,191,0.12)", borderColor: "rgba(11,83,191,0.3)" }}>
+                <UsdcIcon />
+              </div>
+              <div className="text-left">
+                <p className="font-jura font-bold text-sm text-white">{t('vault.usdcLabel')}</p>
+                <p className="font-golos text-xs text-white/40">{t('vault.usdcDesc')}</p>
+              </div>
             </div>
-            <div className="flex-1 h-px bg-gradient-to-r from-[#FEB413]/40 via-[#FEB413]/20 to-transparent" />
-          </div>
-        </motion.div>
 
-        {/* ── PATH 2: CHILIZ / FAN TOKENS ── */}
-        <motion.div
-          {...staggerDelay(2, 0.15)}
-          className="flex flex-col items-center gap-0 rounded-2xl border backdrop-blur-sm overflow-hidden"
-          style={{
-            borderColor: "rgba(205, 1, 36, 0.3)",
-            background: "radial-gradient(ellipse at 50% 0%, rgba(205, 1, 36, 0.08) 0%, transparent 70%), rgba(22, 17, 4, 0.6)",
-          }}
-        >
-          <div className="w-full px-6 pt-7 pb-4 flex flex-col items-center gap-3">
-            <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#CD0124]" style={{ borderColor: "rgba(205,1,36,0.3)", background: "rgba(205,1,36,0.12)" }}>
-              Path 2 — Supported by Chiliz
-            </span>
-            <h3 className="font-jura font-bold text-lg text-white">Pay in CHZ or Fan Tokens</h3>
-          </div>
+            <DownArrow color="#8247E5" />
 
-          <div className="flex items-center gap-3 px-6 py-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(205,1,36,0.12)", borderColor: "rgba(205,1,36,0.3)" }}>
-              <img src={chzLogo} alt="CHZ" className="w-9 h-9 rounded-full" />
+            <div className="flex items-center gap-3 px-6 py-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(130,71,229,0.12)", borderColor: "rgba(130,71,229,0.3)" }}>
+                <PolygonIcon />
+              </div>
+              <div className="text-left">
+                <p className="font-jura font-bold text-sm text-white">{t('vault.pteamToken')}</p>
+                <p className="font-golos text-xs text-white/40">{t('vault.coreTokenDesc')}</p>
+              </div>
             </div>
-            <div className="text-left">
-              <p className="font-jura font-bold text-sm text-white">CHZ + Fan Tokens</p>
-              <p className="font-golos text-xs text-white/40">When the index is linked to the team</p>
+
+            <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
+              <p className="font-golos text-xs text-white/30 leading-relaxed">
+                {t('vault.path1Note')}
+              </p>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex items-center justify-center gap-1.5 px-6">
-            {FAN_TOKENS.map((t) => (
-              <img key={t.alt} src={t.src} alt={t.alt} className="w-7 h-7 rounded-full ring-1 ring-white/10" />
-            ))}
-            <span className="font-golos text-[10px] text-white/30 ml-1">+ more</span>
-          </div>
-
-          <DownArrow color="#CD0124" />
-
-          <div className="flex items-center gap-3 px-6 py-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(205,1,36,0.12)", borderColor: "rgba(205,1,36,0.3)" }}>
-              <img src={chzLogo} alt="Wrapped" className="w-9 h-9 rounded-full opacity-70" />
+          <motion.div
+            {...staggerDelay(1.5, 0.15)}
+            className="hidden lg:flex flex-col items-center justify-center self-center gap-3 px-3"
+          >
+            <div className="w-px h-10 bg-gradient-to-b from-transparent via-[#FEB413]/30 to-[#FEB413]/50" />
+            <div className="flex flex-col items-center gap-2 px-5 py-5 rounded-2xl border border-[#FEB413]/30 bg-[#161104]/80 backdrop-blur-sm" style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(254,180,19,0.08) 0%, rgba(22,17,4,0.8) 70%)" }}>
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center border border-[#FEB413]/30 bg-[#FEB413]/10">
+                <UsdcIcon />
+              </div>
+              <p className="font-jura font-bold text-xs text-[#FEB413] uppercase tracking-wider">{t('vault.vaultLabel')}</p>
+              <p className="font-jura font-bold text-[10px] text-white/30 uppercase tracking-wider">{t('vault.vaultSub')}</p>
             </div>
-            <div className="text-left">
-              <p className="font-jura font-bold text-sm text-white">Wrapped PTeam Index</p>
-              <p className="font-golos text-xs text-white/40">On Chiliz Chain via bridge</p>
-            </div>
-          </div>
+            <div className="w-px h-10 bg-gradient-to-b from-[#FEB413]/50 via-[#FEB413]/30 to-transparent" />
+          </motion.div>
 
-          <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
-            <p className="font-golos text-xs text-white/30 leading-relaxed">
-              Cross-chain deposit — your CHZ or Fan Tokens are bridged, and you receive a wrapped PTeam Index token on Chiliz Chain.
-            </p>
-          </div>
-        </motion.div>
+          <motion.div
+            {...staggerDelay(1.5, 0.15)}
+            className="flex lg:hidden flex-col items-center gap-2 py-3"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[#FEB413]/20 to-[#FEB413]/40" />
+              <div className="flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl border border-[#FEB413]/30 bg-[#161104]/80">
+                <UsdcIcon />
+                <p className="font-jura font-bold text-[10px] text-[#FEB413] uppercase tracking-wider">{t('vault.vaultMobileLabel')}</p>
+              </div>
+              <div className="flex-1 h-px bg-gradient-to-r from-[#FEB413]/40 via-[#FEB413]/20 to-transparent" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            {...staggerDelay(2, 0.15)}
+            className="flex flex-col items-center gap-0 rounded-2xl border backdrop-blur-sm overflow-hidden"
+            style={{
+              borderColor: "rgba(205, 1, 36, 0.3)",
+              background: "radial-gradient(ellipse at 50% 0%, rgba(205, 1, 36, 0.08) 0%, transparent 70%), rgba(22, 17, 4, 0.6)",
+            }}
+          >
+            <div className="w-full px-6 pt-7 pb-4 flex flex-col items-center gap-3">
+              <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#CD0124]" style={{ borderColor: "rgba(205,1,36,0.3)", background: "rgba(205,1,36,0.12)" }}>
+                {t('vault.path2Label')}
+              </span>
+              <h3 className="font-jura font-bold text-lg text-white">{t('vault.path2Title')}</h3>
+            </div>
+
+            <div className="flex items-center gap-3 px-6 py-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(205,1,36,0.12)", borderColor: "rgba(205,1,36,0.3)" }}>
+                <img src={chzLogo} alt="CHZ" className="w-9 h-9 rounded-full" />
+              </div>
+              <div className="text-left">
+                <p className="font-jura font-bold text-sm text-white">{t('vault.chzFanTokens')}</p>
+                <p className="font-golos text-xs text-white/40">{t('vault.chzFanTokensDesc')}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 px-6">
+              {FAN_TOKENS.map((tok) => (
+                <img key={tok.alt} src={tok.src} alt={tok.alt} className="w-7 h-7 rounded-full ring-1 ring-white/10" />
+              ))}
+              <span className="font-golos text-[10px] text-white/30 ml-1">{t('vault.plusMore')}</span>
+            </div>
+
+            <DownArrow color="#CD0124" />
+
+            <div className="flex items-center gap-3 px-6 py-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(205,1,36,0.12)", borderColor: "rgba(205,1,36,0.3)" }}>
+                <img src={chzLogo} alt="Wrapped" className="w-9 h-9 rounded-full opacity-70" />
+              </div>
+              <div className="text-left">
+                <p className="font-jura font-bold text-sm text-white">{t('vault.wrappedPteam')}</p>
+                <p className="font-golos text-xs text-white/40">{t('vault.wrappedDesc')}</p>
+              </div>
+            </div>
+
+            <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
+              <p className="font-golos text-xs text-white/30 leading-relaxed">
+                {t('vault.path2Note')}
+              </p>
+            </div>
+          </motion.div>
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};

@@ -1,7 +1,7 @@
 export const NAV_LINKS = [
-  { label: "How It Works", id: "how-it-works" },
-  { label: "Live Pools",   id: "live-indexes"  },
-  { label: "Why Different", id: "why-different" },
-  { label: "Performance",  id: "performance"   },
-  { label: "FAQ",          id: "faq"           },
+  { labelKey: "nav.howItWorks", id: "how-it-works" },
+  { labelKey: "nav.livePools",   id: "live-indexes"  },
+  { labelKey: "nav.whyDifferent", id: "why-different" },
+  { labelKey: "nav.performance",  id: "performance"   },
+  { labelKey: "nav.faq",          id: "faq"           },
 ] as const;

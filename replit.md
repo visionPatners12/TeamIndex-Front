@@ -75,9 +75,10 @@ Every package extends `tsconfig.base.json` which sets `composite: true`. The roo
 
 React + Vite frontend. Landing page with Privy authentication.
 
-- Entry: `src/main.tsx` — wraps app in `<PrivyProvider>`
+- Entry: `src/main.tsx` — wraps app in `<PrivyProvider>`, imports `src/i18n`
 - App: `src/App.tsx` — wouter router, React Query
 - Pages: `src/pages/Home.tsx`, `src/pages/Admin.tsx`
+- **i18n**: `react-i18next` + `i18next-browser-languagedetector`. Config at `src/i18n/index.ts`. Locale files: `src/i18n/locales/en.ts`, `src/i18n/locales/fr.ts`. Detection order: localStorage (`i18nextLng` key) → navigator. Language toggle (EN/FR) in Navbar.
 - `pnpm run dev` — dev server on port 5000
 - `pnpm run build` — builds to `dist/public/`
 

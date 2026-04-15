@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useTranslation } from "react-i18next";
 
 import { DepositModal } from "@/features/pools/DepositModal";
 import { Navbar } from "@/components/layout/Navbar";
@@ -29,6 +30,7 @@ import { Footer } from "@/components/layout/Footer";
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const { t } = useTranslation();
   const { authenticated, login } = usePrivy();
   const { wallets } = useWallets();
   const [selectedPool, setSelectedPool] = useState<PoolData | null>(null);
@@ -50,7 +52,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0D0A06] selection:bg-[#FEB413]/30 selection:text-white">
       <div className="fixed top-0 inset-x-0 z-[60] bg-[#FEB413] text-[#0D0A06] text-center py-1 font-jura font-bold text-[10px] sm:text-xs uppercase tracking-widest">
-        ⚠️ Mainnet Test — This is a live test environment
+        ⚠️ {t('banner.mainnetTest')}
       </div>
       <Navbar topOffset />
 

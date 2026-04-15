@@ -1,9 +1,7 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
 import { GradientHeading } from "@/components/ui/GradientHeading";
-import { FAQS } from "@/constants/faqs";
-
-// ─── Accordion item ───────────────────────────────────────────────────────────
 
 const FaqItem: React.FC<{
   question: string;
@@ -50,29 +48,34 @@ const FaqItem: React.FC<{
   );
 };
 
-// ─── Section ─────────────────────────────────────────────────────────────────
+export const FaqSection: React.FC = () => {
+  const { t } = useTranslation();
 
-export const FaqSection: React.FC = () => (
-  <section id="faq" className="w-full py-24 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
-    <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
-      <GradientHeading
-        className="text-4xl sm:text-5xl lg:text-6xl max-w-4xl"
-      >
-        FREQUENTLY ASKED QUESTIONS
-      </GradientHeading>
+  const faqs = [
+    { question: t('faq.q1'), answer: t('faq.a1'), defaultOpen: true },
+    { question: t('faq.q2'), answer: t('faq.a2') },
+    { question: t('faq.q3'), answer: t('faq.a3') },
+    { question: t('faq.q4'), answer: t('faq.a4') },
+  ];
 
-      {/* Right: accordion */}
-      <div className="flex flex-col border-t border-white/10">
-        {FAQS.map((faq) => (
-          <FaqItem
-            key={faq.question}
-            question={faq.question}
-            answer={faq.answer}
-            defaultOpen={faq.defaultOpen}
-          />
-        ))}
+  return (
+    <section id="faq" className="w-full py-24 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
+        <GradientHeading className="text-4xl sm:text-5xl lg:text-6xl max-w-4xl">
+          {t('faq.heading')}
+        </GradientHeading>
+
+        <div className="flex flex-col border-t border-white/10">
+          {faqs.map((faq) => (
+            <FaqItem
+              key={faq.question}
+              question={faq.question}
+              answer={faq.answer}
+              defaultOpen={faq.defaultOpen}
+            />
+          ))}
+        </div>
       </div>
-
-    </div>
-  </section>
-);
+    </section>
+  );
+};
