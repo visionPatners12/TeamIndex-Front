@@ -9,12 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL, POLYGON_CHAIN, POLYGON_CHAIN_ID } from '@/lib/config';
-import {
-  useAdminPools,
-  type BackendPool,
-  tokenPriceUsdPerWholeShare,
-  totalPoolValueToHuman,
-} from '@/hooks/use-pools';
+import { useAdminPools, tokenPriceUsdPerWholeShare, totalPoolValueToHuman, type BackendPool } from '@/hooks/use-pools';
 import { api, type TeamEntry } from '@/lib/api';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -746,7 +741,7 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
 
   const isActive = pool.status === 'ACTIVE';
   const hasVault = !!pool.vaultAddress;
-  const tokenValue = tokenPriceUsdPerWholeShare(pool);
+  const tokenValue = tokenPriceUsdPerWholeShare(pool.officialTokenPrice, pool.totalPoolValue, pool.totalTokenSupply);
   const poolValue = totalPoolValueToHuman(pool.totalPoolValue);
   const depositCap = parseFloat(pool.depositCap) / 1e6 || 0;
 
