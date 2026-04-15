@@ -85,13 +85,11 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
               className="flex items-center gap-2"
               onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
             >
-              <div className="w-7 h-7 shrink-0 overflow-hidden">
-                <img
-                  src={import.meta.env.BASE_URL + "images/logo_img.svg"}
-                  alt="Pryzen"
-                  className="h-7"
-                />
-              </div>
+              <img
+                src={import.meta.env.BASE_URL + "images/pryzen_logo.png"}
+                alt="Pryzen"
+                className="h-7 w-7 shrink-0"
+              />
               <div className="flex flex-col items-start leading-none">
                 <span className="font-jura font-bold text-white text-sm tracking-wide">Pryzen</span>
                 <div className="flex items-center gap-1">
