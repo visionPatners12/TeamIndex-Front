@@ -85,13 +85,14 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
               className="flex items-center gap-2"
               onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
             >
-              <img
-                src={import.meta.env.BASE_URL + "images/logo_img.svg"}
-                alt="Pryzen"
-                className="h-7 w-auto"
-                style={{ clipPath: 'inset(0 83% 0 0)' }}
-              />
-              <div className="flex flex-col items-start leading-none -ml-[26px]">
+              <div className="w-7 h-7 shrink-0 overflow-hidden">
+                <img
+                  src={import.meta.env.BASE_URL + "images/logo_img.svg"}
+                  alt="Pryzen"
+                  className="h-7"
+                />
+              </div>
+              <div className="flex flex-col items-start leading-none">
                 <span className="font-jura font-bold text-white text-sm tracking-wide">Pryzen</span>
                 <div className="flex items-center gap-1">
                   <span className="font-jura text-[10px] text-white/40 tracking-wide">Team Index</span>
