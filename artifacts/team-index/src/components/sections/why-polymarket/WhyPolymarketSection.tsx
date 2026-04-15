@@ -87,14 +87,35 @@ export const WhyPolymarketSection: React.FC = () => (
       </GradientHeading>
       {/* Stat cards */}
       <div className="w-full flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mt-2">
-        <StatCard value=">94%" label="Accuracy 1 month out" />
-        <StatCard value=">96%" label="Accuracy 4 hours out" />
-        <StatCard value="$102M+" label="Total volume traded" />
+        <StatCard value="96.7%" label="Accuracy 4 hours out" />
+        <StatCard value="90.4%" label="Accuracy 1 month out" />
+        <StatCard value="$30.5B" label="Total volume traded" />
       </div>
+
+      {/* Accuracy timeline */}
+      <div className="w-full max-w-xl mx-auto mt-2">
+        <p className="font-jura text-[10px] uppercase tracking-widest text-white/30 mb-3 text-center">Accuracy prior to resolution</p>
+        <div className="flex justify-between gap-2">
+          {[
+            { label: '4 Hrs', value: '96.7%' },
+            { label: '12 Hrs', value: '96.4%' },
+            { label: '1 Day', value: '95.8%' },
+            { label: '1 Week', value: '94%' },
+            { label: '1 Month', value: '90.4%' },
+          ].map((item) => (
+            <div key={item.label} className="flex flex-col items-center gap-1">
+              <span className="font-jura font-bold text-sm text-white">{item.value}</span>
+              <span className="font-golos text-[10px] text-white/30">{item.label}</span>
+            </div>
+          ))}
+        </div>
+        <p className="font-golos text-[10px] text-white/20 text-center mt-2">Brier Score: 0.0641</p>
+      </div>
+
       {/* Body */}
       <p className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed">
-        Polymarket odds are right over 94% of the time — a month before the
-        event even happens.
+        Polymarket odds are right over 90% of the time — even a full month before the
+        event resolves.
       </p>
       {/* Link */}
       <a
