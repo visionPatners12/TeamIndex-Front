@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>Team Index</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      (function () {
+        var TARGET_API_BASE = "https://teamindex-production.up.railway.app";
+        var LEGACY_API_BASE = "http://localhost:3001";
+
+        function rewriteUrl(url) {
+          return typeof url === "string" && url.indexOf(LEGACY_API_BASE) === 0
+            ? TARGET_API_BASE + url.slice(LEGACY_API_BASE.length)
+            : url;
+        }
+
+        var nativeFetch = window.fetch ? window.fetch.bind(window) : null;
+        if (nativeFetch) {
+          window.fetch = function (input, init) {
+            if (typeof input === "string") {
+              return nativeFetch(rewriteUrl(input), init);
+            }
+            if (input && typeof input.url === "string" && input.url.indexOf(LEGACY_API_BASE) === 0) {
+              return nativeFetch(new Request(rewriteUrl(input.url), input), init);
+            }
+            return nativeFetch(input, init);
+          };
+        }
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
