@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useLocation } from "wouter";
-import { ArrowLeft, Menu, X } from "lucide-react";
+import { ArrowLeft, Menu, X, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslation } from "react-i18next";
 
 import { GoldButton } from "@/components/ui/GoldButton";
 import { NAV_LINKS } from "@/constants/nav";
@@ -11,7 +10,6 @@ import { truncateAddr } from "@/utils/address";
 import { scrollToId } from "@/utils/scroll";
 
 export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false }) => {
-  const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [activeId, setActiveId] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -19,16 +17,14 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
   const { wallets } = useWallets();
   const [, navigate] = useLocation();
 
-  const toggleLang = () => {
-    i18n.changeLanguage(i18n.language?.startsWith('fr') ? 'en' : 'fr');
-  };
-
+  // Scroll-based background
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Scrollspy — track which section is currently in view
   useEffect(() => {
     const observers: IntersectionObserver[] = [];
     NAV_LINKS.forEach(({ id }) => {
@@ -46,6 +42,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
     return () => observers.forEach((o) => o.disconnect());
   }, []);
 
+  // Lock body scroll when drawer is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -63,8 +60,6 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
     ? truncateAddr(walletAddress)
     : user?.email?.address ?? (user as any)?.google?.email ?? null;
 
-  const isFr = i18n.language?.startsWith('fr');
-
   return (
     <>
       <nav
@@ -76,36 +71,31 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
         style={{ top: topOffset ? '28px' : '0' }}
       >
         <div className="w-full px-4 sm:px-6 lg:px-30 flex items-center justify-between">
+          {/* Back arrow + Logo */}
           <div className="flex items-center gap-2.5 shrink-0">
             <a
               href="https://pryzen.io"
               className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/10 transition-all"
-              title={t('nav.backToPryzen')}
-              aria-label={t('nav.backToPryzen')}
+              title="Back to Pryzen"
+              aria-label="Back to Pryzen"
             >
               <ArrowLeft className="w-4 h-4 text-white/50 hover:text-white transition-colors" />
             </a>
             <button
-              className="flex items-center gap-2"
+              className="flex items-center gap-2.5"
               onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); closeMenu(); }}
             >
               <img
-                src={import.meta.env.BASE_URL + "images/pryzen_logo.png"}
-                alt="Pryzen"
-                className="h-7 w-7 shrink-0"
+                src={import.meta.env.BASE_URL + "images/logo_img.svg"}
+                alt="Team Index"
+                className="h-8 w-auto"
               />
-              <div className="flex flex-col items-start leading-none">
-                <span className="font-jura font-bold text-white text-sm tracking-wide">Pryzen</span>
-                <div className="flex items-center gap-1">
-                  <span className="font-jura text-[10px] text-white/40 tracking-wide">Team Index</span>
-                  <span className="px-1 py-[1px] rounded text-[7px] font-jura font-bold uppercase tracking-wider bg-[#FEB413]/20 text-[#FEB413] border border-[#FEB413]/30 leading-none">Beta</span>
-                </div>
-              </div>
             </button>
           </div>
 
+          {/* Desktop nav links — visible ≥1200px */}
           <div className="hidden min-[1200px]:flex items-center gap-7">
-            {NAV_LINKS.map(({ labelKey, id }) => {
+            {NAV_LINKS.map(({ label, id }) => {
               const isActive = activeId === id;
               return (
                 <button
@@ -115,7 +105,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                     isActive ? "text-white" : "text-white/60 hover:text-white"
                   }`}
                 >
-                  {t(labelKey)}
+                  {label}
                   {isActive && (
                     <img
                       src={import.meta.env.BASE_URL + "icons/nav_item.svg"}
@@ -128,16 +118,19 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
             })}
           </div>
 
+          {/* Right side */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={toggleLang}
-              className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-jura font-bold text-white/60 hover:text-white transition-all uppercase tracking-wider"
-            >
-              {isFr ? 'EN' : 'FR'}
-            </button>
-
+            {/* Auth — desktop only (≥1200px): Dashboard + identity + logout */}
             {ready && authenticated && (
               <div className="hidden min-[1200px]:flex items-center gap-3">
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="flex items-center gap-1.5 font-jura text-sm font-medium text-white/70 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
+                  title="My Indexes"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  My Indexes
+                </button>
                 <span className="font-mono text-sm text-white/50 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
                   {displayIdentity}
                 </span>
@@ -145,24 +138,39 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                   onClick={logout}
                   className="font-jura text-sm font-medium text-white/70 hover:text-white transition-colors"
                 >
-                  {t('nav.logOut')}
+                  Log Out
                 </button>
               </div>
             )}
 
+            {/* Login CTA — always visible when not authenticated */}
             {ready && !authenticated && (
               <GoldButton
                 onClick={login}
                 className="min-h-9 min-[1200px]:min-h-12 px-5 text-sm font-semibold"
               >
-                {t('nav.login')}
+                Login
               </GoldButton>
             )}
 
+            {/* My Indexes quick-access — mobile/tablet only (<1200px), authenticated */}
+            {ready && authenticated && (
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="min-[1200px]:hidden flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-lg bg-[#FEB413]/10 hover:bg-[#FEB413]/20 border border-[#FEB413]/30 text-[#FEB413] font-jura text-xs sm:text-sm font-semibold transition-all"
+                aria-label="My Indexes"
+                title="My Indexes"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span className="hidden sm:inline">My Indexes</span>
+              </button>
+            )}
+
+            {/* Hamburger — visible below 1200px */}
             <button
               onClick={() => setMenuOpen(true)}
               className="min-[1200px]:hidden w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/10 transition-all"
-              aria-label={t('nav.openMenu')}
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5 text-white/70" />
             </button>
@@ -170,9 +178,11 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
         </div>
       </nav>
 
+      {/* ── Mobile drawer ─────────────────────────────────────────────── */}
       <AnimatePresence>
         {menuOpen && (
           <>
+            {/* Backdrop */}
             <motion.div
               key="backdrop"
               className="fixed inset-0 z-60 bg-black/60 backdrop-blur-sm"
@@ -183,6 +193,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
               onClick={closeMenu}
             />
 
+            {/* Drawer panel */}
             <motion.div
               key="drawer"
               className="fixed top-0 right-0 z-70 h-full w-[min(320px,85vw)] bg-[#0D0A06] border-l border-white/10 flex flex-col"
@@ -191,6 +202,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 260 }}
             >
+              {/* Drawer header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
                 <button
                   className="flex items-center gap-2"
@@ -202,25 +214,18 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                     className="h-7 w-auto"
                   />
                 </button>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={toggleLang}
-                    className="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-jura font-bold text-white/60 hover:text-white transition-all uppercase tracking-wider"
-                  >
-                    {isFr ? 'EN' : 'FR'}
-                  </button>
-                  <button
-                    onClick={closeMenu}
-                    className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/10 transition-all"
-                    aria-label={t('nav.closeMenu')}
-                  >
-                    <X className="w-5 h-5 text-white/70" />
-                  </button>
-                </div>
+                <button
+                  onClick={closeMenu}
+                  className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center border border-white/10 transition-all"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5 text-white/70" />
+                </button>
               </div>
 
+              {/* Nav links */}
               <div className="flex flex-col px-4 py-6 gap-1 flex-1 overflow-y-auto">
-                {NAV_LINKS.map(({ labelKey, id }, i) => {
+                {NAV_LINKS.map(({ label, id }, i) => {
                   const isActive = activeId === id;
                   return (
                     <motion.button
@@ -238,12 +243,13 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                       {isActive && (
                         <span className="w-1.5 h-1.5 rounded-full bg-[#FEB413] shrink-0" />
                       )}
-                      <span className={isActive ? "" : "ml-4"}>{t(labelKey)}</span>
+                      <span className={isActive ? "" : "ml-4"}>{label}</span>
                     </motion.button>
                   );
                 })}
               </div>
 
+              {/* Auth footer */}
               <div className="flex flex-col gap-3 px-6 py-6 border-t border-white/10">
                 {ready && (
                   <>
@@ -253,10 +259,17 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                           {displayIdentity}
                         </span>
                         <button
+                          onClick={() => { navigate("/dashboard"); closeMenu(); }}
+                          className="w-full py-2.5 rounded-xl bg-[#FEB413]/10 border border-[#FEB413]/30 font-jura text-sm font-semibold text-[#FEB413] hover:bg-[#FEB413]/20 transition-all flex items-center justify-center gap-2"
+                        >
+                          <LayoutDashboard className="w-4 h-4" />
+                          My Indexes
+                        </button>
+                        <button
                           onClick={() => { logout(); closeMenu(); }}
                           className="w-full py-2.5 rounded-xl border border-white/10 font-jura text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all"
                         >
-                          {t('nav.logOut')}
+                          Log Out
                         </button>
                       </>
                     ) : (
@@ -264,7 +277,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                         onClick={() => { login(); closeMenu(); }}
                         className="w-full min-h-12 text-sm font-semibold"
                       >
-                        {t('nav.login')}
+                        Login
                       </GoldButton>
                     )}
                   </>

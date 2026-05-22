@@ -96,9 +96,33 @@ export interface TeamEntry {
   polymarketTeamId: string;
 }
 
+export type { VaultPosition } from '@/types/polymarket';
+import type { VaultPosition, AllocationProposal, SelectedMarket, GammaMarket } from '@/types/polymarket';
+
 export const api = {
   getTeams: () =>
     apiFetch<{ ok: boolean; teams: TeamEntry[] }>(`/teams`),
+
+  /** Public platform settings (e.g. whether Chiliz network is enabled). */
+  getPublicSettings: () =>
+    apiFetch<{ ok: boolean; chilizEnabled: boolean; updatedAt: string }>(`/settings/public`),
+
+  /** Real-time CHZ/USD price, always available. */
+  getChzPrice: () =>
+    apiFetch<{ ok: boolean; usd: number; cached?: boolean; stale?: boolean; fetchedAt: number }>(
+      `/chz/price`
+    ),
+
+  /** Admin: toggle Chiliz network on/off. */
+  setChilizEnabled: (enabled: boolean, adminKey: string) =>
+    apiFetch<{ ok: boolean; settings: { chilizEnabled: boolean; updatedAt: string } }>(
+      `/admin/settings/chiliz`,
+      {
+        method: 'PATCH',
+        headers: { 'x-admin-key': adminKey },
+        body: JSON.stringify({ enabled }),
+      }
+    ),
 
   getPool: (poolId: string) =>
     apiFetch<PoolResponse>(`/pools/${poolId}`),
@@ -107,7 +131,30 @@ export const api = {
     apiFetch<{ ok: boolean; candidates: unknown[] }>(`/pools/${poolId}/candidates`),
 
   getPoolPositions: (poolId: string) =>
-    apiFetch<{ ok: boolean; positions: unknown[] }>(`/pools/${poolId}/positions`),
+    apiFetch<{ ok: boolean; positions: VaultPosition[] }>(`/pools/${poolId}/positions`),
+
+  /** Admin: search Polymarket markets by team name / keyword */
+  searchPolymarketMarkets: (query: string, adminKey: string) =>
+    apiFetch<{ ok: boolean; markets: GammaMarket[] }>(
+      `/admin/polymarket/search?q=${encodeURIComponent(query)}`,
+      { headers: { 'x-admin-key': adminKey } }
+    ),
+
+  /** Admin: save accepted allocation proposal for a pool */
+  saveAllocationProposal: (
+    poolId: string,
+    adminKey: string,
+    proposal: AllocationProposal,
+    selectedMarkets: SelectedMarket[]
+  ) =>
+    apiFetch<{ ok: boolean }>(
+      `/admin/pools/${poolId}/allocation-proposal`,
+      {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey },
+        body: JSON.stringify({ proposal, selectedMarkets }),
+      }
+    ),
 
   getLatestSnapshot: (poolId: string) =>
     apiFetch<PriceSnapshotResponse>(`/pools/${poolId}/price-snapshots/latest`),

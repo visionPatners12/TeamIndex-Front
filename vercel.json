@@ -1,6 +1,6 @@
 {
-  "installCommand": "echo \"No install step required\"",
-  "buildCommand": "echo \"Using prebuilt static output\"",
+  "framework": "vite",
+  "buildCommand": "pnpm build",
   "outputDirectory": "artifacts/team-index/dist/public",
   "rewrites": [
     {

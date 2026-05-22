@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { useTranslation } from "react-i18next";
 
 import { DepositModal } from "@/features/pools/DepositModal";
 import { Navbar } from "@/components/layout/Navbar";
 import { type PoolData } from "@/types/pool";
 import { type LiveIndexPool } from "@/types/pool";
 import { usePools } from "@/hooks/use-pools";
+import { useUserHoldings } from "@/hooks/use-user-holdings";
 import { toLiveIndexPool } from "@/utils/pool";
 import { scrollToId } from "@/utils/scroll";
 
@@ -30,13 +30,13 @@ import { Footer } from "@/components/layout/Footer";
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const { t } = useTranslation();
-  const { authenticated, login } = usePrivy();
+  const { authenticated, login, ready } = usePrivy();
   const { wallets } = useWallets();
   const [selectedPool, setSelectedPool] = useState<PoolData | null>(null);
   const { data: backendPools } = usePools();
 
   const walletAddress = wallets[0]?.address;
+  const { data: holdingsData } = useUserHoldings(authenticated ? walletAddress : null);
 
   const handleEnterPool = (livePool: LiveIndexPool) => {
     if (!authenticated) {
@@ -52,7 +52,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0D0A06] selection:bg-[#FEB413]/30 selection:text-white">
       <div className="fixed top-0 inset-x-0 z-[60] bg-[#FEB413] text-[#0D0A06] text-center py-1 font-jura font-bold text-[10px] sm:text-xs uppercase tracking-widest">
-        ⚠️ {t('banner.mainnetTest')}
+        ⚠️ Mainnet Test — This is a live test environment
       </div>
       <Navbar topOffset />
 
@@ -77,7 +77,13 @@ export default function Home() {
 
       {/* 4. LIVE TEAM INDEXES */}
       <section id="live-indexes">
-        <LiveIndexesSection pools={livePools} onEnterPool={handleEnterPool} />
+        <LiveIndexesSection
+          pools={livePools}
+          onEnterPool={handleEnterPool}
+          isAuthenticated={ready ? authenticated : undefined}
+          userHoldings={holdingsData?.holdings}
+          onLogin={login}
+        />
       </section>
 
       {/* 5. EXOTIC INDEXES (Coming Soon) */}

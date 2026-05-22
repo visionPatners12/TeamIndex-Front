@@ -1,18 +1,15 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
 import type { PoolData } from "@/types/pool";
-import { fmtUsdShort } from "@/utils/pool";
+import { fmtUsdShort, formatPoolName } from "@/utils/pool";
 
 interface IndexCardProps {
   pool?: PoolData | null;
 }
 
 export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
-  const { t } = useTranslation();
-  const teamName = pool ? pool.team.toUpperCase() + " INDEX" : "ARSENAL INDEX";
+  const teamName = pool ? formatPoolName(pool.team).toUpperCase() : "PRYZEN ARSENAL FC INDEX";
   const symbol = pool ? `p${pool.symbol}` : "pAFC";
   const clubLabel = pool ? pool.team : "Arsenal F.C.";
-  const initial = pool ? pool.symbol.charAt(0) : "A";
   const tokenValue = pool ? pool.tokenValue : 0;
   const holders = pool ? pool.holders : 0;
   const change = pool ? pool.change24h : 0;
@@ -25,9 +22,14 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
 
   return (
     <div className="w-105 xl:w-115 h-113.5 bg-[#504220] border border-white/10 rounded-[20px] p-8 flex flex-col gap-6 shadow-2xl">
+
       <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-full bg-[#4c422a] flex items-center justify-center text-xl font-bold text-[#ffffff] shrink-0">
-          {initial}
+        <div className="w-11 h-11 rounded-full bg-[#4c422a] flex items-center justify-center shrink-0 overflow-hidden p-2">
+          <img
+            src={import.meta.env.BASE_URL + "images/logo_img.svg"}
+            alt="Pryzen"
+            className="w-full h-full object-contain"
+          />
         </div>
         <div className="flex flex-col min-w-0">
           <span className="font-jura font-bold text-base text-white uppercase tracking-wide">
@@ -41,7 +43,7 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
             : "bg-red-500/15 border border-red-500/25 text-red-400"
         }`}>
           <span className={`w-1.5 h-1.5 rounded-full ${isLive ? "bg-green-400" : "bg-red-400"}`} />
-          {isLive ? t('indexCard.live') : t('indexCard.closed')}
+          {isLive ? "Live" : "Closed"}
         </span>
       </div>
 
@@ -56,7 +58,7 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
             </span>
           )}
         </div>
-        <span className="font-golos text-xs text-white/40">{t('indexCard.currentTokenValue')}</span>
+        <span className="font-golos text-xs text-white/40">Current Token Value</span>
       </div>
 
       <div className="flex gap-3">
@@ -66,7 +68,7 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
             alt="Holders"
             className="w-5 h-5 mb-0.5"
           />
-          <span className="font-golos text-[11px] text-white/40">{t('indexCard.currentHolders')}</span>
+          <span className="font-golos text-[11px] text-white/40">Current Holders</span>
           <span className="font-jura font-bold text-xl text-white">
             {pool ? holders.toLocaleString() : "--"}
           </span>
@@ -78,7 +80,7 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
             alt="Pool"
             className="w-5 h-5 mb-0.5"
           />
-          <span className="font-golos text-[11px] text-white/40">{t('indexCard.poolFill')}</span>
+          <span className="font-golos text-[11px] text-white/40">Pool Fill</span>
           {pool && hasFiniteCap ? (
             <div className="w-full flex flex-col gap-1.5 mt-1">
               <span className="font-jura font-bold text-sm text-white">
@@ -97,7 +99,7 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
       </div>
 
       <button className="w-full py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-jura font-bold text-base uppercase tracking-wide transition-all">
-        {t('indexCard.enterPool')}
+        Enter Pool
       </button>
     </div>
   );

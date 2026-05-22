@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkline } from './Sparkline';
-import { Shield, TrendingUp, Users, ArrowRight } from 'lucide-react';
+import { Shield, TrendingUp, Users, ArrowRight, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
-import { fmtUsdShort } from '@/utils/pool';
+import { fmtUsdShort, formatPoolName } from '@/utils/pool';
+import { VaultPositionsModal } from './VaultPositionsModal';
 
 export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: number; onEnter?: (pool: PoolData) => void }) {
+  const [showPositions, setShowPositions] = useState(false);
   const isClosed = pool.status === 'Closed';
   const isClosingSoon = pool.status === 'Closing Soon';
   const hasFiniteCap = Number.isFinite(pool.poolCap) && pool.poolCap > 0;
@@ -36,13 +38,17 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
         <div className="flex justify-between items-start mb-6">
           <div className="flex items-center gap-4">
             <div className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold font-display shadow-lg border",
-              isClosed ? "bg-muted border-white/5 text-muted-foreground" : "bg-secondary border-primary/20 text-foreground"
+              "w-12 h-12 rounded-full flex items-center justify-center shadow-lg border overflow-hidden p-2",
+              isClosed ? "bg-muted border-white/5" : "bg-secondary border-primary/20"
             )}>
-              {pool.symbol[0]}
+              <img
+                src={import.meta.env.BASE_URL + "images/logo_img.svg"}
+                alt="Pryzen"
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-foreground font-display">{pool.team}</h3>
+              <h3 className="text-xl font-bold text-foreground font-display">{formatPoolName(pool.team)}</h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs font-medium text-muted-foreground bg-white/5 px-2 py-0.5 rounded-md border border-white/10">
                   ${pool.symbol}
@@ -144,7 +150,25 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
           {isClosed ? "Pool Closed" : isClosingSoon ? "Enter Before Close" : "Enter Pool"}
           {!isClosed && <ArrowRight className="w-4 h-4" />}
         </button>
+
+        {/* View Positions button */}
+        <button
+          onClick={() => setShowPositions(true)}
+          className="w-full py-2.5 rounded-xl font-semibold text-xs transition-all duration-200 flex items-center justify-center gap-2 bg-white/5 border border-white/8 text-muted-foreground hover:text-white hover:bg-white/10 hover:border-white/20"
+        >
+          <BarChart2 className="w-3.5 h-3.5" />
+          View Vault Positions
+        </button>
       </div>
+
+      {/* Positions modal */}
+      {showPositions && (
+        <VaultPositionsModal
+          poolId={pool.id}
+          poolName={formatPoolName(pool.team)}
+          onClose={() => setShowPositions(false)}
+        />
+      )}
     </motion.div>
   );
 }

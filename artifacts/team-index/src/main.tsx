@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
 import { PrivyProvider } from '@privy-io/react-auth';
-import './i18n';
 import App from "./App";
 import "./index.css";
 

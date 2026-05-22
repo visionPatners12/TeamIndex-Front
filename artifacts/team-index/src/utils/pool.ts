@@ -1,5 +1,21 @@
 import type { PoolData, LiveIndexPool } from "@/types/pool";
 
+/**
+ * Canonical display name for every pool in the product.
+ * Input is the raw club/team name stored on-chain / in the DB (e.g. "Arsenal FC");
+ * output is the branded index name shown to users (e.g. "Pryzen Arsenal FC Index").
+ *
+ * Idempotent — if the input already starts with "Pryzen" and ends with "Index"
+ * we leave it untouched so callers can pass either form safely.
+ */
+export function formatPoolName(rawName: string | undefined | null): string {
+  const name = (rawName ?? "").trim();
+  if (!name) return "Pryzen Index";
+  const lower = name.toLowerCase();
+  if (lower.startsWith("pryzen ") && lower.endsWith(" index")) return name;
+  return `Pryzen ${name} Index`;
+}
+
 /** Short USD labels for pool size / cap (human dollars). */
 export function fmtUsdShort(n: number): string {
   if (!Number.isFinite(n) || n <= 0) return "$0";
@@ -23,7 +39,7 @@ export function toLiveIndexPool(p: PoolData): LiveIndexPool {
   };
   return {
     id: p.id,
-    teamName: p.team.toUpperCase(),
+    teamName: formatPoolName(p.team).toUpperCase(),
     symbol: `$${p.symbol}`,
     status: statusMap[p.status],
     indexValue: p.tokenValue,

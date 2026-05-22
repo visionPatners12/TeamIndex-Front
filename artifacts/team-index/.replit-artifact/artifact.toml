@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Team Index"
+version = "1.0.0"
+id = "artifacts/team-index"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21292
+
+[services.development]
+run = "pnpm --filter @workspace/team-index run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/team-index", "run", "build" ]
+publicDir = "artifacts/team-index/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21292"
+BASE_PATH = "/"
