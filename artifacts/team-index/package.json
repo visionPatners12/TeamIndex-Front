@@ -75,7 +75,9 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@lifi/sdk": "^3.16.3",
     "@privy-io/react-auth": "^3.18.0",
-    "lottie-react": "^2.4.1"
+    "lottie-react": "^2.4.1",
+    "viem": "^2.50.4"
   }
 }

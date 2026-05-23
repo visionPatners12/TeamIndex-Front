@@ -1,22 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Info, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ExtendedChain, LiFiStep, TokenExtended } from '@lifi/sdk';
+import { formatUnits } from 'viem';
 import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
 import { truncateAddr } from '@/utils/address';
 import { formatPoolName } from '@/utils/pool';
 import { api } from '@/lib/api';
-import { usePolygonDeposit, useChilizDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
-import { usePublicSettings, useChzPrice } from '@/hooks/use-settings';
-import { POLYGON_CHAIN, CHILIZ_CHAIN } from '@/lib/config';
-import chzLogo from '@assets/CHZ_1776150749884.png';
+import { usePolygonDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
+import { useLifiIndexDeposit, type LifiDepositStatus } from '@/hooks/use-lifi-index-deposit';
+import {
+  getLifiEvmChains,
+  getLifiTokensForChain,
+  isPolygonUsdcSource,
+  parsePolygonUsdcAmount,
+} from '@/lib/lifi';
+import { POLYGON_CHAIN } from '@/lib/config';
 import afcLogo from '@assets/AFC_1776150749882.png';
 import barLogo from '@assets/BAR_1776150749883.png';
 import acmLogo from '@assets/ACM_1776150749863.png';
 import cityLogo from '@assets/CITY_1776150749884.png';
 
-type Network = 'polygon' | 'chiliz';
+type Network = 'polygon' | 'lifi';
 type Step = 'select' | 'confirm' | 'processing' | 'success' | 'error';
 
 interface DepositModalProps {
@@ -63,37 +70,74 @@ const NETWORK_CONFIG = {
     decimals: 6,
     rate: 1,
   },
-  chiliz: {
-    name: 'Chiliz',
-    asset: 'CHZ',
-    assetFull: 'Chiliz',
-    color: '#CD0124',
-    colorLight: 'rgba(205, 1, 36, 0.12)',
-    colorBorder: 'rgba(205, 1, 36, 0.3)',
-    chain: 'Chiliz Chain',
-    receives: 'Wrapped Token',
-    receiveDesc: 'You receive a wrapped Pryzen Team Index token on Chiliz Chain after cross-chain processing.',
-    minAmount: 1,
+  lifi: {
+    name: 'LI.FI',
+    asset: 'USDC',
+    assetFull: 'Polygon USDC',
+    color: '#19B6A5',
+    colorLight: 'rgba(25, 182, 165, 0.13)',
+    colorBorder: 'rgba(25, 182, 165, 0.35)',
+    chain: 'Any EVM -> Polygon',
+    receives: 'Index Token',
+    receiveDesc: 'LI.FI routes your source token into Polygon USDC, then calls the index contract with your wallet as the shares receiver.',
+    minAmount: 0.1,
     maxAmount: 1000000,
-    placeholder: '500',
-    decimals: 18,
-    rate: 0.084,
+    placeholder: '100',
+    decimals: 6,
+    rate: 1,
   },
 };
 
 const PRESET_AMOUNTS: Record<Network, number[]> = {
   polygon: [50, 100, 500, 1000],
-  chiliz: [500, 1000, 5000, 10000],
+  lifi: [50, 100, 500, 1000],
 };
 
-function statusLabel(s: TxStatus): string {
+function statusLabel(s: TxStatus | LifiDepositStatus): string {
   switch (s) {
     case 'switching':   return 'Switching network…';
     case 'approving':   return 'Approve token in wallet…';
     case 'sending':     return 'Confirm deposit in wallet…';
+    case 'bridging':    return 'Routing funds to Polygon USDC…';
     case 'confirming':  return 'Waiting for confirmation…';
+    case 'quoting':     return 'Fetching LI.FI quote…';
     default:            return '';
   }
+}
+
+function formatRawTokenAmount(raw?: string, decimals = 18, maxFractionDigits = 6): string {
+  if (!raw) return '0';
+  try {
+    return Number(formatUnits(BigInt(raw), decimals)).toLocaleString(undefined, {
+      maximumFractionDigits: maxFractionDigits,
+    });
+  } catch {
+    return '0';
+  }
+}
+
+function sumUsdCosts(
+  costs?: Array<{ amountUSD?: string | number | null }>
+): number {
+  return (costs ?? []).reduce((sum, cost) => {
+    const value = Number(cost.amountUSD ?? 0);
+    return Number.isFinite(value) ? sum + value : sum;
+  }, 0);
+}
+
+function quoteRouteLabel(quote?: LiFiStep | null): string {
+  const names = quote?.includedSteps
+    ?.map((step) => step.toolDetails?.name || step.tool)
+    .filter(Boolean);
+  return names?.length ? names.join(' -> ') : 'LI.FI route';
+}
+
+function chainLabel(chain?: ExtendedChain | null): string {
+  return chain?.name || 'Source chain';
+}
+
+function tokenLabel(token?: TokenExtended | null): string {
+  return token ? `${token.symbol} on ${token.chainId}` : 'Source token';
 }
 
 export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: DepositModalProps) {
@@ -104,19 +148,30 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const [agreed, setAgreed] = useState(false);
   const [depositError, setDepositError] = useState<string | null>(null);
   const [finalTxHash, setFinalTxHash] = useState<string | null>(null);
+  const [finalTxLink, setFinalTxLink] = useState<string | null>(null);
+  const [sourceChainId, setSourceChainId] = useState<number | null>(null);
+  const [sourceToken, setSourceToken] = useState<TokenExtended | null>(null);
+  const [tokenSearch, setTokenSearch] = useState('');
+  const [lifiQuote, setLifiQuote] = useState<LiFiStep | null>(null);
+  const [lifiQuoteKey, setLifiQuoteKey] = useState<string | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
   const polygonHook = usePolygonDeposit();
-  const chilizHook = useChilizDeposit();
+  const lifiHook = useLifiIndexDeposit();
 
-  const { data: platformSettings } = usePublicSettings();
-  const { data: chzPrice } = useChzPrice();
-  const chilizEnabled = platformSettings?.chilizEnabled ?? false;
-  const chzUsd = Number.isFinite(Number(chzPrice?.usd)) ? Number(chzPrice?.usd) : null;
+  const { data: lifiChains = [], isLoading: chainsLoading } = useQuery({
+    queryKey: ['lifi', 'evm-chains'],
+    queryFn: getLifiEvmChains,
+    enabled: network === 'lifi',
+    staleTime: 60 * 60 * 1000,
+  });
 
-  // Auto-switch back to polygon if the admin disables Chiliz while modal is open.
-  useEffect(() => {
-    if (!chilizEnabled && network === 'chiliz') setNetwork('polygon');
-  }, [chilizEnabled, network]);
+  const { data: lifiTokens = [], isFetching: tokensLoading } = useQuery({
+    queryKey: ['lifi', 'tokens', sourceChainId, tokenSearch.trim()],
+    queryFn: () => getLifiTokensForChain(sourceChainId!, tokenSearch),
+    enabled: network === 'lifi' && !!sourceChainId,
+    staleTime: 10 * 60 * 1000,
+  });
 
   const config = NETWORK_CONFIG[network];
   const numAmount = parseFloat(amount) || 0;
@@ -125,9 +180,52 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const usdValueAfterFee = usdValue * (1 - FEE_PCT);
   const tokensReceived = pool ? usdValueAfterFee / pool.tokenValue : 0;
   const isValidAmount = numAmount >= config.minAmount && numAmount <= config.maxAmount;
-  const vaultReady = network === 'chiliz' || !!pool?.vaultAddress;
+  const vaultReady = !!pool?.vaultAddress;
 
   const fanToken = pool ? getFanTokenForPool(pool.symbol) : null;
+  const selectedSourceChain = useMemo(
+    () => lifiChains.find((chain) => chain.id === sourceChainId) ?? null,
+    [lifiChains, sourceChainId]
+  );
+  const targetUsdcRaw = useMemo(() => {
+    try {
+      return parsePolygonUsdcAmount(amount);
+    } catch {
+      return '0';
+    }
+  }, [amount]);
+  const currentLifiQuoteKey = useMemo(() => {
+    if (
+      network !== 'lifi' ||
+      !walletAddress ||
+      !pool?.vaultAddress ||
+      !sourceChainId ||
+      !sourceToken ||
+      targetUsdcRaw === '0'
+    ) {
+      return '';
+    }
+
+    return [
+      walletAddress.toLowerCase(),
+      pool.vaultAddress.toLowerCase(),
+      sourceChainId,
+      sourceToken.address.toLowerCase(),
+      targetUsdcRaw,
+    ].join(':');
+  }, [network, walletAddress, pool?.vaultAddress, sourceChainId, sourceToken, targetUsdcRaw]);
+  const isLifiQuoteFresh =
+    network === 'lifi' && !!lifiQuote && lifiQuoteKey === currentLifiQuoteKey;
+  const lifiSourceSpend = lifiQuote
+    ? formatRawTokenAmount(
+        lifiQuote.action.fromAmount || lifiQuote.estimate?.fromAmount,
+        lifiQuote.action.fromToken.decimals
+      )
+    : null;
+  const lifiFeeUsd = lifiQuote
+    ? sumUsdCosts(lifiQuote.estimate?.feeCosts) + sumUsdCosts(lifiQuote.estimate?.gasCosts)
+    : 0;
+  const sourceIsPolygonUsdc = isPolygonUsdcSource(sourceChainId, sourceToken?.address);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -138,6 +236,38 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
       document.body.style.overflow = '';
     };
   }, [onClose]);
+
+  useEffect(() => {
+    if (network !== 'lifi' || sourceChainId || !lifiChains.length) return;
+    const preferredChain =
+      lifiChains.find((chain) => chain.id === 1) ??
+      lifiChains.find((chain) => chain.id !== 137) ??
+      lifiChains[0];
+    setSourceChainId(preferredChain.id);
+  }, [network, sourceChainId, lifiChains]);
+
+  useEffect(() => {
+    if (network !== 'lifi') return;
+    setSourceToken(null);
+    setTokenSearch('');
+  }, [network, sourceChainId]);
+
+  useEffect(() => {
+    if (network !== 'lifi' || sourceToken || !lifiTokens.length) return;
+    const preferredToken =
+      lifiTokens.find((token) => token.symbol.toUpperCase() === 'USDC') ??
+      lifiTokens[0];
+    setSourceToken(preferredToken);
+  }, [network, sourceToken, lifiTokens]);
+
+  useEffect(() => {
+    if (network !== 'lifi') return;
+    if (lifiQuoteKey && lifiQuoteKey !== currentLifiQuoteKey) {
+      setLifiQuote(null);
+      setLifiQuoteKey(null);
+      setQuoteError(null);
+    }
+  }, [network, currentLifiQuoteKey, lifiQuoteKey]);
 
   const refreshPoolViews = useCallback(async () => {
     if (!pool) return;
@@ -153,15 +283,55 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     setTimeout(bump, 12_000);
   }, [pool, queryClient]);
 
+  const handleFetchLifiQuote = useCallback(async () => {
+    if (
+      !pool?.vaultAddress ||
+      !walletAddress ||
+      !sourceChainId ||
+      !sourceToken ||
+      targetUsdcRaw === '0' ||
+      !currentLifiQuoteKey
+    ) {
+      return null;
+    }
+
+    setQuoteError(null);
+    try {
+      const quote = await lifiHook.quoteDeposit({
+        fromChainId: sourceChainId,
+        fromTokenAddress: sourceToken.address,
+        fromAddress: walletAddress,
+        vaultAddress: pool.vaultAddress,
+        receiverAddress: walletAddress,
+        usdcAmountRaw: targetUsdcRaw,
+      });
+      setLifiQuote(quote);
+      setLifiQuoteKey(currentLifiQuoteKey);
+      return quote;
+    } catch (err: any) {
+      setQuoteError(err?.message || 'No LI.FI route available for this deposit.');
+      return null;
+    }
+  }, [
+    pool?.vaultAddress,
+    walletAddress,
+    sourceChainId,
+    sourceToken,
+    targetUsdcRaw,
+    currentLifiQuoteKey,
+    lifiHook,
+  ]);
+
   const handleDeposit = useCallback(async () => {
     if (!pool || !walletAddress || !isValidAmount) return;
 
     setStep('processing');
     setDepositError(null);
+    setFinalTxLink(null);
 
     try {
       if (network === 'polygon') {
-        const rawAmount = BigInt(Math.floor(numAmount * 10 ** config.decimals));
+        const rawAmount = BigInt(targetUsdcRaw);
         const { tx } = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
         const hash = await polygonHook.deposit(tx.to, rawAmount, tx);
         setFinalTxHash(hash ?? null);
@@ -175,10 +345,19 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
         await refreshPoolViews();
         setStep('success');
       } else {
-        const rawAmount = BigInt(Math.floor(numAmount * 10 ** config.decimals));
-        const { tx, receiverAddress } = await api.prepareChilizDepositChz(pool.id);
-        const hash = await chilizHook.depositCHZ(receiverAddress, '', tx, rawAmount.toString());
-        setFinalTxHash(hash ?? null);
+        const quote = isLifiQuoteFresh ? lifiQuote : await handleFetchLifiQuote();
+        if (!quote) throw new Error('No fresh LI.FI quote available.');
+
+        const result = await lifiHook.executeQuote(quote);
+        setFinalTxHash(result.txHash ?? null);
+        setFinalTxLink(result.txLink ?? null);
+        if (result.txHash) {
+          try {
+            await api.confirmPoolDeposit(pool.id, result.txHash);
+          } catch (e) {
+            console.warn("POST /pools/:id/deposit/confirm failed", e);
+          }
+        }
         await refreshPoolViews();
         setStep('success');
       }
@@ -186,7 +365,19 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
       setDepositError(err.message || 'Transaction failed');
       setStep('error');
     }
-  }, [pool, walletAddress, isValidAmount, network, numAmount, config.decimals, polygonHook, chilizHook, refreshPoolViews]);
+  }, [
+    pool,
+    walletAddress,
+    isValidAmount,
+    network,
+    targetUsdcRaw,
+    polygonHook,
+    lifiHook,
+    isLifiQuoteFresh,
+    lifiQuote,
+    handleFetchLifiQuote,
+    refreshPoolViews,
+  ]);
 
   const handleReset = () => {
     setNetwork('polygon');
@@ -195,16 +386,39 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     setAgreed(false);
     setDepositError(null);
     setFinalTxHash(null);
+    setFinalTxLink(null);
+    setSourceChainId(null);
+    setSourceToken(null);
+    setTokenSearch('');
+    setLifiQuote(null);
+    setLifiQuoteKey(null);
+    setQuoteError(null);
     polygonHook.reset();
-    chilizHook.reset();
+    lifiHook.reset();
   };
 
   if (!pool) return null;
 
-  const activeHook = network === 'polygon' ? polygonHook : chilizHook;
-  const explorerUrl = network === 'polygon'
-    ? `${POLYGON_CHAIN.blockExplorer}/tx/${finalTxHash}`
-    : `${CHILIZ_CHAIN.blockExplorer}/tx/${finalTxHash}`;
+  const activeHook = network === 'polygon' ? polygonHook : lifiHook;
+  const explorerUrl = finalTxLink || (finalTxHash ? `${POLYGON_CHAIN.blockExplorer}/tx/${finalTxHash}` : '');
+  const canUseLifiSource = !!sourceChainId && !!sourceToken;
+  const needsLifiQuote = network === 'lifi' && !isLifiQuoteFresh;
+  const isQuoteLoading = lifiHook.status === 'quoting';
+  const canContinue =
+    isValidAmount &&
+    !!walletAddress &&
+    vaultReady &&
+    (network === 'polygon' || canUseLifiSource);
+  const selectButtonLabel = isQuoteLoading
+    ? 'Getting LI.FI Quote...'
+    : needsLifiQuote
+      ? 'Get LI.FI Quote'
+      : 'Review Deposit';
+  const lifiQuoteSourceAmount = lifiQuote
+    ? `${lifiSourceSpend} ${lifiQuote.action.fromToken.symbol}`
+    : sourceToken
+      ? `Estimated ${sourceToken.symbol}`
+      : 'Select source token';
 
   return (
     <AnimatePresence>
@@ -223,7 +437,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.25, type: 'spring', damping: 25 }}
-          className="relative w-full max-w-md z-10"
+          className="relative w-full max-w-md max-h-[92vh] z-10"
           onClick={(e) => e.stopPropagation()}
         >
           <div
@@ -231,7 +445,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
             style={{ background: `radial-gradient(circle, ${config.color} 0%, transparent 70%)` }}
           />
 
-          <div className="relative bg-[#0D0A06] border border-[#3f392b]/60 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="relative max-h-[92vh] bg-[#0D0A06] border border-[#3f392b]/60 rounded-2xl overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/5">
               <div className="flex items-center gap-3">
                 <div
@@ -257,7 +471,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 max-h-[calc(92vh-89px)] overflow-y-auto">
               <AnimatePresence mode="wait">
 
                 {step === 'select' && (
@@ -271,32 +485,15 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       </div>
                     )}
 
-                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">1. Choose your entry token</p>
-
-                    {chzUsd !== null && (
-                      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10 mb-3 text-xs font-golos">
-                        <div className="flex items-center gap-2">
-                          <img src={chzLogo} alt="CHZ" className="w-4 h-4 rounded-full" />
-                          <span className="text-white/60">CHZ / USD</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-white font-mono font-semibold">${chzUsd.toFixed(4)}</span>
-                          {!chilizEnabled && (
-                            <span className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] font-jura font-semibold uppercase tracking-wider text-white/50">
-                              Network offline
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">1. Choose your entry path</p>
 
                     {(() => {
-                      const availableNetworks: Network[] = chilizEnabled ? ['polygon', 'chiliz'] : ['polygon'];
+                      const availableNetworks: Network[] = ['polygon', 'lifi'];
                       const cols = cn(
                         "grid gap-3 mb-4",
                         fanToken
-                          ? (chilizEnabled ? "grid-cols-3" : "grid-cols-2")
-                          : (chilizEnabled ? "grid-cols-2" : "grid-cols-1")
+                          ? "grid-cols-3"
+                          : "grid-cols-2"
                       );
                       return (
                     <div className={cols}>
@@ -315,7 +512,9 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                               {net === 'polygon' ? (
                                 <UsdcIcon size={22} />
                               ) : (
-                                <img src={chzLogo} alt="CHZ" className="w-[22px] h-[22px] rounded-full" />
+                                <div className="w-[22px] h-[22px] rounded-full bg-[#19B6A5]/20 border border-[#19B6A5]/40 flex items-center justify-center">
+                                  <span className="text-[9px] font-jura font-bold text-[#19B6A5]">LI</span>
+                                </div>
                               )}
                               <span className="font-jura font-bold text-sm text-white">{c.asset}</span>
                             </div>
@@ -344,18 +543,95 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       );
                     })()}
 
+                    {network === 'lifi' && (
+                      <div className="space-y-3 mb-5">
+                        <div className="grid grid-cols-1 gap-2">
+                          <label className="text-[10px] font-jura font-bold uppercase tracking-widest text-white/30">
+                            Source chain
+                          </label>
+                          <select
+                            value={sourceChainId ?? ''}
+                            onChange={(event) => setSourceChainId(Number(event.target.value))}
+                            disabled={chainsLoading}
+                            className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm font-golos text-white outline-none disabled:text-white/20"
+                          >
+                            <option value="" className="bg-[#0D0A06] text-white">
+                              {chainsLoading ? 'Loading chains...' : 'Select chain'}
+                            </option>
+                            {lifiChains.map((chain) => (
+                              <option key={chain.id} value={chain.id} className="bg-[#0D0A06] text-white">
+                                {chain.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2">
+                          <label className="text-[10px] font-jura font-bold uppercase tracking-widest text-white/30">
+                            Source token
+                          </label>
+                          <input
+                            type="text"
+                            value={tokenSearch}
+                            onChange={(event) => setTokenSearch(event.target.value)}
+                            placeholder="Search token"
+                            disabled={!sourceChainId}
+                            className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm font-golos text-white outline-none placeholder:text-white/20 disabled:text-white/20"
+                          />
+                          <div className="max-h-36 overflow-y-auto rounded-xl border border-white/10 bg-white/[0.025] p-1.5">
+                            {tokensLoading && (
+                              <div className="px-3 py-3 text-xs font-golos text-white/30">Loading tokens...</div>
+                            )}
+                            {!tokensLoading && lifiTokens.length === 0 && (
+                              <div className="px-3 py-3 text-xs font-golos text-white/30">No token found.</div>
+                            )}
+                            {!tokensLoading && lifiTokens.map((token) => {
+                              const active = sourceToken?.chainId === token.chainId &&
+                                sourceToken?.address.toLowerCase() === token.address.toLowerCase();
+                              return (
+                                <button
+                                  key={`${token.chainId}-${token.address}`}
+                                  type="button"
+                                  onClick={() => setSourceToken(token)}
+                                  className={cn(
+                                    'w-full flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-left transition-colors',
+                                    active ? 'bg-[#19B6A5]/15 border border-[#19B6A5]/30' : 'border border-transparent hover:bg-white/[0.05]'
+                                  )}
+                                >
+                                  <span className="flex min-w-0 items-center gap-2">
+                                    {token.logoURI ? (
+                                      <img src={token.logoURI} alt={token.symbol} className="h-5 w-5 rounded-full" />
+                                    ) : (
+                                      <span className="h-5 w-5 rounded-full bg-white/10" />
+                                    )}
+                                    <span className="min-w-0">
+                                      <span className="block truncate text-sm font-jura font-bold text-white">{token.symbol}</span>
+                                      <span className="block truncate text-[10px] font-golos text-white/35">{token.name}</span>
+                                    </span>
+                                  </span>
+                                  {active && <CheckCircle className="h-4 w-4 shrink-0 text-[#19B6A5]" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex gap-3 p-3 rounded-xl mb-5 text-xs font-golos" style={{ background: config.colorLight, border: `1px solid ${config.colorBorder}` }}>
                       <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: config.color }} />
                       <p className="text-white/60 leading-relaxed">{config.receiveDesc}</p>
                     </div>
 
-                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">2. Enter amount</p>
+                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">
+                      2. Enter {network === 'lifi' ? 'Polygon USDC target' : 'amount'}
+                    </p>
 
                     <div className="relative rounded-xl border overflow-hidden mb-3 transition-all" style={{ borderColor: amount ? config.colorBorder : 'rgba(255,255,255,0.1)' }}>
                       <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={config.placeholder} min={config.minAmount} max={config.maxAmount}
                         className="w-full bg-white/[0.03] text-white text-xl font-mono font-bold px-4 py-4 pr-24 outline-none placeholder:text-white/15 font-golos" />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                        {network === 'polygon' ? <UsdcIcon size={18} /> : <img src={chzLogo} alt="CHZ" className="w-[18px] h-[18px] rounded-full" />}
+                        <UsdcIcon size={18} />
                         <span className="text-sm font-jura font-bold" style={{ color: config.color }}>{config.asset}</span>
                       </div>
                     </div>
@@ -376,7 +652,9 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     {numAmount > 0 && (
                       <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-5">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-xs font-golos text-white/40">You send</span>
+                          <span className="text-xs font-golos text-white/40">
+                            {network === 'lifi' ? 'Target deposit' : 'You send'}
+                          </span>
                           <span className="text-sm font-mono text-white">≈ ${usdValue.toFixed(4)}</span>
                         </div>
                         {FEE_PCT > 0 && (
@@ -394,6 +672,46 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       </motion.div>
                     )}
 
+                    {network === 'lifi' && sourceToken && (
+                      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-5 text-xs font-golos">
+                        <div className="flex justify-between gap-3 mb-2">
+                          <span className="text-white/40">Source</span>
+                          <span className="text-right font-jura font-semibold text-white">
+                            {sourceToken.symbol} on {chainLabel(selectedSourceChain)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between gap-3 mb-2">
+                          <span className="text-white/40">Estimated source spend</span>
+                          <span className="text-right font-mono font-semibold text-white">{lifiQuoteSourceAmount}</span>
+                        </div>
+                        {lifiQuote && (
+                          <>
+                            <div className="flex justify-between gap-3 mb-2">
+                              <span className="text-white/40">Route</span>
+                              <span className="text-right font-jura font-semibold text-white">{quoteRouteLabel(lifiQuote)}</span>
+                            </div>
+                            <div className="flex justify-between gap-3 mb-2">
+                              <span className="text-white/40">Fees / gas estimate</span>
+                              <span className="text-right font-mono font-semibold text-white">≈ ${lifiFeeUsd.toFixed(2)}</span>
+                            </div>
+                          </>
+                        )}
+                        <div className="flex justify-between gap-3 pt-2 border-t border-white/[0.06]">
+                          <span className="text-white/40">Destination</span>
+                          <span className="text-right font-jura font-semibold text-[#19B6A5]">Polygon USDC {'->'} Index contract</span>
+                        </div>
+                        {sourceIsPolygonUsdc && (
+                          <p className="mt-3 text-[11px] leading-relaxed text-[#FEB413]/80">
+                            Polygon USDC can use the faster direct deposit path above.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {quoteError && (
+                      <p className="text-xs font-golos text-red-400 mb-4">{quoteError}</p>
+                    )}
+
                     {numAmount > 0 && !isValidAmount && (
                       <p className="text-xs font-golos text-red-400 mb-4">
                         Min: {config.minAmount.toLocaleString()} {config.asset} · Max: {config.maxAmount.toLocaleString()} {config.asset}
@@ -407,13 +725,17 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       </div>
                     )}
 
-                    <button onClick={() => setStep('confirm')} disabled={!isValidAmount || !walletAddress || !vaultReady}
+                    <button
+                      onClick={needsLifiQuote ? handleFetchLifiQuote : () => setStep('confirm')}
+                      disabled={!canContinue || isQuoteLoading}
                       className={cn('w-full py-4 rounded-xl font-jura font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2',
-                        isValidAmount && walletAddress && vaultReady ? 'text-white hover:opacity-90 hover:shadow-lg' : 'bg-white/5 text-white/20 cursor-not-allowed border border-white/10'
+                        canContinue && !isQuoteLoading ? 'text-white hover:opacity-90 hover:shadow-lg' : 'bg-white/5 text-white/20 cursor-not-allowed border border-white/10'
                       )}
-                      style={isValidAmount && walletAddress && vaultReady ? { background: config.color } : {}}
+                      style={canContinue && !isQuoteLoading ? { background: config.color } : {}}
                     >
-                      Review Deposit <ArrowRight className="w-4 h-4" />
+                      {isQuoteLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {selectButtonLabel}
+                      {!isQuoteLoading && <ArrowRight className="w-4 h-4" />}
                     </button>
                   </motion.div>
                 )}
@@ -423,17 +745,29 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-4">Review your deposit</p>
 
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl divide-y divide-white/[0.06] mb-5">
-                      {[
-                        { label: 'Network', value: config.chain },
-                        { label: 'You send', value: `${numAmount.toLocaleString()} ${config.asset}` },
-                        { label: 'USD equivalent', value: `≈ $${usdValue.toFixed(2)}` },
-                        { label: 'Estimated tokens', value: `${tokensReceived.toFixed(4)} $${pool.symbol}` },
-                        { label: 'Token type', value: config.receives },
-                        { label: 'Signed by', value: 'Your wallet (MetaMask)' },
-                      ].map(({ label, value }) => (
+                      {(network === 'polygon'
+                        ? [
+                            { label: 'Network', value: config.chain },
+                            { label: 'You send', value: `${numAmount.toLocaleString()} ${config.asset}` },
+                            { label: 'USD equivalent', value: `≈ $${usdValue.toFixed(2)}` },
+                            { label: 'Estimated tokens', value: `${tokensReceived.toFixed(4)} $${pool.symbol}` },
+                            { label: 'Token type', value: config.receives },
+                            { label: 'Signed by', value: 'Connected wallet' },
+                          ]
+                        : [
+                            { label: 'Source chain', value: chainLabel(selectedSourceChain) },
+                            { label: 'Source token', value: tokenLabel(sourceToken) },
+                            { label: 'Estimated source spend', value: lifiQuoteSourceAmount },
+                            { label: 'Target deposit', value: `${numAmount.toLocaleString()} Polygon USDC` },
+                            { label: 'Route', value: quoteRouteLabel(lifiQuote) },
+                            { label: 'Estimated tokens', value: `${tokensReceived.toFixed(4)} $${pool.symbol}` },
+                            { label: 'Funds receiver', value: 'Index contract' },
+                            { label: 'Shares receiver', value: walletAddress ? truncateAddr(walletAddress) : 'Connected wallet' },
+                          ]
+                      ).map(({ label, value }) => (
                         <div key={label} className="flex justify-between px-4 py-3 text-sm">
                           <span className="font-golos text-white/40">{label}</span>
-                          <span className="font-jura font-semibold text-white">{value}</span>
+                          <span className="font-jura font-semibold text-white text-right">{value}</span>
                         </div>
                       ))}
                       {walletAddress && (
@@ -446,7 +780,11 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
 
                     <div className="flex gap-3 bg-[#FEB413]/10 border border-[#FEB413]/20 p-3 rounded-xl mb-5 text-xs font-golos text-[#FEB413]/80">
                       <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#FEB413]" />
-                      <p>You will sign {network === 'polygon' ? '2 transactions' : '1 transaction'} in MetaMask: {network === 'polygon' ? 'approve USDC + deposit' : 'send CHZ to deposit receiver'}.</p>
+                      <p>
+                        {network === 'polygon'
+                          ? 'You will sign 2 transactions in your wallet: approve USDC + deposit.'
+                          : 'LI.FI will request the approval and route transactions needed to deliver Polygon USDC into the index contract.'}
+                      </p>
                     </div>
 
                     <label className="flex items-start gap-3 mb-5 cursor-pointer group">
@@ -497,8 +835,8 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     </motion.div>
                     <h3 className="text-2xl font-jura font-bold text-white mb-2">Deposit Confirmed!</h3>
                     <p className="font-golos text-white/40 text-sm mb-6">
-                      Your entry into <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was confirmed on {config.chain}.
-                      {network === 'chiliz' && ' Wrapped shares will be minted by the relayer shortly.'}
+                      Your entry into <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was confirmed.
+                      {network === 'lifi' && ' LI.FI delivered Polygon USDC to the index contract with your wallet as receiver.'}
                     </p>
                     {finalTxHash && (
                       <a href={explorerUrl} target="_blank" rel="noopener noreferrer"
@@ -508,9 +846,19 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     )}
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-6 text-left">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="font-golos text-white/40">Amount sent</span>
-                        <span className="font-mono font-bold text-white">{numAmount.toLocaleString()} {config.asset}</span>
+                        <span className="font-golos text-white/40">{network === 'lifi' ? 'Target deposit' : 'Amount sent'}</span>
+                        <span className="font-mono font-bold text-white">
+                          {network === 'lifi'
+                            ? `${numAmount.toLocaleString()} Polygon USDC`
+                            : `${numAmount.toLocaleString()} ${config.asset}`}
+                        </span>
                       </div>
+                      {network === 'lifi' && (
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="font-golos text-white/40">Source spend</span>
+                          <span className="font-mono font-bold text-white">{lifiQuoteSourceAmount}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-sm">
                         <span className="font-golos text-white/40">Estimated tokens</span>
                         <span className="font-mono font-bold" style={{ color: config.color }}>{tokensReceived.toFixed(4)} ${pool.symbol}</span>
