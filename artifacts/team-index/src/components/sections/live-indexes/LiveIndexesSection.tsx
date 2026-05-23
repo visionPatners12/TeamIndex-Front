@@ -24,29 +24,22 @@ export const LiveIndexesSection: React.FC<LiveIndexesSectionProps> = ({
   userHoldings,
   onLogin,
 }) => (
-  <section className="w-full py-20 px-4 sm:px-8 md:px-12 xl:px-30 bg-[#0D0A06] flex flex-col items-center gap-10">
+  <section className="w-full py-12 sm:py-16 lg:py-20 px-4 sm:px-8 md:px-12 xl:px-30 bg-[#0D0A06] flex flex-col items-center gap-7 sm:gap-10">
     <div className="w-full flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <GradientHeading
           as="h2"
-          className="text-[38px] sm:text-[52px] lg:text-[63px] leading-[108%]"
+          className="text-[34px] sm:text-[48px] lg:text-[58px] leading-[108%]"
           style={{ letterSpacing: "0.8px" }}
         >
-          LIVE TEAM INDEXES
+          LIVE INDEXES
         </GradientHeading>
 
-        <p className="font-golos text-white/80 text-lg max-w-2xl">
-          Pools are available only during their live entry window. Once a pool
-          reaches its cap or closes, new entries are paused until the next
-          phase.
+        <p className="font-golos text-white/70 text-sm sm:text-base max-w-2xl leading-relaxed mt-2">
+          Pick an open team index, enter the pool, and track your balance from
+          the same cards once your wallet is connected.
         </p>
       </div>
-      <a
-        href="#"
-        className="font-golos text-[#FEB413] text-base font-semibold flex items-center gap-2 hover:underline shrink-0"
-      >
-        View All History <span className="text-xl">→</span>
-      </a>
     </div>
 
     <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 items-stretch">

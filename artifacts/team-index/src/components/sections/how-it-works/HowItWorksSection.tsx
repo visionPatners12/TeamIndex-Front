@@ -5,33 +5,33 @@ import { GradientHeading } from "@/components/ui/GradientHeading";
 const steps = [
   {
     number: "01",
-    title: "CHOOSE A TEAM",
+    title: "PICK A TEAM",
     description:
-      "Pick the club you believe in from our available live team indexes.",
+      "Choose an open team index from the live pool list.",
   },
   {
     number: "02",
-    title: "ENTER THE INDEX",
+    title: "ENTER THE POOL",
     description:
-      "Deposit USDC or supported fan tokens to join the pool during its live entry window.",
+      "Deposit USDC or supported CHZ and Fan Tokens during the entry window.",
   },
   {
     number: "03",
-    title: "TRACK PERFORMANCE",
+    title: "TRACK VALUE",
     description:
-      "Watch your index evolve as positions are deployed across Polymarket markets linked to your team.",
+      "Follow token value, pool fill, holders, and your own wallet balance.",
   },
   {
     number: "04",
-    title: "CLAIM YOUR PRYZE",
+    title: "SETTLE RESULTS",
     description:
-      "When the pool settles, gains are distributed proportionally to eligible token holders.",
+      "When markets resolve, gains are reflected for eligible token holders.",
   },
 ];
 
 export const HowItWorksSection: React.FC = () => (
   <section
-    className="w-full flex flex-col items-center py-20 px-4 sm:px-10 lg:px-30 gap-16"
+    className="w-full flex flex-col items-center py-16 sm:py-20 px-4 sm:px-10 lg:px-30 gap-10 sm:gap-14"
     style={{
       background:
         "radial-gradient(141.42% 70.71% at 50% 0%, rgba(254, 180, 19, 0.08) 0%, rgba(254, 180, 19, 0.00) 60%)",
@@ -42,7 +42,7 @@ export const HowItWorksSection: React.FC = () => (
       className="text-[38px] sm:text-[52px] xl:text-[63px] leading-[108%] text-center"
       style={{ letterSpacing: "0.8px" }}
     >
-      HOW TEAM INDEX WORKS
+      HOW IT WORKS
     </GradientHeading>
     <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-10 xl:gap-15 w-full max-w-7xl">
       {/* Dashed connector line with gradient color */}

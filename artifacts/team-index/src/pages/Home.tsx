@@ -14,15 +14,11 @@ import { scrollToId } from "@/utils/scroll";
 import { HeroSection } from "@/components/sections/hero/HeroSection";
 import { HeroTextBlock } from "@/components/sections/hero/HeroTextBlock";
 import { IndexCard } from "@/components/sections/hero/IndexCard";
-import { NewWaySection } from "@/components/sections/new-way/NewWaySection";
 import { HowItWorksSection } from "@/components/sections/how-it-works/HowItWorksSection";
 import { LiveIndexesSection } from "@/components/sections/live-indexes/LiveIndexesSection";
-import { WhyDifferentSection } from "@/components/sections/why-different/WhyDifferentSection";
 import { ExoticIndexesSection } from "@/components/sections/exotic-indexes/ExoticIndexesSection";
-import { MarketplaceSection } from "@/components/sections/marketplace/MarketplaceSection";
 import { WhyPolymarketSection } from "@/components/sections/why-polymarket/WhyPolymarketSection";
 import { VaultArchitectureSection } from "@/components/sections/vault-architecture/VaultArchitectureSection";
-import { SimpleSmartSection } from "@/components/sections/simple-smart/SimpleSmartSection";
 import { FaqSection } from "@/components/sections/faq/FaqSection";
 import { CtaSection } from "@/components/layout/CtaSection";
 import { Footer } from "@/components/layout/Footer";
@@ -64,18 +60,7 @@ export default function Home() {
         </div>
       </HeroSection>
 
-      {/* 2. A NEW WAY TO BACK YOUR TEAM */}
-      <NewWaySection />
-
-      {/* 3. HOW TEAM INDEX WORKS */}
-      <section id="how-it-works">
-        <HowItWorksSection />
-      </section>
-
-      {/* 3b. VAULT ARCHITECTURE — Two deposit paths */}
-      <VaultArchitectureSection />
-
-      {/* 4. LIVE TEAM INDEXES */}
+      {/* 2. LIVE TEAM INDEXES — shown directly after the hero on mobile */}
       <section id="live-indexes">
         <LiveIndexesSection
           pools={livePools}
@@ -86,27 +71,24 @@ export default function Home() {
         />
       </section>
 
-      {/* 5. EXOTIC INDEXES (Coming Soon) */}
+      {/* 3. EXOTIC INDEXES */}
       <ExoticIndexesSection />
 
-      {/* 6. MARKETPLACE (Coming Soon) */}
-      <MarketplaceSection />
-
-      {/* 7. WHY IT FEELS DIFFERENT */}
-      <section id="why-different">
-        <WhyDifferentSection />
+      {/* 4. HOW TEAM INDEX WORKS */}
+      <section id="how-it-works">
+        <HowItWorksSection />
       </section>
 
-      {/* 7. WHY POLYMARKET */}
+      {/* 5. TWO DEPOSIT PATHS */}
+      <VaultArchitectureSection />
+
+      {/* 6. WHY POLYMARKET */}
       <WhyPolymarketSection />
 
-      {/* 8. SIMPLE ON THE SURFACE. SMART UNDERNEATH. */}
-      <SimpleSmartSection />
-
-      {/* 9. FAQ */}
+      {/* 7. FAQ */}
       <FaqSection />
 
-      {/* 10. CTA */}
+      {/* 8. CTA */}
       <CtaSection onExplore={() => scrollToId("live-indexes")} />
 
       {/* FOOTER */}

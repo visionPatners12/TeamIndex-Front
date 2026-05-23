@@ -1,50 +1,63 @@
 import React from "react";
 import { useLocation } from "wouter";
-import { BarChart2 } from "lucide-react";
+import { BarChart2, ListChecks, Search } from "lucide-react";
 import { GradientHeading } from "@/components/ui/GradientHeading";
 import { GoldButton } from "@/components/ui/GoldButton";
 import { scrollToId } from "@/utils/scroll";
 import chzLogo from "@assets/CHZ_1776150749884.png";
 
+const proofPoints = [
+  "Live pools by team",
+  "Match + futures exposure",
+  "USDC, CHZ and Fan Tokens",
+];
+
 export const HeroTextBlock: React.FC = () => {
   const [, navigate] = useLocation();
   return (
-  <div className="w-full xl:flex-1 xl:min-w-0 flex flex-col gap-6">
-    {/* Heading — gradient white → gold across two lines */}
+  <div className="w-full xl:flex-1 xl:min-w-0 flex flex-col gap-5 sm:gap-6">
     <GradientHeading
-      as="h2"
-      className="text-[38px] sm:text-[52px] lg:text-[63px] leading-[108%]"
+      as="h1"
+      className="text-[42px] sm:text-[58px] lg:text-[76px] leading-[96%]"
       style={{ letterSpacing: "0.8px" }}
     >
-      BACK THE TEAM.
-      <br />
-      SHARE THE UPSIDE.
+      TEAM INDEX
     </GradientHeading>
 
-    {/* Body */}
-    <div className="flex flex-col gap-4">
-      <p className="font-golos text-[16px] sm:text-[18px] leading-[1.6] text-white/70">
-        Team Index gives fans a new way to back their favorite teams through a
-        live team-based pool. Capital is deployed on Polymarket, across match
-        markets and futures markets linked to the team.
-      </p>
-      <p className="font-golos text-[16px] sm:text-[18px] leading-[1.6] text-white/70">
-        Instead of a one-off bet, you enter a dynamic index that evolves over
-        time with team performance and market results.
-      </p>
+    <p className="font-jura font-semibold text-lg sm:text-2xl text-white uppercase tracking-wide">
+      Back a team through a live market index.
+    </p>
+
+    <p className="font-golos text-[15px] sm:text-[18px] leading-[1.65] text-white/70 max-w-2xl">
+      Choose an open team pool, enter during the live window, and get exposure
+      to Polymarket match and futures markets linked to that team.
+    </p>
+
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
+      {proofPoints.map((point) => (
+        <div
+          key={point}
+          className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+        >
+          <ListChecks className="h-4 w-4 shrink-0 text-[#FEB413]" />
+          <span className="font-golos text-xs sm:text-[13px] text-white/70">
+            {point}
+          </span>
+        </div>
+      ))}
     </div>
 
-    {/* CTA buttons */}
     <div className="flex flex-wrap gap-3 sm:gap-4 mt-2">
       <GoldButton className="text-sm sm:text-base" onClick={() => scrollToId("live-indexes")}>
-        Explore Live Indexes
+        <Search className="w-4 h-4" />
+        View Live Indexes
       </GoldButton>
       <button
         onClick={() => navigate("/dashboard")}
         className="px-5 sm:px-7 py-3 sm:py-3.5 rounded-full border border-[#FEB413]/40 bg-[#FEB413]/10 text-[#FEB413] font-jura font-bold text-sm sm:text-base uppercase tracking-wide hover:bg-[#FEB413]/20 transition-all flex items-center gap-2"
       >
         <BarChart2 className="w-4 h-4" />
-        View Positions
+        My Indexes
       </button>
       <button
         onClick={() => scrollToId("how-it-works")}
@@ -54,7 +67,6 @@ export const HeroTextBlock: React.FC = () => {
       </button>
     </div>
 
-    {/* Partner badges */}
     <div className="flex flex-col gap-2 mt-2">
       <div className="flex items-center gap-2">
         <img
@@ -63,7 +75,7 @@ export const HeroTextBlock: React.FC = () => {
           className="w-5 h-5"
         />
         <span className="font-golos text-sm text-white/50">
-          Polymarket &nbsp;·&nbsp; Powered by Polymarket. Built for fans.
+          Polymarket infrastructure for market exposure
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -73,7 +85,7 @@ export const HeroTextBlock: React.FC = () => {
           className="w-5 h-5 rounded-full"
         />
         <span className="font-golos text-sm text-white/50">
-          Supported by Chiliz
+          Supported by Chiliz for CHZ and Fan Token entry paths
         </span>
       </div>
     </div>

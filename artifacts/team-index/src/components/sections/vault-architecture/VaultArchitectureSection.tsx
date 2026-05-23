@@ -46,7 +46,7 @@ const DownArrow = ({ color }: { color: string }) => (
 );
 
 export const VaultArchitectureSection: React.FC = () => (
-  <section className="w-full py-20 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
+  <section id="deposit-paths" className="w-full py-16 sm:py-20 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
     <div className="w-full flex flex-col items-center gap-8 text-center">
       <motion.span
         initial={{ y: ANIMATION.y, opacity: 0 }}
@@ -55,18 +55,19 @@ export const VaultArchitectureSection: React.FC = () => (
         viewport={{ once: ANIMATION.once, amount: 0.2 }}
         className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#3f392b] bg-[#161104]/60 text-xs font-jura font-bold uppercase tracking-widest text-[#FEB413]"
       >
-        🔒 Two Ways In
+        Two Ways In
       </motion.span>
 
       <GradientHeading className="text-[28px] sm:text-4xl lg:text-5xl max-w-3xl">
-        CHOOSE YOUR PATH INTO THE INDEX
+        DEPOSIT PATHS
       </GradientHeading>
 
       <motion.p
         {...staggerDelay(0)}
         className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed -mt-2"
       >
-        Collateral is held in USDC. Deposit directly on Polygon or use CHZ & Fan Tokens on Chiliz — each path gives you exposure to the same team index.
+        Collateral is held in USDC. Enter directly on Polygon, or use CHZ and
+        supported Fan Tokens through Chiliz for the same team index exposure.
       </motion.p>
 
       <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-0 mt-4 items-stretch">

@@ -49,7 +49,7 @@ const StatCard: React.FC<StatCardProps> = ({ value, label }) => (
 // ─── Section ─────────────────────────────────────────────────────────────────
 
 export const WhyPolymarketSection: React.FC = () => (
-  <section className="w-full py-24 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
+  <section id="why-polymarket" className="w-full py-16 sm:py-20 lg:py-24 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
     {/* Gradient-border wrapper: outer div is the fading gold "border", inner div is the card */}
     <div
       className="w-full"
@@ -82,8 +82,7 @@ export const WhyPolymarketSection: React.FC = () => (
 
       {/* Heading */}
       <GradientHeading className="text-4xl sm:text-5xl lg:text-6xl max-w-4xl">
-        THE WORLD'S LARGEST PREDICTION MARKET — AND THE INFRASTRUCTURE BEHIND
-        EVERY TEAM INDEX.
+        MARKET PRICES BEHIND EVERY TEAM INDEX.
       </GradientHeading>
       {/* Stat cards */}
       <div className="w-full flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mt-2">
@@ -93,8 +92,8 @@ export const WhyPolymarketSection: React.FC = () => (
       </div>
       {/* Body */}
       <p className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed">
-        Polymarket odds are right over 94% of the time — a month before the
-        event even happens.
+        Team Index uses Polymarket sports markets so pool performance is tied
+        to live market outcomes instead of a fixed points system.
       </p>
       {/* Link */}
       <a
