@@ -21,6 +21,7 @@ import { api } from '@/lib/api';
 import { usePolygonDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
 import { useLifiIndexDeposit, type LifiDepositStatus } from '@/hooks/use-lifi-index-deposit';
 import {
+  getIndexDepositUsdcAmountFromQuote,
   getLifiEvmChains,
   getLifiTokensForChain,
   isPolygonUsdcSource,
@@ -276,11 +277,12 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
         lifiQuote.action.fromToken.decimals
       )
     : null;
-  const lifiEstimatedUsdc = lifiQuote?.estimate?.toAmount
-    ? Number(formatUnits(BigInt(lifiQuote.estimate.toAmount), 6))
+  const lifiEstimatedUsdcRaw = getIndexDepositUsdcAmountFromQuote(lifiQuote);
+  const lifiEstimatedUsdc = lifiEstimatedUsdcRaw
+    ? Number(formatUnits(BigInt(lifiEstimatedUsdcRaw), 6))
     : 0;
-  const lifiEstimatedUsdcLabel = lifiQuote?.estimate?.toAmount
-    ? `${formatRawTokenAmount(lifiQuote.estimate.toAmount, 6, 4)} Polygon USDC`
+  const lifiEstimatedUsdcLabel = lifiEstimatedUsdcRaw
+    ? `${formatRawTokenAmount(lifiEstimatedUsdcRaw, 6, 4)} Polygon USDC`
     : 'Quote required';
   const displayedTokensReceived =
     network === 'lifi'
