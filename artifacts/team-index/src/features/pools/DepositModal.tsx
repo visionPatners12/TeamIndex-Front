@@ -298,6 +298,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     ? sumUsdCosts(lifiQuote.estimate?.feeCosts) + sumUsdCosts(lifiQuote.estimate?.gasCosts)
     : 0;
   const sourceIsPolygonUsdc = isPolygonUsdcSource(sourceChainId, sourceToken?.address);
+  const lifiSourceNeedsDirectPath = network === 'lifi' && sourceIsPolygonUsdc;
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -369,6 +370,11 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     }
 
     setQuoteError(null);
+    if (sourceIsPolygonUsdc) {
+      setQuoteError('Polygon USDC already has a direct deposit path. Switch to Polygon USDC to avoid an unnecessary LI.FI route.');
+      return null;
+    }
+
     try {
       const quote = await lifiHook.quoteDeposit({
         fromChainId: sourceChainId,
@@ -392,6 +398,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     sourceToken,
     sourceAmountRaw,
     currentLifiQuoteKey,
+    sourceIsPolygonUsdc,
     lifiHook,
   ]);
 
@@ -406,7 +413,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
       if (network === 'polygon') {
         const rawAmount = BigInt(targetUsdcRaw);
         const { tx } = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
-        const hash = await polygonHook.deposit(tx.to, rawAmount, tx);
+        const hash = await polygonHook.deposit(tx.to, rawAmount, tx, walletAddress);
         setFinalTxHash(hash ?? null);
         if (hash) {
           try {
@@ -426,6 +433,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
 
         const result = await lifiHook.executeQuote(quote, {
           vaultAddress,
+          signerAddress: walletAddress,
           receiverAddress: walletAddress,
         });
         setFinalTxHash(result.txHash ?? null);
@@ -489,7 +497,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     isValidAmount &&
     !!walletAddress &&
     vaultReady &&
-    (network === 'polygon' || canUseLifiSource);
+    (network === 'polygon' || (canUseLifiSource && !lifiSourceNeedsDirectPath));
   const selectButtonLabel = isQuoteLoading
     ? 'Getting LI.FI Quote...'
     : needsLifiQuote
@@ -910,9 +918,23 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                           <span className="text-right font-jura font-semibold text-[#19B6A5]">Polygon USDC {'->'} Index contract</span>
                         </div>
                         {sourceIsPolygonUsdc && (
-                          <p className="mt-3 text-[11px] leading-relaxed text-[#FEB413]/80">
-                            Polygon USDC can use the faster direct deposit path above.
-                          </p>
+                          <div className="mt-3 flex flex-col gap-2 rounded-lg border border-[#FEB413]/20 bg-[#FEB413]/10 p-3">
+                            <p className="text-[11px] leading-relaxed text-[#FEB413]/80">
+                              Polygon USDC already has the faster direct deposit path. Use it so the approve and vault deposit are prepared for the same transaction account.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setNetwork('polygon');
+                                setLifiQuote(null);
+                                setLifiQuoteKey(null);
+                                setQuoteError(null);
+                              }}
+                              className="w-fit rounded-lg border border-[#FEB413]/30 px-3 py-1.5 font-jura text-[11px] font-bold uppercase tracking-wider text-[#FEB413] transition-colors hover:bg-[#FEB413]/15"
+                            >
+                              Use Polygon USDC
+                            </button>
+                          </div>
                         )}
                       </div>
                     )}

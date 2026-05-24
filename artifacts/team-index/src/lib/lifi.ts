@@ -57,6 +57,7 @@ export interface IndexDepositQuoteParams {
 
 export interface IndexDepositExecutionParams {
   vaultAddress: string;
+  signerAddress?: string;
   receiverAddress: string;
 }
 
@@ -299,7 +300,11 @@ export async function getIndexDepositContractCallQuote({
   return withIndexDepositUsdcAmount(quote, estimatedUsdcRaw);
 }
 
-async function getWalletClientForChain(wallet: PrivyEvmWallet, chainId?: number) {
+async function getWalletClientForChain(
+  wallet: PrivyEvmWallet,
+  accountAddress: string,
+  chainId?: number
+) {
   const sdk = await ensureLifiConfig();
 
   const provider = await wallet.getEthereumProvider();
@@ -307,7 +312,7 @@ async function getWalletClientForChain(wallet: PrivyEvmWallet, chainId?: number)
   const chain = await sdk.config.getChainById(activeChainId);
 
   return createWalletClient({
-    account: wallet.address as Address,
+    account: accountAddress as Address,
     chain: sdk.convertExtendedChain(chain),
     transport: custom(provider),
   });
@@ -341,17 +346,20 @@ async function switchProviderChain(provider: any, chainId: number) {
   }
 }
 
-export async function configureLifiWalletProvider(wallet: PrivyEvmWallet) {
+export async function configureLifiWalletProvider(
+  wallet: PrivyEvmWallet,
+  accountAddress = wallet.address
+) {
   const sdk = await ensureLifiConfig();
 
   const provider = await wallet.getEthereumProvider();
 
   sdk.config.setProviders([
     sdk.EVM({
-      getWalletClient: () => getWalletClientForChain(wallet),
+      getWalletClient: () => getWalletClientForChain(wallet, accountAddress),
       switchChain: async (chainId) => {
         await switchProviderChain(provider, chainId);
-        return getWalletClientForChain(wallet, chainId);
+        return getWalletClientForChain(wallet, accountAddress, chainId);
       },
     }),
   ]);
@@ -365,7 +373,7 @@ export async function executeIndexDepositQuote(
 ) {
   const sdk = await ensureLifiConfig();
   assertLifiApiKey();
-  await configureLifiWalletProvider(wallet);
+  await configureLifiWalletProvider(wallet, params.signerAddress || wallet.address);
 
   const fallbackUsdcAmountRaw = getIndexDepositUsdcAmountFromQuote(quote);
   const route = sdk.convertQuoteToRoute(quote, { adjustZeroOutputFromPreviousStep: true });

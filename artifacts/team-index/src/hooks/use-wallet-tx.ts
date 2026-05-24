@@ -77,7 +77,8 @@ export function usePolygonDeposit() {
   const deposit = useCallback(async (
     vaultAddress: string,
     usdcAmount: bigint,
-    depositTxData: { to: string; data: string }
+    depositTxData: { to: string; data: string },
+    senderAddress?: string
   ) => {
     setStatus("idle");
     setTxHash(null);
@@ -94,14 +95,16 @@ export function usePolygonDeposit() {
 
       setStatus("approving");
       const approveData = encodeApprove(vaultAddress, usdcAmount);
-      const approveTxHash = await sendRawTx(provider, wallet.address, {
+      const fromAddress = senderAddress || wallet.address;
+
+      const approveTxHash = await sendRawTx(provider, fromAddress, {
         to: POLYGON_USDC_ADDRESS,
         data: approveData,
       });
       await waitForReceipt(provider, approveTxHash);
 
       setStatus("sending");
-      const hash = await sendRawTx(provider, wallet.address, depositTxData);
+      const hash = await sendRawTx(provider, fromAddress, depositTxData);
       setTxHash(hash);
 
       setStatus("confirming");

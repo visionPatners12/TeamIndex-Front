@@ -23,6 +23,7 @@ import { useUserHoldings, type UserHolding } from "@/hooks/use-user-holdings";
 import { truncateAddr } from "@/utils/address";
 import { cn } from "@/lib/utils";
 import { formatPoolName } from "@/utils/pool";
+import { getPrimaryEvmAddress } from "@/utils/wallet";
 
 function fmtUsd(n: number): string {
   if (!Number.isFinite(n) || n <= 0) return "$0.00";
@@ -134,7 +135,7 @@ export default function Dashboard() {
   const [copied, setCopied] = React.useState(false);
   const [selected, setSelected] = React.useState<UserHolding | null>(null);
 
-  const walletAddress = wallets[0]?.address || user?.wallet?.address;
+  const walletAddress = getPrimaryEvmAddress(user, wallets);
   const { data, isLoading, isError, refetch } = useUserHoldings(
     authenticated ? walletAddress : null
   );

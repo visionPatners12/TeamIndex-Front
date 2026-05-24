@@ -8,6 +8,7 @@ import { GoldButton } from "@/components/ui/GoldButton";
 import { NAV_LINKS } from "@/constants/nav";
 import { truncateAddr } from "@/utils/address";
 import { scrollToId } from "@/utils/scroll";
+import { getPrimaryEvmAddress } from "@/utils/wallet";
 
 export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -55,7 +56,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
     closeMenu();
   };
 
-  const walletAddress = wallets[0]?.address || user?.wallet?.address;
+  const walletAddress = getPrimaryEvmAddress(user, wallets);
   const displayIdentity = walletAddress
     ? truncateAddr(walletAddress)
     : user?.email?.address ?? (user as any)?.google?.email ?? null;

@@ -9,6 +9,7 @@ import { usePools } from "@/hooks/use-pools";
 import { useUserHoldings } from "@/hooks/use-user-holdings";
 import { toLiveIndexPool } from "@/utils/pool";
 import { scrollToId } from "@/utils/scroll";
+import { getPrimaryEvmAddress } from "@/utils/wallet";
 
 // ─── Section components ───────────────────────────────────────────────────────
 import { HeroSection } from "@/components/sections/hero/HeroSection";
@@ -26,12 +27,12 @@ import { Footer } from "@/components/layout/Footer";
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const { authenticated, login, ready } = usePrivy();
+  const { authenticated, login, ready, user } = usePrivy();
   const { wallets } = useWallets();
   const [selectedPool, setSelectedPool] = useState<PoolData | null>(null);
   const { data: backendPools } = usePools();
 
-  const walletAddress = wallets[0]?.address;
+  const walletAddress = getPrimaryEvmAddress(user, wallets);
   const { data: holdingsData } = useUserHoldings(authenticated ? walletAddress : null);
 
   const handleEnterPool = (livePool: LiveIndexPool) => {
@@ -99,7 +100,7 @@ export default function Home() {
         <DepositModal
           pool={selectedPool}
           onClose={() => setSelectedPool(null)}
-          walletAddress={walletAddress}
+          walletAddress={walletAddress ?? undefined}
           onConnectWallet={login}
         />
       )}
