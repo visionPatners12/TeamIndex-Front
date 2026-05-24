@@ -5,6 +5,7 @@ import {
   executeIndexDepositQuote,
   getIndexDepositContractCallQuote,
   getLifiRouteTxInfo,
+  type IndexDepositExecutionParams,
   type IndexDepositQuoteParams,
 } from '@/lib/lifi';
 
@@ -64,7 +65,7 @@ export function useLifiIndexDeposit() {
   }, []);
 
   const executeQuote = useCallback(
-    async (quote: LiFiStep) => {
+    async (quote: LiFiStep, params: IndexDepositExecutionParams) => {
       const wallet = wallets[0];
       if (!wallet) throw new Error('No wallet connected');
 
@@ -73,14 +74,19 @@ export function useLifiIndexDeposit() {
       setRoute(null);
 
       try {
-        const executedRoute = await executeIndexDepositQuote(wallet, quote, (updatedRoute) => {
-          setRoute(updatedRoute);
-          setStatus(statusFromRoute(updatedRoute));
+        const executedRoute = await executeIndexDepositQuote(
+          wallet,
+          quote,
+          params,
+          (updatedRoute) => {
+            setRoute(updatedRoute);
+            setStatus(statusFromRoute(updatedRoute));
 
-          const info = getLifiRouteTxInfo(updatedRoute);
-          setTxHash(info.txHash);
-          setTxLink(info.txLink);
-        });
+            const info = getLifiRouteTxInfo(updatedRoute);
+            setTxHash(info.txHash);
+            setTxLink(info.txLink);
+          }
+        );
 
         const info = getLifiRouteTxInfo(executedRoute);
         setRoute(executedRoute);

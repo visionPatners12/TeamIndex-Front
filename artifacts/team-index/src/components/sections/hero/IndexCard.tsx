@@ -21,7 +21,7 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
   const fillPct = hasFiniteCap ? Math.min(100, Math.round((poolSize / poolCap) * 100)) : 0;
 
   return (
-    <div className="w-105 xl:w-115 h-113.5 bg-[#504220] border border-white/10 rounded-[20px] p-8 flex flex-col gap-6 shadow-2xl">
+    <div className="w-105 xl:w-115 min-h-[454px] bg-[#504220] border border-white/10 rounded-[20px] p-8 flex flex-col gap-6 shadow-2xl">
 
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-full bg-[#4c422a] flex items-center justify-center shrink-0 overflow-hidden p-2">
@@ -58,7 +58,7 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
             </span>
           )}
         </div>
-        <span className="font-golos text-xs text-white/40">Current Token Value</span>
+        <span className="font-golos text-xs text-white/40">Current Share Token Value</span>
       </div>
 
       <div className="flex gap-3">
@@ -96,6 +96,15 @@ export const IndexCard: React.FC<IndexCardProps> = ({ pool }) => {
             </span>
           )}
         </div>
+      </div>
+
+      <div className="rounded-xl border border-[#FEB413]/20 bg-[#FEB413]/10 px-4 py-3">
+        <p className="font-jura text-[11px] font-bold uppercase tracking-wider text-[#FEB413]">
+          Pool share token
+        </p>
+        <p className="mt-1 font-golos text-xs leading-relaxed text-white/55">
+          Holding {symbol} represents a share of this team pool.
+        </p>
       </div>
 
       <button className="w-full py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-jura font-bold text-base uppercase tracking-wide transition-all">

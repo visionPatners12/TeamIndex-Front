@@ -104,7 +104,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
       {/* Token Value & Holders */}
       <div className="flex gap-2 sm:gap-3 w-full">
         <div className="flex-1 bg-[#23201A] min-h-[69px] rounded-lg px-2 sm:px-2.5 py-2 flex flex-col items-start min-w-0">
-          <span className="text-[#B3B3B3] text-xs font-medium mb-1">TOKEN VALUE</span>
+          <span className="text-[#B3B3B3] text-xs font-medium mb-1">SHARE TOKEN VALUE</span>
           <div className="mt-2 flex justify-between w-full items-center">
             <span className="text-white text-base font-bold">${indexValue.toFixed(2)}</span>
             <span className={`text-xs font-semibold ${change >= 0 ? "text-[#3FC86A]" : "text-[#FF5A5A]"}`}>
@@ -137,6 +137,15 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
             style={{ width: `${Math.min(100, Math.max(0, barWidth))}%` }}
           />
         </div>
+      </div>
+
+      <div className="rounded-lg border border-[#FEB413]/20 bg-[#FEB413]/10 px-3 py-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#FEB413]">
+          Token = pool share
+        </span>
+        <p className="mt-1 text-xs leading-relaxed text-white/50">
+          Each index token represents part of this pool.
+        </p>
       </div>
 
       {/* Your position / Login prompt */}

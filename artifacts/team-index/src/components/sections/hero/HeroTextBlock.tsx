@@ -7,9 +7,9 @@ import { scrollToId } from "@/utils/scroll";
 import chzLogo from "@assets/CHZ_1776150749884.png";
 
 const proofPoints = [
+  "Index token = pool share",
   "Live pools by team",
-  "Match + futures exposure",
-  "USDC, CHZ and Fan Tokens",
+  "Market exposure",
 ];
 
 export const HeroTextBlock: React.FC = () => {
@@ -29,8 +29,9 @@ export const HeroTextBlock: React.FC = () => {
     </p>
 
     <p className="font-golos text-[15px] sm:text-[18px] leading-[1.65] text-white/70 max-w-2xl">
-      Choose an open team pool, enter during the live window, and get exposure
-      to Polymarket match and futures markets linked to that team.
+      Choose an open team pool and enter during the live window. Your wallet
+      receives an index token representing your share of that pool as it gains
+      exposure to Polymarket markets linked to the team.
     </p>
 
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">

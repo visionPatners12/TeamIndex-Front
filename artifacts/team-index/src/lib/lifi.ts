@@ -1,7 +1,9 @@
 import type {
+  ContractCall,
   ContractCallsQuoteRequest,
   ExtendedChain,
   LiFiStep,
+  QuoteRequest,
   RouteExtended,
   TokenExtended,
   UpdateRouteHook,
@@ -49,7 +51,12 @@ export interface IndexDepositQuoteParams {
   fromAddress: string;
   vaultAddress: string;
   receiverAddress: string;
-  usdcAmountRaw: string;
+  fromAmountRaw: string;
+}
+
+export interface IndexDepositExecutionParams {
+  vaultAddress: string;
+  receiverAddress: string;
 }
 
 export interface LifiRouteTxInfo {
@@ -83,8 +90,18 @@ export async function ensureLifiConfig() {
   return sdk;
 }
 
+function assertLifiApiKey() {
+  if (!LIFI_API_KEY?.trim()) {
+    throw new Error('Missing VITE_LIFI_API_KEY. Add a LI.FI API key to request routes.');
+  }
+}
+
 export function parsePolygonUsdcAmount(amount: string): string {
   return parseUnits(amount || '0', 6).toString();
+}
+
+export function parseTokenAmount(amount: string, decimals: number): string {
+  return parseUnits(amount || '0', decimals).toString();
 }
 
 export function isPolygonUsdcSource(chainId?: number | null, tokenAddress?: string | null) {
@@ -101,6 +118,24 @@ export function encodeIndexDepositCalldata(usdcAmountRaw: string, receiverAddres
     functionName: 'deposit',
     args: [BigInt(usdcAmountRaw), receiverAddress as Address],
   });
+}
+
+function buildIndexDepositContractCalls(
+  vaultAddress: string,
+  receiverAddress: string,
+  usdcAmountRaw: string
+): ContractCall[] {
+  return [
+    {
+      fromAmount: usdcAmountRaw,
+      fromTokenAddress: LIFI_DESTINATION_TOKEN_ADDRESS,
+      toContractAddress: vaultAddress,
+      toContractCallData: encodeIndexDepositCalldata(usdcAmountRaw, receiverAddress),
+      toContractGasLimit: DEFAULT_CONTRACT_GAS_LIMIT,
+      toApprovalAddress: vaultAddress,
+      toTokenAddress: LIFI_DESTINATION_TOKEN_ADDRESS,
+    },
+  ];
 }
 
 export async function getLifiEvmChains(): Promise<ExtendedChain[]> {
@@ -133,37 +168,56 @@ export async function getIndexDepositContractCallQuote({
   fromAddress,
   vaultAddress,
   receiverAddress,
-  usdcAmountRaw,
+  fromAmountRaw,
 }: IndexDepositQuoteParams): Promise<LiFiStep> {
   const sdk = await ensureLifiConfig();
+  assertLifiApiKey();
 
   if (!vaultAddress) throw new Error('Vault contract is not configured for this index.');
-  if (BigInt(usdcAmountRaw) <= 0n) throw new Error('Enter a Polygon USDC target amount.');
+  if (BigInt(fromAmountRaw) <= 0n) throw new Error('Enter a source token amount.');
 
-  const depositCallData = encodeIndexDepositCalldata(usdcAmountRaw, receiverAddress);
+  const baseQuoteRequest: QuoteRequest = {
+    fromAddress,
+    fromChain: fromChainId,
+    fromToken: fromTokenAddress,
+    fromAmount: fromAmountRaw,
+    toChain: LIFI_DESTINATION_CHAIN_ID,
+    toToken: LIFI_DESTINATION_TOKEN_ADDRESS,
+    toAddress: receiverAddress,
+    allowDestinationCall: true,
+  };
+
+  const baseQuote = await sdk.getQuote(baseQuoteRequest);
+  const estimatedUsdcRaw = baseQuote.estimate?.toAmount;
+
+  if (!estimatedUsdcRaw || BigInt(estimatedUsdcRaw) <= 0n) {
+    throw new Error('LI.FI did not return a Polygon USDC output for this source amount.');
+  }
+
   const request: ContractCallsQuoteRequest = {
     fromAddress,
     fromChain: fromChainId,
     fromToken: fromTokenAddress,
+    fromAmount: fromAmountRaw,
     toChain: LIFI_DESTINATION_CHAIN_ID,
     toToken: LIFI_DESTINATION_TOKEN_ADDRESS,
-    toAmount: usdcAmountRaw,
     toFallbackAddress: receiverAddress,
     allowDestinationCall: true,
-    contractCalls: [
-      {
-        fromAmount: usdcAmountRaw,
-        fromTokenAddress: LIFI_DESTINATION_TOKEN_ADDRESS,
-        toContractAddress: vaultAddress,
-        toContractCallData: depositCallData,
-        toContractGasLimit: DEFAULT_CONTRACT_GAS_LIMIT,
-        toApprovalAddress: vaultAddress,
-        toTokenAddress: LIFI_DESTINATION_TOKEN_ADDRESS,
-      },
-    ],
+    contractCalls: buildIndexDepositContractCalls(
+      vaultAddress,
+      receiverAddress,
+      estimatedUsdcRaw
+    ),
   };
 
-  return sdk.getContractCallsQuote(request);
+  const quote = await sdk.getContractCallsQuote(request);
+
+  const hasDestinationCall = quote.includedSteps?.some((step) => step.type === 'custom');
+  if (!hasDestinationCall) {
+    throw new Error('LI.FI route did not include the required index contract call.');
+  }
+
+  return quote;
 }
 
 async function getWalletClientForChain(wallet: PrivyEvmWallet, chainId?: number) {
@@ -227,9 +281,11 @@ export async function configureLifiWalletProvider(wallet: PrivyEvmWallet) {
 export async function executeIndexDepositQuote(
   wallet: PrivyEvmWallet,
   quote: LiFiStep,
+  params: IndexDepositExecutionParams,
   updateRouteHook?: UpdateRouteHook
 ) {
   const sdk = await ensureLifiConfig();
+  assertLifiApiKey();
   await configureLifiWalletProvider(wallet);
 
   const route = sdk.convertQuoteToRoute(quote, { adjustZeroOutputFromPreviousStep: true });
@@ -237,6 +293,24 @@ export async function executeIndexDepositQuote(
     updateRouteHook,
     adjustZeroOutputFromPreviousStep: true,
     acceptExchangeRateUpdateHook: async () => true,
+    getContractCalls: async ({ toAmount, toChainId, toTokenAddress }) => {
+      const amount = toAmount.toString();
+      const isPolygonUsdc =
+        toChainId === LIFI_DESTINATION_CHAIN_ID &&
+        toTokenAddress.toLowerCase() === LIFI_DESTINATION_TOKEN_ADDRESS.toLowerCase();
+
+      if (!isPolygonUsdc || BigInt(amount) <= 0n) {
+        throw new Error('LI.FI could not prepare the Polygon USDC index deposit call.');
+      }
+
+      return {
+        contractCalls: buildIndexDepositContractCalls(
+          params.vaultAddress,
+          params.receiverAddress,
+          amount
+        ),
+      };
+    },
   });
 }
 

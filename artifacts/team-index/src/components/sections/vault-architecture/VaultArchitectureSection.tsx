@@ -66,8 +66,8 @@ export const VaultArchitectureSection: React.FC = () => (
         {...staggerDelay(0)}
         className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed -mt-2"
       >
-        Collateral is held in USDC. Enter directly on Polygon, or use CHZ and
-        supported Fan Tokens through Chiliz for the same team index exposure.
+        Collateral is held in USDC. Whichever entry path you use, the output is
+        an index token that represents your share of the team pool.
       </motion.p>
 
       <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-0 mt-4 items-stretch">
@@ -111,8 +111,8 @@ export const VaultArchitectureSection: React.FC = () => (
           </div>
 
           <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
-            <p className="font-golos text-xs text-white/30 leading-relaxed">
-              Direct deposit — your USDC enters the vault and you receive the native PTeam Index token on Polygon. Fast, cheap, instant.
+              <p className="font-golos text-xs text-white/30 leading-relaxed">
+              Direct deposit — your USDC enters the vault and you receive the native PTeam Index token, your share token for this pool.
             </p>
           </div>
         </motion.div>
@@ -194,7 +194,7 @@ export const VaultArchitectureSection: React.FC = () => (
 
           <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
             <p className="font-golos text-xs text-white/30 leading-relaxed">
-              Cross-chain deposit — your CHZ or Fan Tokens are bridged, and you receive a wrapped PTeam Index token on Chiliz Chain.
+              Cross-chain deposit — your source asset is converted into pool collateral, then you receive an index token representing your pool share.
             </p>
           </div>
         </motion.div>

@@ -11,21 +11,21 @@ const steps = [
   },
   {
     number: "02",
-    title: "ENTER THE POOL",
+    title: "MINT YOUR SHARE TOKEN",
     description:
-      "Deposit USDC or supported CHZ and Fan Tokens during the entry window.",
+      "Deposit during the entry window and receive an index token that represents your share of that pool.",
   },
   {
     number: "03",
-    title: "TRACK VALUE",
+    title: "TRACK YOUR SHARE",
     description:
-      "Follow token value, pool fill, holders, and your own wallet balance.",
+      "Follow the token value, pool fill, holders, and the share balance in your wallet.",
   },
   {
     number: "04",
     title: "SETTLE RESULTS",
     description:
-      "When markets resolve, gains are reflected for eligible token holders.",
+      "When markets resolve, pool gains are reflected through the tokens held by eligible users.",
   },
 ];
 
