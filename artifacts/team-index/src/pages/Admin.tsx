@@ -40,10 +40,61 @@ async function adminFetch(path: string, adminKey: string, options?: RequestInit)
   return data;
 }
 
+type DeployVaultResponse = {
+  ok: boolean;
+  alreadyDeployed: boolean;
+  vaultAddress?: string | null;
+  tx?: { to: string; data: string };
+  factoryAddress?: string;
+  clubId?: string;
+};
+
+type CreatePoolResponse = {
+  ok: boolean;
+  pool: {
+    id: string;
+    vaultAddress: string | null;
+  };
+  polymarketBootstrap?: unknown;
+};
+
+type TxReceipt = {
+  status?: string;
+};
+
+function usdcHumanToRawString(value: string) {
+  const clean = value.trim();
+  if (!clean) return '0';
+  if (!/^\d+(\.\d{1,6})?$/.test(clean)) {
+    throw new Error('Deposit cap must be a positive USDC amount with up to 6 decimals.');
+  }
+
+  const [whole, fraction = ''] = clean.split('.');
+  const raw =
+    BigInt(whole || '0') * 1_000_000n +
+    BigInt(fraction.padEnd(6, '0') || '0');
+  return raw.toString();
+}
+
+function describePolymarketBootstrap(value: unknown) {
+  if (!value) return 'Polymarket bootstrap requested by backend.';
+  if (typeof value === 'string') return value;
+  if (typeof value !== 'object') return String(value);
+
+  const data = value as Record<string, unknown>;
+  const status = data.status ?? data.state ?? data.result;
+  const message = data.message ?? data.error;
+  if (status && message) return `${String(status)}: ${String(message)}`;
+  if (status) return `Status: ${String(status)}`;
+  if (message) return String(message);
+  return JSON.stringify(data);
+}
+
 // ─── Create Pool Form ────────────────────────────────────────────────────────
 
 type CreateStep =
   | 'form'
+  | 'vault-already-deployed'
   | 'switching-network'
   | 'waiting-metamask'
   | 'confirming-tx'
@@ -81,6 +132,7 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
   const [result, setResult] = useState<{
     poolId: string;
     vaultAddress: string | null;
+    vaultAlreadyDeployed: boolean;
     polymarketSetup?: string;
   } | null>(null);
 
@@ -211,11 +263,12 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
 
   const stepLabel: Record<CreateStep, string> = {
     form: '',
+    'vault-already-deployed': 'Vault already deployed, creating pool…',
     'switching-network': 'Switching to Polygon…',
     'waiting-metamask': 'Confirm in MetaMask…',
     'confirming-tx': 'Waiting for on-chain confirmation…',
     'saving-db': 'Saving pool to database…',
-    'polymarket-setup': 'Polymarket discovery & scheduling…',
+    'polymarket-setup': 'Starting Polymarket bootstrap…',
     done: 'Pool created!',
     error: '',
   };
@@ -234,23 +287,33 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
     setResult(null);
 
     try {
-      // 1. Get unsigned tx from backend (pure read — no signing)
-      const depositCapUnits = Math.floor(parseFloat(depositCap) * 1_000_000);
+      const normalizedClubName = clubName.trim();
+      const normalizedSymbol = symbol.trim().toUpperCase();
+      const depositCapRaw = usdcHumanToRawString(depositCap);
+      const deployPayload = {
+        clubName: normalizedClubName,
+        symbol: normalizedSymbol,
+        depositCap: depositCapRaw,
+      };
+
+      // 1. Get unsigned tx from backend. The backend only prepares the call.
       const prepared = await adminFetch('/admin/pools/tx/deploy-vault', adminKey, {
         method: 'POST',
-        body: JSON.stringify({
-          clubName: clubName.trim(),
-          symbol: symbol.trim().toUpperCase(),
-          depositCap: depositCapUnits,
-        }),
-      });
+        body: JSON.stringify(deployPayload),
+      }) as DeployVaultResponse;
 
       let vaultAddress: string | null = null;
+      let vaultAlreadyDeployed = false;
 
       if (prepared.alreadyDeployed) {
-        // Vault already exists on-chain, skip MetaMask
-        vaultAddress = prepared.vaultAddress;
+        setCreateStep('vault-already-deployed');
+        vaultAddress = prepared.vaultAddress ?? null;
+        vaultAlreadyDeployed = true;
       } else {
+        if (!prepared.tx?.to || !prepared.tx?.data) {
+          throw new Error('Backend did not return a vault deployment transaction.');
+        }
+
         // 2. Switch MetaMask to Polygon
         setCreateStep('switching-network');
         const provider = await wallet.getEthereumProvider();
@@ -277,14 +340,30 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
 
         // 4. Wait for on-chain confirmation
         setCreateStep('confirming-tx');
+        let receipt: TxReceipt | null = null;
         for (let i = 0; i < 60; i++) {
-          const receipt = await provider.request({
+          receipt = await provider.request({
             method: 'eth_getTransactionReceipt',
             params: [txHash],
           }) as any;
           if (receipt) break;
           await new Promise(r => setTimeout(r, 2000));
         }
+
+        if (!receipt) throw new Error('Vault deployment confirmation timed out.');
+        if (receipt.status && receipt.status !== '0x1') {
+          throw new Error('Vault deployment transaction failed on-chain.');
+        }
+
+        const deployed = await adminFetch('/admin/pools/tx/deploy-vault', adminKey, {
+          method: 'POST',
+          body: JSON.stringify(deployPayload),
+        }) as DeployVaultResponse;
+        vaultAddress = deployed.vaultAddress ?? null;
+      }
+
+      if (!vaultAddress) {
+        throw new Error('Vault deployment confirmed, but the backend did not return a vault address.');
       }
 
       // 5. Create DB pool record (links polymarketTeamId from club_teams_map when team selected)
@@ -293,36 +372,29 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
       const poolData = await adminFetch('/admin/pools', adminKey, {
         method: 'POST',
         body: JSON.stringify({
-          clubName: clubName.trim(),
-          symbol: symbol.trim().toUpperCase(),
-          depositCap: depositCapUnits,
-          vaultAddress: vaultAddress ?? undefined,
+          clubName: normalizedClubName,
+          symbol: normalizedSymbol,
+          depositCap: depositCapRaw,
+          vaultAddress,
+          bootstrapPolymarket: true,
+          riskParams: {
+            maxPerMatchPct: 3,
+            maxTotalExposurePct: 20,
+            liquidityMinUsd: 50000,
+          },
           ...(mappedTeam?.polymarketTeamId
             ? { polymarketTeamId: mappedTeam.polymarketTeamId.trim() }
             : {}),
         }),
-      });
+      }) as CreatePoolResponse;
 
       setCreateStep('polymarket-setup');
-      let polymarketSetup: string;
-      try {
-        await adminFetch(`/admin/${poolData.pool.id}/discover`, adminKey, {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
-        await adminFetch(`/admin/${poolData.pool.id}/schedule`, adminKey, {
-          method: 'POST',
-          body: JSON.stringify({}),
-        });
-        polymarketSetup =
-          'Polymarket discovery ran and match tranches were scheduled (if candidates exist).';
-      } catch (setupErr: any) {
-        polymarketSetup = `Pool saved; Polymarket auto-setup failed: ${setupErr.message ?? 'unknown error'}`;
-      }
+      const polymarketSetup = describePolymarketBootstrap(poolData.polymarketBootstrap);
 
       setResult({
         poolId: poolData.pool.id,
-        vaultAddress: poolData.pool.vaultAddress,
+        vaultAddress: poolData.pool.vaultAddress ?? vaultAddress,
+        vaultAlreadyDeployed,
         polymarketSetup,
       });
       setCreateStep('done');
@@ -642,6 +714,7 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
         <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-xs text-green-300 space-y-1">
           <div className="flex items-center gap-2 font-semibold"><CheckCircle className="w-4 h-4" /> Pool created!</div>
           <p>Pool ID: <code className="font-mono">{result.poolId}</code></p>
+          <p>{result.vaultAlreadyDeployed ? 'Vault already deployed; reused existing vault.' : 'Vault deployed and confirmed on Polygon.'}</p>
           {result.vaultAddress && (
             <p>Vault: <a href={`${POLYGON_CHAIN.blockExplorer}/address/${result.vaultAddress}`} target="_blank" rel="noopener noreferrer" className="font-mono underline">{result.vaultAddress}</a></p>
           )}

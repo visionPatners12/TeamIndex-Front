@@ -4,13 +4,29 @@ import { BarChart2, ListChecks, Search } from "lucide-react";
 import { GradientHeading } from "@/components/ui/GradientHeading";
 import { GoldButton } from "@/components/ui/GoldButton";
 import { scrollToId } from "@/utils/scroll";
-import chzLogo from "@assets/CHZ_1776150749884.png";
 
 const proofPoints = [
   "Index token = pool share",
   "Live pools by team",
   "Market exposure",
 ];
+
+const BaseIcon: React.FC = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    fill="none"
+    viewBox="0 0 24 24"
+    className="h-5 w-5 shrink-0 rounded-sm"
+    aria-hidden="true"
+  >
+    <path
+      fill="#00F"
+      d="M3 4.706c0-.585 0-.877.11-1.101.106-.215.28-.39.496-.495C3.83 3 4.122 3 4.706 3h14.588c.585 0 .876 0 1.101.11.215.105.389.28.494.495.111.225.111.517.111 1.101v14.588c0 .585 0 .876-.11 1.101-.106.215-.28.389-.495.494-.225.111-.517.111-1.101.111H4.706c-.585 0-.876 0-1.101-.11a1.08 1.08 0 0 1-.494-.495C3 20.17 3 19.878 3 19.294z"
+    />
+  </svg>
+);
 
 export const HeroTextBlock: React.FC = () => {
   const [, navigate] = useLocation();
@@ -80,13 +96,9 @@ export const HeroTextBlock: React.FC = () => {
         </span>
       </div>
       <div className="flex items-center gap-2">
-        <img
-          src={chzLogo}
-          alt="Chiliz"
-          className="w-5 h-5 rounded-full"
-        />
+        <BaseIcon />
         <span className="font-golos text-sm text-white/50">
-          Supported by Chiliz for CHZ and Fan Token entry paths
+          Supported by Base
         </span>
       </div>
     </div>
