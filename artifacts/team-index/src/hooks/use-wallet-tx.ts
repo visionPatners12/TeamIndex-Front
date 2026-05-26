@@ -96,7 +96,8 @@ export function usePolygonDeposit() {
     vaultAddress: string,
     usdcAmount: bigint,
     depositTxData: { to: string; data: string },
-    senderAddress?: string
+    senderAddress?: string,
+    approveTxData?: WalletTx
   ) => {
     setStatus("idle");
     setTxHash(null);
@@ -112,13 +113,16 @@ export function usePolygonDeposit() {
       await switchChain(provider, POLYGON_CHAIN_ID);
 
       setStatus("approving");
-      const approveData = encodeApprove(vaultAddress, usdcAmount);
       const fromAddress = senderAddress || wallet.address;
 
-      const approveTxHash = await sendRawTx(provider, fromAddress, {
-        to: POLYGON_USDC_ADDRESS,
-        data: approveData,
-      });
+      const approveTxHash = await sendRawTx(
+        provider,
+        fromAddress,
+        approveTxData ?? {
+          to: POLYGON_USDC_ADDRESS,
+          data: encodeApprove(vaultAddress, usdcAmount),
+        }
+      );
       await waitForReceipt(provider, approveTxHash);
 
       setStatus("sending");

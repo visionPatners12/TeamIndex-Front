@@ -253,8 +253,16 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
         setStep('success');
       } else {
         const rawAmount = BigInt(targetUsdcRaw);
-        const { tx } = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
-        const hash = await polygonHook.deposit(tx.to, rawAmount, tx, walletAddress);
+        const prepared = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
+        const depositTx = prepared.txs?.depositTx ?? prepared.tx;
+        const vaultAddress = prepared.vaultAddress ?? depositTx.to;
+        const hash = await polygonHook.deposit(
+          vaultAddress,
+          rawAmount,
+          depositTx,
+          walletAddress,
+          prepared.txs?.approveTx
+        );
         setFinalTxHash(hash ?? null);
         if (hash) {
           try {

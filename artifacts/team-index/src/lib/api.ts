@@ -49,6 +49,12 @@ export interface PriceSnapshotResponse {
 export interface TxResponse {
   ok: boolean;
   tx: { to: string; data: string };
+  vaultAddress?: string;
+  assetAddress?: string;
+  txs?: {
+    approveTx: PreparedTx;
+    depositTx: PreparedTx;
+  };
 }
 
 export interface PreparedTx {
