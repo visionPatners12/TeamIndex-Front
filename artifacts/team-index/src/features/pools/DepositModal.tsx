@@ -40,6 +40,27 @@ const UsdcIcon = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
+const PolygonIcon = ({ size = 24 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="11" fill="#8247E5" />
+    <path
+      fill="#fff"
+      d="M15.73 8.46c-.28-.16-.64-.16-.96 0l-2.21 1.3-1.5-.87 2.17-1.26 1.5.86 1-.58-2.02-1.16a.98.98 0 0 0-.96 0L9.96 8.38a.94.94 0 0 0-.48.83v3.2l-1.5.87-1.5-.87v-1.73l1.5-.86 1 .58V9.24l-.52-.3a.98.98 0 0 0-.96 0l-2.02 1.17a.94.94 0 0 0-.48.83v2.34c0 .33.18.65.48.82l2.02 1.17c.28.16.64.16.96 0l2.02-1.17a.94.94 0 0 0 .48-.82v-3.2l1.5-.87 1.5.87v1.73l-1.5.87-1-.58v1.16l.52.3c.28.16.64.16.96 0l2.02-1.17a.94.94 0 0 0 .48-.82v-2.34a.94.94 0 0 0-.48-.83Z"
+    />
+  </svg>
+);
+
+const BaseIcon = ({ size = 24 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="11" fill="#0052FF" />
+    <path fill="#fff" d="M12.05 19.4a7.4 7.4 0 1 0 0-14.8 7.4 7.4 0 0 0 0 14.8Zm.05-2.42a4.98 4.98 0 0 1-4.7-3.34h9.4a4.98 4.98 0 0 1-4.7 3.34Zm-4.7-6.6a4.98 4.98 0 0 1 9.4 0h-9.4Z" />
+  </svg>
+);
+
+function ChainIcon({ network, size = 24 }: { network: Network; size?: number }) {
+  return network === 'base' ? <BaseIcon size={size} /> : <PolygonIcon size={size} />;
+}
+
 const FAN_TOKEN_MAP: Record<string, { name: string; symbol: string; logo: string }> = {
   AFC: { name: 'Arsenal FC', symbol: '$AFC', logo: afcLogo },
   BAR: { name: 'FC Barcelona', symbol: '$BAR', logo: barLogo },
@@ -367,8 +388,15 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                           >
                             {active && <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background: c.color }} />}
                             <div className="flex items-center gap-2 mb-2">
-                              <UsdcIcon size={22} />
-                              <span className="font-jura font-bold text-sm text-white">{c.asset}</span>
+                              <span className="relative h-7 w-12 shrink-0">
+                                <span className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-black/30 bg-[#0D0A06]">
+                                  <ChainIcon network={net} size={22} />
+                                </span>
+                                <span className="absolute right-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-black/30 bg-[#0D0A06]">
+                                  <UsdcIcon size={22} />
+                                </span>
+                              </span>
+                              <span className="font-jura font-bold text-sm text-white">{c.name} {c.asset}</span>
                             </div>
                             <p className="text-[10px] font-golos text-white/40 leading-tight">{c.chain}</p>
                             <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider" style={{ color: c.color }}>→ {c.receives}</p>
