@@ -16,7 +16,7 @@ import { truncateAddr } from '@/utils/address';
 import { formatPoolName } from '@/utils/pool';
 import { api } from '@/lib/api';
 import { useBaseUsdcDeposit, usePolygonDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
-import { BASE_CHAIN, POLYGON_CHAIN } from '@/lib/config';
+import { BASE_CHAIN, POLYGON_CHAIN, POLYGON_USDC_ADDRESS } from '@/lib/config';
 import afcLogo from '@assets/AFC_1776150749882.png';
 import barLogo from '@assets/BAR_1776150749883.png';
 import acmLogo from '@assets/ACM_1776150749863.png';
@@ -254,8 +254,16 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
       } else {
         const rawAmount = BigInt(targetUsdcRaw);
         const prepared = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
-        const depositTx = prepared.txs?.depositTx ?? prepared.tx;
-        const vaultAddress = prepared.vaultAddress ?? depositTx.to;
+        if (!prepared.assetAddress || !prepared.vaultAddress || !prepared.txs?.approveTx || !prepared.txs?.depositTx) {
+          throw new Error('Polygon deposit is temporarily unavailable: backend did not return the vault asset and prepared approval transaction.');
+        }
+        if (prepared.assetAddress.toLowerCase() !== POLYGON_USDC_ADDRESS.toLowerCase()) {
+          throw new Error(
+            `This pool was deployed with a different Polygon USDC contract (${truncateAddr(prepared.assetAddress)}). Use Base for this pool, or create a new pool with the native Polygon USDC factory.`
+          );
+        }
+        const depositTx = prepared.txs.depositTx;
+        const vaultAddress = prepared.vaultAddress;
         const hash = await polygonHook.deposit(
           vaultAddress,
           rawAmount,
