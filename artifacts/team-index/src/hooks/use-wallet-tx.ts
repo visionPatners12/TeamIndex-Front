@@ -1,8 +1,20 @@
 import { useCallback, useState } from "react";
 import { useWallets } from "@privy-io/react-auth";
-import { POLYGON_CHAIN_ID, POLYGON_USDC_ADDRESS, CHILIZ_CHAIN_ID, CHILIZ_CHAIN, POLYGON_CHAIN } from "@/lib/config";
+import {
+  BASE_CHAIN,
+  BASE_CHAIN_ID,
+  BASE_DEPOSIT_RECEIVER_ADDRESS,
+  BASE_USDC_ADDRESS,
+  CHILIZ_CHAIN,
+  CHILIZ_CHAIN_ID,
+  POLYGON_CHAIN,
+  POLYGON_CHAIN_ID,
+  POLYGON_USDC_ADDRESS,
+} from "@/lib/config";
 
 export type TxStatus = "idle" | "switching" | "approving" | "sending" | "confirming" | "success" | "error";
+
+type WalletTx = { to: string; data: string; value?: string };
 
 const CHAIN_METADATA: Record<number, { chainName: string; rpcUrls: string[]; nativeCurrency: { name: string; symbol: string; decimals: number }; blockExplorerUrls: string[] }> = {
   [POLYGON_CHAIN_ID]: {
@@ -10,6 +22,12 @@ const CHAIN_METADATA: Record<number, { chainName: string; rpcUrls: string[]; nat
     rpcUrls: [POLYGON_CHAIN.rpcUrl],
     nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
     blockExplorerUrls: [POLYGON_CHAIN.blockExplorer],
+  },
+  [BASE_CHAIN_ID]: {
+    chainName: BASE_CHAIN.name,
+    rpcUrls: [BASE_CHAIN.rpcUrl],
+    nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+    blockExplorerUrls: [BASE_CHAIN.blockExplorer],
   },
   [CHILIZ_CHAIN_ID]: {
     chainName: CHILIZ_CHAIN.name,
@@ -43,7 +61,7 @@ async function switchChain(provider: any, chainId: number) {
   }
 }
 
-async function sendRawTx(provider: any, from: string, tx: { to: string; data: string; value?: string }) {
+async function sendRawTx(provider: any, from: string, tx: WalletTx) {
   const txHash = await provider.request({
     method: "eth_sendTransaction",
     params: [{
@@ -105,6 +123,62 @@ export function usePolygonDeposit() {
 
       setStatus("sending");
       const hash = await sendRawTx(provider, fromAddress, depositTxData);
+      setTxHash(hash);
+
+      setStatus("confirming");
+      await waitForReceipt(provider, hash);
+
+      setStatus("success");
+      return hash;
+    } catch (err: any) {
+      setStatus("error");
+      setError(err.message || "Transaction failed");
+      throw err;
+    }
+  }, [wallets]);
+
+  return { deposit, status, txHash, error, reset: () => { setStatus("idle"); setTxHash(null); setError(null); } };
+}
+
+export function useBaseUsdcDeposit() {
+  const { wallets } = useWallets();
+  const [status, setStatus] = useState<TxStatus>("idle");
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const deposit = useCallback(async (
+    approveTx: WalletTx,
+    depositTx: WalletTx,
+    senderAddress?: string
+  ) => {
+    setStatus("idle");
+    setTxHash(null);
+    setError(null);
+
+    const wallet = wallets[0];
+    if (!wallet) throw new Error("No wallet connected");
+
+    if (approveTx.to.toLowerCase() !== BASE_USDC_ADDRESS.toLowerCase()) {
+      throw new Error("Backend returned an approval transaction for the wrong Base USDC contract.");
+    }
+
+    if (depositTx.to.toLowerCase() !== BASE_DEPOSIT_RECEIVER_ADDRESS.toLowerCase()) {
+      throw new Error("Backend returned a deposit transaction for the wrong Base receiver.");
+    }
+
+    try {
+      const provider = await getProvider(wallet);
+      const fromAddress = senderAddress || wallet.address;
+
+      setStatus("switching");
+      await switchChain(provider, BASE_CHAIN_ID);
+
+      setStatus("approving");
+      const approveTxHash = await sendRawTx(provider, fromAddress, approveTx);
+      await waitForReceipt(provider, approveTxHash);
+
+      setStatus("sending");
+      const hash = await sendRawTx(provider, fromAddress, depositTx);
       setTxHash(hash);
 
       setStatus("confirming");

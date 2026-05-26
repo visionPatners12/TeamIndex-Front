@@ -54,7 +54,7 @@ export const HeroTextBlock: React.FC = () => {
       {proofPoints.map((point) => (
         <div
           key={point}
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+          className="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-black/15 px-3 py-2 backdrop-blur-sm"
         >
           <ListChecks className="h-4 w-4 shrink-0 text-[#FEB413]" />
           <span className="font-golos text-xs sm:text-[13px] text-white/70">

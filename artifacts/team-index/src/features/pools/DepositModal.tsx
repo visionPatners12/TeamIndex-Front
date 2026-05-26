@@ -12,29 +12,28 @@ import {
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ExtendedChain, LiFiStep, TokenExtended } from '@lifi/sdk';
-import { formatUnits } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
 import { truncateAddr } from '@/utils/address';
 import { formatPoolName } from '@/utils/pool';
 import { api } from '@/lib/api';
-import { usePolygonDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
+import { useBaseUsdcDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
 import { useLifiIndexDeposit, type LifiDepositStatus } from '@/hooks/use-lifi-index-deposit';
 import {
   getIndexDepositUsdcAmountFromQuote,
   getLifiEvmChains,
   getLifiTokensForChain,
   isPolygonUsdcSource,
-  parsePolygonUsdcAmount,
   parseTokenAmount,
 } from '@/lib/lifi';
-import { POLYGON_CHAIN } from '@/lib/config';
+import { BASE_CHAIN } from '@/lib/config';
 import afcLogo from '@assets/AFC_1776150749882.png';
 import barLogo from '@assets/BAR_1776150749883.png';
 import acmLogo from '@assets/ACM_1776150749863.png';
 import cityLogo from '@assets/CITY_1776150749884.png';
 
-type Network = 'polygon' | 'lifi';
+type Network = 'base' | 'lifi';
 type Step = 'select' | 'confirm' | 'processing' | 'success' | 'error';
 
 interface DepositModalProps {
@@ -65,16 +64,16 @@ function getFanTokenForPool(symbol: string) {
 }
 
 const NETWORK_CONFIG = {
-  polygon: {
-    name: 'Polygon',
+  base: {
+    name: 'Base',
     asset: 'USDC',
     assetFull: 'USD Coin',
-    color: '#8247E5',
-    colorLight: 'rgba(130, 71, 229, 0.15)',
-    colorBorder: 'rgba(130, 71, 229, 0.3)',
-    chain: 'Polygon PoS',
-    receives: 'Core Token',
-    receiveDesc: 'You receive the core Team Index token on Polygon. Signed & sent from your wallet.',
+    color: '#0052FF',
+    colorLight: 'rgba(0, 82, 255, 0.15)',
+    colorBorder: 'rgba(0, 82, 255, 0.35)',
+    chain: 'Base',
+    receives: 'Wrapped ERC20',
+    receiveDesc: 'You deposit Base USDC into the receiver contract. The relayer mints wrapped index ERC20 shares on Base after completion.',
     minAmount: 0.1,
     maxAmount: 100000,
     placeholder: '100',
@@ -100,7 +99,7 @@ const NETWORK_CONFIG = {
 };
 
 const PRESET_AMOUNTS: Record<Network, number[]> = {
-  polygon: [50, 100, 500, 1000],
+  base: [50, 100, 500, 1000],
   lifi: [],
 };
 
@@ -109,10 +108,31 @@ function statusLabel(s: TxStatus | LifiDepositStatus): string {
     case 'switching':   return 'Switching network…';
     case 'approving':   return 'Approve token in wallet…';
     case 'sending':     return 'Confirm deposit in wallet…';
-    case 'bridging':    return 'Routing funds to Polygon USDC…';
+    case 'bridging':    return 'Routing funds through the relayer…';
     case 'confirming':  return 'Waiting for confirmation…';
     case 'quoting':     return 'Fetching LI.FI quote…';
     default:            return '';
+  }
+}
+
+function baseDepositStatusLabel(status?: string | null): string {
+  switch (status) {
+    case 'RECEIVED':
+      return 'Base deposit received';
+    case 'BRIDGING':
+      return 'Bridge to Polygon USDC in progress';
+    case 'DEPOSITING':
+      return 'Depositing into the Polygon vault';
+    case 'MINTING_SHARES':
+      return 'Minting wrapped ERC20 shares on Base';
+    case 'COMPLETED':
+      return 'Wrapped ERC20 shares minted';
+    case 'FAILED':
+      return 'Relayer failed';
+    case 'NEEDS_MANUAL_RECONCILIATION':
+      return 'Manual reconciliation needed';
+    default:
+      return 'Waiting for backend indexing';
   }
 }
 
@@ -177,7 +197,7 @@ function TokenAvatar({ token }: { token?: TokenExtended | null }) {
 
 export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: DepositModalProps) {
   const queryClient = useQueryClient();
-  const [network, setNetwork] = useState<Network>('polygon');
+  const [network, setNetwork] = useState<Network>('base');
   const [amount, setAmount] = useState('');
   const [step, setStep] = useState<Step>('select');
   const [agreed, setAgreed] = useState(false);
@@ -193,7 +213,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const [lifiQuoteKey, setLifiQuoteKey] = useState<string | null>(null);
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
-  const polygonHook = usePolygonDeposit();
+  const baseHook = useBaseUsdcDeposit();
   const lifiHook = useLifiIndexDeposit();
 
   const { data: lifiChains = [], isLoading: chainsLoading } = useQuery({
@@ -213,7 +233,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const config = NETWORK_CONFIG[network];
   const numAmount = parseFloat(amount) || 0;
   const usdValue = numAmount * config.rate;
-  const FEE_PCT = network === 'polygon' ? 0.10 : 0;
+  const FEE_PCT = 0;
   const usdValueAfterFee = usdValue * (1 - FEE_PCT);
   const tokensReceived = pool ? usdValueAfterFee / pool.tokenValue : 0;
   const vaultReady = !!pool?.vaultAddress;
@@ -232,7 +252,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   }, [chainSearch, lifiChains]);
   const targetUsdcRaw = useMemo(() => {
     try {
-      return parsePolygonUsdcAmount(amount);
+      return parseUnits(amount || '0', 6).toString();
     } catch {
       return '0';
     }
@@ -299,6 +319,27 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     : 0;
   const sourceIsPolygonUsdc = isPolygonUsdcSource(sourceChainId, sourceToken?.address);
   const lifiSourceNeedsDirectPath = network === 'lifi' && sourceIsPolygonUsdc;
+  const { data: baseDepositsData, isFetching: baseDepositsFetching } = useQuery({
+    queryKey: ['base-deposits', walletAddress],
+    queryFn: () => api.getBaseDeposits(walletAddress!),
+    enabled: !!walletAddress && step === 'success',
+    refetchInterval: step === 'success' ? 5000 : false,
+  });
+  const currentBaseDeposit = useMemo(() => {
+    if (!pool) return null;
+    const deposits = baseDepositsData?.deposits ?? [];
+    const normalizedTxHash = finalTxHash?.toLowerCase();
+    return (
+      deposits.find((deposit) =>
+        normalizedTxHash && deposit.baseTxHash?.toLowerCase() === normalizedTxHash
+      ) ??
+      deposits.find((deposit) => deposit.clubPoolId === pool.id) ??
+      null
+    );
+  }, [baseDepositsData?.deposits, finalTxHash, pool]);
+  const baseMintTxLink = currentBaseDeposit?.baseMintTxHash
+    ? `${BASE_CHAIN.blockExplorer}/tx/${currentBaseDeposit.baseMintTxHash}`
+    : null;
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -410,18 +451,12 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     setFinalTxLink(null);
 
     try {
-      if (network === 'polygon') {
+      if (network === 'base') {
         const rawAmount = BigInt(targetUsdcRaw);
-        const { tx } = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
-        const hash = await polygonHook.deposit(tx.to, rawAmount, tx, walletAddress);
+        const prepared = await api.prepareBaseUsdcDeposit(pool.id, rawAmount.toString());
+        const hash = await baseHook.deposit(prepared.txs.approveTx, prepared.txs.depositTx, walletAddress);
         setFinalTxHash(hash ?? null);
-        if (hash) {
-          try {
-            await api.confirmPoolDeposit(pool.id, hash);
-          } catch (e) {
-            console.warn("POST /pools/:id/deposit/confirm failed", e);
-          }
-        }
+        await queryClient.invalidateQueries({ queryKey: ['base-deposits', walletAddress] });
         await refreshPoolViews();
         setStep('success');
       } else {
@@ -458,16 +493,17 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     isValidAmount,
     network,
     targetUsdcRaw,
-    polygonHook,
+    baseHook,
     lifiHook,
     isLifiQuoteFresh,
     lifiQuote,
     handleFetchLifiQuote,
     refreshPoolViews,
+    queryClient,
   ]);
 
   const handleReset = () => {
-    setNetwork('polygon');
+    setNetwork('base');
     setAmount('');
     setStep('select');
     setAgreed(false);
@@ -482,14 +518,14 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     setLifiQuote(null);
     setLifiQuoteKey(null);
     setQuoteError(null);
-    polygonHook.reset();
+    baseHook.reset();
     lifiHook.reset();
   };
 
   if (!pool) return null;
 
-  const activeHook = network === 'polygon' ? polygonHook : lifiHook;
-  const explorerUrl = finalTxLink || (finalTxHash ? `${POLYGON_CHAIN.blockExplorer}/tx/${finalTxHash}` : '');
+  const activeHook = network === 'base' ? baseHook : lifiHook;
+  const explorerUrl = finalTxLink || (finalTxHash ? `${BASE_CHAIN.blockExplorer}/tx/${finalTxHash}` : '');
   const canUseLifiSource = !!sourceChainId && !!sourceToken;
   const needsLifiQuote = network === 'lifi' && !isLifiQuoteFresh;
   const isQuoteLoading = lifiHook.status === 'quoting';
@@ -497,7 +533,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     isValidAmount &&
     !!walletAddress &&
     vaultReady &&
-    (network === 'polygon' || (canUseLifiSource && !lifiSourceNeedsDirectPath));
+    (network === 'base' || (canUseLifiSource && !lifiSourceNeedsDirectPath));
   const selectButtonLabel = isQuoteLoading
     ? 'Getting LI.FI Quote...'
     : needsLifiQuote
@@ -577,12 +613,12 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">1. Choose your entry path</p>
 
                     {(() => {
-                      const availableNetworks: Network[] = ['polygon', 'lifi'];
+                      const availableNetworks: Network[] = ['base'];
                       const cols = cn(
                         "grid gap-3 mb-4",
                         fanToken
-                          ? "grid-cols-3"
-                          : "grid-cols-2"
+                          ? "grid-cols-2"
+                          : "grid-cols-1"
                       );
                       return (
                     <div className={cols}>
@@ -598,7 +634,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                           >
                             {active && <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background: c.color }} />}
                             <div className="flex items-center gap-2 mb-2">
-                              {net === 'polygon' ? (
+                              {net === 'base' ? (
                                 <UsdcIcon size={22} />
                               ) : (
                                 <div className="w-[22px] h-[22px] rounded-full bg-[#19B6A5]/20 border border-[#19B6A5]/40 flex items-center justify-center">
@@ -877,7 +913,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                             {network === 'lifi' && !lifiQuote
                               ? 'Quote required'
                               : `${displayedTokensReceived.toFixed(4)} `}
-                            {network === 'polygon' || lifiQuote ? (
+                            {network === 'base' || lifiQuote ? (
                               <span className="text-white/30 text-xs">${pool.symbol}</span>
                             ) : null}
                           </span>
@@ -925,14 +961,14 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                             <button
                               type="button"
                               onClick={() => {
-                                setNetwork('polygon');
+                                setNetwork('base');
                                 setLifiQuote(null);
                                 setLifiQuoteKey(null);
                                 setQuoteError(null);
                               }}
                               className="w-fit rounded-lg border border-[#FEB413]/30 px-3 py-1.5 font-jura text-[11px] font-bold uppercase tracking-wider text-[#FEB413] transition-colors hover:bg-[#FEB413]/15"
                             >
-                              Use Polygon USDC
+                              Use Base USDC
                             </button>
                           </div>
                         )}
@@ -954,7 +990,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     {!vaultReady && (
                       <div className="flex items-center gap-2 p-3 rounded-xl bg-[#FEB413]/10 border border-[#FEB413]/20 text-xs font-golos text-[#FEB413]/80 mb-3">
                         <Info className="w-4 h-4 shrink-0 text-[#FEB413]" />
-                        <span>Vault contract not yet deployed on Polygon. Contact admin to activate this pool.</span>
+                        <span>Index vault is not ready yet. Contact admin to activate this pool before Base deposits.</span>
                       </div>
                     )}
 
@@ -978,13 +1014,14 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-4">Review your deposit</p>
 
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl divide-y divide-white/[0.06] mb-5">
-                      {(network === 'polygon'
+                      {(network === 'base'
                         ? [
                             { label: 'Network', value: config.chain },
                             { label: 'You send', value: `${numAmount.toLocaleString()} ${config.asset}` },
                             { label: 'USD equivalent', value: `≈ $${usdValue.toFixed(2)}` },
                             { label: 'Estimated tokens', value: `${displayedTokensReceived.toFixed(4)} $${pool.symbol}` },
                             { label: 'Token type', value: config.receives },
+                            { label: 'Destination', value: 'BaseDepositReceiver' },
                             { label: 'Signed by', value: 'Connected wallet' },
                           ]
                         : [
@@ -1014,8 +1051,8 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <div className="flex gap-3 bg-[#FEB413]/10 border border-[#FEB413]/20 p-3 rounded-xl mb-5 text-xs font-golos text-[#FEB413]/80">
                       <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#FEB413]" />
                       <p>
-                        {network === 'polygon'
-                          ? 'You will sign 2 transactions in your wallet: approve USDC + deposit.'
+                        {network === 'base'
+                          ? 'You will sign 2 Base transactions in your wallet: approve USDC + deposit.'
                           : 'LI.FI will request the approval and route transactions needed to deliver Polygon USDC into the index contract.'}
                       </p>
                     </div>
@@ -1066,9 +1103,10 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     >
                       <CheckCircle className="w-10 h-10" style={{ color: config.color }} />
                     </motion.div>
-                    <h3 className="text-2xl font-jura font-bold text-white mb-2">Deposit Confirmed!</h3>
+                    <h3 className="text-2xl font-jura font-bold text-white mb-2">Deposit Received!</h3>
                     <p className="font-golos text-white/40 text-sm mb-6">
-                      Your entry into <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was confirmed.
+                      Your Base USDC deposit into <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was confirmed.
+                      {network === 'base' && ' Wrapped ERC20 shares will appear after relayer completion.'}
                       {network === 'lifi' && ' LI.FI converted your source token into Polygon USDC and called the index vault with your wallet as receiver.'}
                     </p>
                     {finalTxHash && (
@@ -1079,7 +1117,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     )}
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-6 text-left">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="font-golos text-white/40">{network === 'lifi' ? 'Polygon USDC received' : 'Amount sent'}</span>
+                        <span className="font-golos text-white/40">{network === 'lifi' ? 'Polygon USDC received' : 'Base USDC sent'}</span>
                         <span className="font-mono font-bold text-white">
                           {network === 'lifi'
                             ? lifiEstimatedUsdcLabel
@@ -1097,6 +1135,39 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         <span className="font-mono font-bold" style={{ color: config.color }}>{displayedTokensReceived.toFixed(4)} ${pool.symbol}</span>
                       </div>
                     </div>
+                    {network === 'base' && (
+                      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-6 text-left">
+                        <div className="flex justify-between gap-3 text-sm mb-2">
+                          <span className="font-golos text-white/40">Relayer status</span>
+                          <span className="font-jura font-semibold text-white text-right">
+                            {baseDepositStatusLabel(currentBaseDeposit?.status)}
+                          </span>
+                        </div>
+                        {baseDepositsFetching && !currentBaseDeposit && (
+                          <p className="text-xs font-golos text-white/30">Checking backend deposit status…</p>
+                        )}
+                        {!baseDepositsFetching && !currentBaseDeposit && (
+                          <p className="text-xs font-golos text-white/30">Waiting for the backend to index the Base deposit event.</p>
+                        )}
+                        {currentBaseDeposit?.status === 'COMPLETED' && (
+                          <div className="flex justify-between gap-3 text-sm mb-2">
+                            <span className="font-golos text-white/40">ERC20 shares minted</span>
+                            <span className="font-mono font-bold text-white">
+                              {formatRawTokenAmount(currentBaseDeposit.sharesMinted ?? undefined, 6, 4)} ${pool.symbol}
+                            </span>
+                          </div>
+                        )}
+                        {currentBaseDeposit?.lastError && (
+                          <p className="text-xs font-golos text-red-400 mt-2">{currentBaseDeposit.lastError}</p>
+                        )}
+                        {baseMintTxLink && (
+                          <a href={baseMintTxLink} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-xs font-jura font-semibold hover:underline" style={{ color: config.color }}>
+                            View mint on BaseScan <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    )}
                     <div className="flex gap-3">
                       <button onClick={handleReset} className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-jura font-semibold text-white/40 hover:bg-white/10 transition-all">
                         Enter Another Pool

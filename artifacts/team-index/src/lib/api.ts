@@ -51,6 +51,23 @@ export interface TxResponse {
   tx: { to: string; data: string };
 }
 
+export interface PreparedTx {
+  to: string;
+  data: string;
+  value?: string;
+}
+
+export interface BaseUsdcDepositTxResponse {
+  ok: boolean;
+  receiverAddress: string;
+  usdcAddress: string;
+  poolIdHash: string;
+  txs: {
+    approveTx: PreparedTx;
+    depositTx: PreparedTx;
+  };
+}
+
 export interface DepositWrapChzResponse {
   ok: boolean;
   meta: Record<string, string>;
@@ -88,6 +105,28 @@ export interface CrossChainDeposit {
   status: string;
   sharesMinted: string | null;
   createdAt: string;
+}
+
+export interface BaseChainDeposit {
+  id: string;
+  poolIdHash: string;
+  clubPoolId: string | null;
+  userAddress: string;
+  sourceToken: string;
+  sourceAmount: string;
+  baseDepositId: string | number;
+  baseTxHash: string | null;
+  releaseTxHash: string | null;
+  lifiBridgeTxHash: string | null;
+  polygonBalanceBeforeBridge: string | null;
+  usdcAmount: string | null;
+  polygonDepositTxHash: string | null;
+  sharesMinted: string | null;
+  baseMintTxHash: string | null;
+  status: string;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TeamEntry {
@@ -172,6 +211,22 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ txHash }),
       }
+    ),
+
+  prepareBaseUsdcDeposit: (poolId: string, amount: string) =>
+    apiFetch<BaseUsdcDepositTxResponse>(`/base/tx/deposit-usdc`, {
+      method: "POST",
+      body: JSON.stringify({ poolId, amount }),
+    }),
+
+  getBaseDeposits: (userAddress: string) =>
+    apiFetch<{ ok: boolean; deposits: BaseChainDeposit[] }>(
+      `/base/deposits/user/${userAddress}`
+    ),
+
+  getBaseDeposit: (depositId: string) =>
+    apiFetch<{ ok: boolean; deposit: BaseChainDeposit }>(
+      `/base/deposits/${depositId}`
     ),
 
   prepareMint: (poolId: string, shares: string, receiver: string) =>
