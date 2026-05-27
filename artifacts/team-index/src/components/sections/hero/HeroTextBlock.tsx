@@ -6,9 +6,9 @@ import { GoldButton } from "@/components/ui/GoldButton";
 import { scrollToId } from "@/utils/scroll";
 
 const proofPoints = [
-  "Index token = pool share",
-  "Live pools by team",
-  "Market exposure",
+  "Pool share token",
+  "Live team exposure",
+  "Wallet-tracked balance",
 ];
 
 const BaseIcon: React.FC = () => (
@@ -41,13 +41,13 @@ export const HeroTextBlock: React.FC = () => {
     </GradientHeading>
 
     <p className="font-jura font-semibold text-lg sm:text-2xl text-white uppercase tracking-wide">
-      Back a team through a live market index.
+      Own a tokenized share of a live team pool.
     </p>
 
     <p className="font-golos text-[15px] sm:text-[18px] leading-[1.65] text-white/70 max-w-2xl">
-      Choose an open team pool and enter during the live window. Your wallet
-      receives an index token representing your share of that pool as it gains
-      exposure to Polymarket markets linked to the team.
+      Pick a team index, enter the pool, and receive an index token that
+      represents your share. The pool follows live Polymarket opportunities
+      linked to that team.
     </p>
 
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">
@@ -92,7 +92,7 @@ export const HeroTextBlock: React.FC = () => {
           className="w-5 h-5"
         />
         <span className="font-golos text-sm text-white/50">
-          Polymarket infrastructure for market exposure
+          Polymarket live markets power pool exposure
         </span>
       </div>
       <div className="flex items-center gap-2">

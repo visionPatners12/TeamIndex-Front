@@ -27,7 +27,9 @@ export const ExoticIndexCard: React.FC<ExoticIndexCardProps> = ({
 
     <div className="flex items-center gap-3">
       <div className="w-11 h-11 rounded-full flex items-center justify-center bg-[#23201A] border border-[#2a2720] shrink-0">
-        <span className="text-xl">{emoji || name.charAt(0)}</span>
+        <span className="font-jura text-xs font-bold text-[#FEB413]">
+          {emoji || name.charAt(0)}
+        </span>
       </div>
       <div className="flex flex-col min-w-0 flex-1">
         <span className="text-white font-bold text-base uppercase leading-tight tracking-wide truncate">
@@ -36,7 +38,7 @@ export const ExoticIndexCard: React.FC<ExoticIndexCardProps> = ({
         <div className="flex items-center gap-1.5">
           <span className="text-[#B3B3B3] text-xs font-medium">{symbol}</span>
           <span className="text-[#B3B3B3] text-xs">·</span>
-          <span className="text-xs font-medium text-[#FEB413]/70">Multi-Club</span>
+          <span className="text-xs font-medium text-[#FEB413]/70">Future Pool</span>
         </div>
       </div>
     </div>
@@ -46,7 +48,7 @@ export const ExoticIndexCard: React.FC<ExoticIndexCardProps> = ({
     </p>
 
     <div className="flex flex-col gap-2">
-      <span className="font-jura text-[11px] font-bold text-white/40 uppercase tracking-wider">Clubs Included</span>
+      <span className="font-jura text-[11px] font-bold text-white/40 uppercase tracking-wider">Pool Basket</span>
       <div className="flex flex-wrap gap-1.5">
         {clubs.map((club) => (
           <span

@@ -66,8 +66,9 @@ export const VaultArchitectureSection: React.FC = () => (
         {...staggerDelay(0)}
         className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed -mt-2"
       >
-        Collateral is held in USDC. Whichever entry path you use, the output is
-        an index token that represents your share of the team pool.
+        These are entry paths, not different products. Whether you enter with
+        Polygon USDC or a Chiliz asset, the goal is the same: receive an index
+        token that represents your share of a team pool.
       </motion.p>
 
       <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-0 mt-4 items-stretch">
@@ -85,7 +86,7 @@ export const VaultArchitectureSection: React.FC = () => (
             <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#8247E5]" style={{ borderColor: "rgba(130,71,229,0.3)", background: "rgba(130,71,229,0.12)" }}>
               Path 1 — Polygon
             </span>
-            <h3 className="font-jura font-bold text-lg text-white">Pay in USDC</h3>
+            <h3 className="font-jura font-bold text-lg text-white">Enter with USDC</h3>
           </div>
 
           <div className="flex items-center gap-3 px-6 py-4">
@@ -112,7 +113,8 @@ export const VaultArchitectureSection: React.FC = () => (
 
           <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
               <p className="font-golos text-xs text-white/30 leading-relaxed">
-              Direct deposit — your USDC enters the vault and you receive the native PTeam Index token, your share token for this pool.
+              Direct path — your USDC enters the vault and you receive the
+              PTeam Index token for that pool.
             </p>
           </div>
         </motion.div>
@@ -160,7 +162,7 @@ export const VaultArchitectureSection: React.FC = () => (
             <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#CD0124]" style={{ borderColor: "rgba(205,1,36,0.3)", background: "rgba(205,1,36,0.12)" }}>
               Path 2 — Supported by Chiliz
             </span>
-            <h3 className="font-jura font-bold text-lg text-white">Pay in CHZ or Fan Tokens</h3>
+            <h3 className="font-jura font-bold text-lg text-white">Enter with CHZ or Fan Tokens</h3>
           </div>
 
           <div className="flex items-center gap-3 px-6 py-4">
@@ -194,7 +196,8 @@ export const VaultArchitectureSection: React.FC = () => (
 
           <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
             <p className="font-golos text-xs text-white/30 leading-relaxed">
-              Cross-chain deposit — your source asset is converted into pool collateral, then you receive an index token representing your pool share.
+              Chiliz path — supported assets can be routed into pool
+              collateral, then you receive an index token for your share.
             </p>
           </div>
         </motion.div>

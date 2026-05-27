@@ -82,7 +82,7 @@ export const WhyPolymarketSection: React.FC = () => (
 
       {/* Heading */}
       <GradientHeading className="text-4xl sm:text-5xl lg:text-6xl max-w-4xl">
-        MARKET PRICES BEHIND EVERY TEAM INDEX.
+        LIVE MARKET SIGNALS FOR EVERY TEAM POOL.
       </GradientHeading>
       {/* Stat cards */}
       <div className="w-full flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center mt-2">
@@ -92,8 +92,9 @@ export const WhyPolymarketSection: React.FC = () => (
       </div>
       {/* Body */}
       <p className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed">
-        Team Index uses Polymarket sports markets so pool performance is tied
-        to live market outcomes instead of a fixed points system.
+        Polymarket markets give Team Index a live view of team-related events.
+        The pool can use those markets as price signals, but they do not
+        promise performance.
       </p>
       {/* Link */}
       <a

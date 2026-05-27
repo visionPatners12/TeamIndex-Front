@@ -5,27 +5,21 @@ import { GradientHeading } from "@/components/ui/GradientHeading";
 const steps = [
   {
     number: "01",
-    title: "PICK A TEAM",
+    title: "CHOOSE A TEAM POOL",
     description:
-      "Choose an open team index from the live pool list.",
+      "Pick a live index linked to a team and review the pool value before entering.",
   },
   {
     number: "02",
-    title: "MINT YOUR SHARE TOKEN",
+    title: "RECEIVE YOUR INDEX TOKEN",
     description:
-      "Deposit during the entry window and receive an index token that represents your share of that pool.",
+      "Your deposit mints an index token. That token is your on-chain share of the pool.",
   },
   {
     number: "03",
-    title: "TRACK YOUR SHARE",
+    title: "TRACK YOUR SHARE AS THE POOL MOVES",
     description:
-      "Follow the token value, pool fill, holders, and the share balance in your wallet.",
-  },
-  {
-    number: "04",
-    title: "SETTLE RESULTS",
-    description:
-      "When markets resolve, pool gains are reflected through the tokens held by eligible users.",
+      "When the pool value changes, your share value changes with it.",
   },
 ];
 
@@ -44,7 +38,11 @@ export const HowItWorksSection: React.FC = () => (
     >
       HOW IT WORKS
     </GradientHeading>
-    <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-10 xl:gap-15 w-full max-w-7xl">
+    <p className="font-golos text-sm sm:text-base text-white/60 max-w-2xl text-center leading-relaxed -mt-6">
+      An index token is your on-chain share of a team pool. When the pool value
+      changes, your share value changes with it.
+    </p>
+    <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-10 xl:gap-15 w-full max-w-6xl">
       {/* Dashed connector line with gradient color */}
       <div
         className="hidden xl:block absolute left-0 right-0 top-6 h-px z-0"

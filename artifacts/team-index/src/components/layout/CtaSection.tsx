@@ -12,12 +12,12 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onExplore }) => (
     >
       {/* Heading */}
       <h2 className="font-jura font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-black uppercase tracking-wide leading-tight max-w-3xl">
-        CHOOSE YOUR TEAM. ENTER THE INDEX. FOLLOW THE UPSIDE.
+        CHOOSE A TEAM POOL. RECEIVE YOUR INDEX TOKEN. TRACK YOUR SHARE.
       </h2>
 
       {/* Subtitle */}
       <p className="font-golos text-black/60 text-sm sm:text-base">
-        Powered by Polymarket. Built around team conviction.
+        One token, one clear share of a live team pool.
       </p>
 
       {/* Button */}
@@ -25,7 +25,7 @@ export const CtaSection: React.FC<CtaSectionProps> = ({ onExplore }) => (
         onClick={onExplore}
         className="mt-2 px-8 py-3 rounded-full bg-white text-black font-golos font-semibold text-sm hover:bg-white/90 active:scale-95 transition-all shadow-md"
       >
-        Explore Live Indexes
+        View Live Indexes
       </button>
     </div>
   </section>

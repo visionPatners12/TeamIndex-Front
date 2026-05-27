@@ -36,8 +36,9 @@ export const LiveIndexesSection: React.FC<LiveIndexesSectionProps> = ({
         </GradientHeading>
 
         <p className="font-golos text-white/70 text-sm sm:text-base max-w-2xl leading-relaxed mt-2">
-          Pick an open team index, enter the pool, and track your balance from
-          the same cards once your wallet is connected.
+          Choose a team pool, see the current index token value, and enter
+          when the live window is open. Once connected, your wallet balance
+          appears on the same cards.
         </p>
       </div>
     </div>

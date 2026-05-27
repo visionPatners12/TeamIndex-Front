@@ -6,25 +6,25 @@ const EXOTIC_INDEXES = [
   {
     name: "NFL Powerhouse",
     symbol: "pNFL",
-    emoji: "🏈",
+    emoji: "NFL",
     description:
-      "An index tracking the top NFL franchises across regular season, playoffs, and Super Bowl futures markets. Back the league's elite contenders in one position.",
+      "A future pool for top NFL contenders across regular season, playoff, and championship markets.",
     clubs: ["Chiefs", "Eagles", "49ers", "Bills", "Cowboys"],
   },
   {
     name: "NBA Elite",
     symbol: "pNBA",
-    emoji: "🏀",
+    emoji: "NBA",
     description:
-      "A concentrated index covering the NBA's top championship contenders. Covers regular season wins, playoff series, and Finals futures markets.",
+      "A future pool for leading NBA contenders, built around live season and playoff markets.",
     clubs: ["Celtics", "Nuggets", "Lakers", "Bucks"],
   },
   {
     name: "MLB Contenders",
     symbol: "pMLB",
-    emoji: "⚾",
+    emoji: "MLB",
     description:
-      "Tracks the top MLB teams across World Series futures and pennant race markets. Covers both match outcomes and season-level performance.",
+      "A future pool for baseball contenders across pennant, series, and season-level markets.",
     clubs: ["Dodgers", "Yankees", "Braves", "Astros"],
   },
 ];
@@ -39,16 +39,17 @@ export const ExoticIndexesSection: React.FC = () => (
             className="text-[38px] sm:text-[52px] lg:text-[63px] leading-[108%]"
             style={{ letterSpacing: "0.8px" }}
           >
-            🌴 EXOTIC INDEXES
+            EXOTIC INDEXES
           </GradientHeading>
           <span className="px-4 py-1.5 rounded-full bg-[#FEB413]/15 border border-[#FEB413]/30 font-jura text-xs font-bold text-[#FEB413] uppercase tracking-wider self-center">
             Coming Soon
           </span>
         </div>
 
-        <p className="font-golos text-white/80 text-lg max-w-2xl mt-2">
-          Multi-club indexes that let you back entire leagues, rivalries, or
-          competition brackets — not just a single team.
+        <p className="font-golos text-white/70 text-sm sm:text-base max-w-2xl leading-relaxed mt-2">
+          Coming next: special team baskets and league pools. The core action
+          stays the same: enter a pool, receive an index token, and track your
+          share.
         </p>
       </div>
     </div>
