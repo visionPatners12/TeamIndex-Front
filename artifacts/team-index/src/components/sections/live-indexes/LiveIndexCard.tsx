@@ -203,7 +203,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
       <div className="flex flex-wrap gap-2 w-full">
         {tags.map((tag, i) => {
           const icon =
-            tag === "USDC / CHZ"
+            tag === "USDC"
               ? import.meta.env.BASE_URL + "icons/LTI_01.svg"
               : tag === "Gains Eligible"
               ? import.meta.env.BASE_URL + "icons/LTI_02.svg"

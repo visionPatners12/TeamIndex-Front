@@ -2,11 +2,6 @@ import React from "react";
 import { motion } from "framer-motion";
 import { GradientHeading } from "@/components/ui/GradientHeading";
 import { ANIMATION, staggerDelay } from "@/utils/animation";
-import chzLogo from "@assets/CHZ_1776150749884.png";
-import afcLogo from "@assets/AFC_1776150749882.png";
-import barLogo from "@assets/BAR_1776150749883.png";
-import acmLogo from "@assets/ACM_1776150749863.png";
-import cityLogo from "@assets/CITY_1776150749884.png";
 
 const UsdcIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
@@ -18,23 +13,21 @@ const UsdcIcon = () => (
 
 const PolygonIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
-    <path fill="url(#vault_polygon_grad)" d="m16.364 15.217 4.27-2.435a.73.73 0 0 0 .366-.627V7.284a.72.72 0 0 0-.366-.627l-4.27-2.435a.74.74 0 0 0-.732 0l-4.27 2.435a.72.72 0 0 0-.366.627v8.704l-2.994 1.707-2.994-1.707v-3.415l2.994-1.707 1.974 1.127V9.702l-1.608-.918a.75.75 0 0 0-.732 0l-4.27 2.435a.72.72 0 0 0-.366.627v4.87c0 .258.14.498.366.627l4.27 2.436a.75.75 0 0 0 .732 0l4.27-2.436a.72.72 0 0 0 .366-.626V8.012l.053-.03 2.94-1.677 2.994 1.707v3.415l-2.994 1.707-1.972-1.124v2.291l1.606.916a.75.75 0 0 0 .732 0z" />
+    <path fill="url(#vaultPolygonGrad)" d="M7.415 8.912a1.13 1.13 0 0 1 1.133 0l2.589 1.546 1.758 1.005 2.594 1.546c.328.201.762.201 1.127 0l2.06-1.207c.333-.2.736-.572.736-.974V8.446c0-.402-.371-.773-.741-.974l-2.023-1.176a1.13 1.13 0 0 0-1.127 0l-2.028 1.176c-.328.2-.434.572-.434.974v1.54L11.47 8.95V7.398c0-.403-.106-.773.264-.974L15.49 4.21a1.13 1.13 0 0 1 1.127 0l3.817 2.213a1.09 1.09 0 0 1 .567.979v4.468a1.1 1.1 0 0 1-.567.974l-3.817 2.213a1.13 1.13 0 0 1-1.127 0l-2.594-1.509-1.758-1.042-2.594-1.51a1.13 1.13 0 0 0-1.128 0l-2.022 1.176c-.334.201-.805.572-.805.974v2.382c0 .403.44.773.805.974l2.022 1.207c.334.202.768.202 1.133 0l2.022-1.175c.334-.201.9-.572.9-.974v-1.54l1.589 1.037v1.546c0 .402-.36.773-.725.974l-3.828 2.208c-.328.206-.763.206-1.128 0l-3.817-2.213A1.17 1.17 0 0 1 3 16.604v-4.468c0-.403.201-.773.566-.974z" />
     <defs>
-      <linearGradient id="vault_polygon_grad" x1="2.942" x2="20.119" y1="17.194" y2="7.101" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#A726C1" />
-        <stop offset=".88" stopColor="#803BDF" />
-        <stop offset="1" stopColor="#7B3FE4" />
+      <linearGradient id="vaultPolygonGrad" x1="3" x2="18.757" y1="4.06" y2="21.919" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#8F34C2" />
+        <stop offset="1" stopColor="#7442DB" />
       </linearGradient>
     </defs>
   </svg>
 );
 
-const FAN_TOKENS = [
-  { src: afcLogo, alt: "$AFC" },
-  { src: barLogo, alt: "$BAR" },
-  { src: acmLogo, alt: "$ACM" },
-  { src: cityLogo, alt: "$CITY" },
-];
+const BaseIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24">
+    <path fill="#00F" d="M3 4.706c0-.585 0-.877.11-1.101.106-.215.28-.39.496-.495C3.83 3 4.122 3 4.706 3h14.588c.585 0 .876 0 1.101.11.215.105.389.28.494.495.111.225.111.517.111 1.101v14.588c0 .585 0 .876-.11 1.101-.106.215-.28.389-.495.494-.225.111-.517.111-1.101.111H4.706c-.585 0-.876 0-1.101-.11a1.08 1.08 0 0 1-.494-.495C3 20.17 3 19.878 3 19.294z" />
+  </svg>
+);
 
 const DownArrow = ({ color }: { color: string }) => (
   <div className="flex justify-center py-2">
@@ -55,7 +48,7 @@ export const VaultArchitectureSection: React.FC = () => (
         viewport={{ once: ANIMATION.once, amount: 0.2 }}
         className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#3f392b] bg-[#161104]/60 text-xs font-jura font-bold uppercase tracking-widest text-[#FEB413]"
       >
-        Two Ways In
+        USDC Entry
       </motion.span>
 
       <GradientHeading className="text-[28px] sm:text-4xl lg:text-5xl max-w-3xl">
@@ -66,9 +59,9 @@ export const VaultArchitectureSection: React.FC = () => (
         {...staggerDelay(0)}
         className="font-golos text-sm sm:text-base text-white/40 max-w-2xl leading-relaxed -mt-2"
       >
-        These are entry paths, not different products. Whether you enter with
-        Polygon USDC or a Chiliz asset, the goal is the same: receive an index
-        token that represents your share of a team pool.
+        Enter with USDC on Polygon directly, or with USDC on Base through the
+        receiver path. In both cases, the token you receive represents your
+        share of the team pool.
       </motion.p>
 
       <div className="w-full grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-0 mt-4 items-stretch">
@@ -149,55 +142,48 @@ export const VaultArchitectureSection: React.FC = () => (
           </div>
         </motion.div>
 
-        {/* ── PATH 2: CHILIZ / FAN TOKENS ── */}
+        {/* ── PATH 2: BASE / USDC ── */}
         <motion.div
           {...staggerDelay(2, 0.15)}
           className="flex flex-col items-center gap-0 rounded-2xl border backdrop-blur-sm overflow-hidden"
           style={{
-            borderColor: "rgba(205, 1, 36, 0.3)",
-            background: "radial-gradient(ellipse at 50% 0%, rgba(205, 1, 36, 0.08) 0%, transparent 70%), rgba(22, 17, 4, 0.6)",
+            borderColor: "rgba(0, 82, 255, 0.35)",
+            background: "radial-gradient(ellipse at 50% 0%, rgba(0, 82, 255, 0.10) 0%, transparent 70%), rgba(22, 17, 4, 0.6)",
           }}
         >
           <div className="w-full px-6 pt-7 pb-4 flex flex-col items-center gap-3">
-            <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#CD0124]" style={{ borderColor: "rgba(205,1,36,0.3)", background: "rgba(205,1,36,0.12)" }}>
-              Path 2 — Supported by Chiliz
+            <span className="text-[10px] font-jura font-bold uppercase tracking-widest px-3 py-1 rounded-full border text-[#3D76FF]" style={{ borderColor: "rgba(0,82,255,0.35)", background: "rgba(0,82,255,0.14)" }}>
+              Path 2 — Base
             </span>
-            <h3 className="font-jura font-bold text-lg text-white">Enter with CHZ or Fan Tokens</h3>
+            <h3 className="font-jura font-bold text-lg text-white">Enter with Base USDC</h3>
           </div>
 
           <div className="flex items-center gap-3 px-6 py-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(205,1,36,0.12)", borderColor: "rgba(205,1,36,0.3)" }}>
-              <img src={chzLogo} alt="CHZ" className="w-9 h-9 rounded-full" />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(11,83,191,0.12)", borderColor: "rgba(11,83,191,0.3)" }}>
+              <UsdcIcon />
             </div>
             <div className="text-left">
-              <p className="font-jura font-bold text-sm text-white">CHZ + Fan Tokens</p>
-              <p className="font-golos text-xs text-white/40">When the index is linked to the team</p>
+              <p className="font-jura font-bold text-sm text-white">USDC</p>
+              <p className="font-golos text-xs text-white/40">Stablecoin on Base</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 px-6">
-            {FAN_TOKENS.map((t) => (
-              <img key={t.alt} src={t.src} alt={t.alt} className="w-7 h-7 rounded-full ring-1 ring-white/10" />
-            ))}
-            <span className="font-golos text-[10px] text-white/30 ml-1">+ more</span>
-          </div>
-
-          <DownArrow color="#CD0124" />
+          <DownArrow color="#0052FF" />
 
           <div className="flex items-center gap-3 px-6 py-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(205,1,36,0.12)", borderColor: "rgba(205,1,36,0.3)" }}>
-              <img src={chzLogo} alt="Wrapped" className="w-9 h-9 rounded-full opacity-70" />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center border" style={{ background: "rgba(0,82,255,0.12)", borderColor: "rgba(0,82,255,0.35)" }}>
+              <BaseIcon />
             </div>
             <div className="text-left">
               <p className="font-jura font-bold text-sm text-white">Wrapped PTeam Index</p>
-              <p className="font-golos text-xs text-white/40">On Chiliz Chain via bridge</p>
+              <p className="font-golos text-xs text-white/40">ERC20 shares on Base</p>
             </div>
           </div>
 
           <div className="w-full px-6 py-4 mt-2 border-t border-white/5">
             <p className="font-golos text-xs text-white/30 leading-relaxed">
-              Chiliz path — supported assets can be routed into pool
-              collateral, then you receive an index token for your share.
+              Base path — your USDC enters the Base receiver, then wrapped
+              index shares are minted on Base after relayer completion.
             </p>
           </div>
         </motion.div>

@@ -74,45 +74,6 @@ export interface BaseUsdcDepositTxResponse {
   };
 }
 
-export interface DepositWrapChzResponse {
-  ok: boolean;
-  meta: Record<string, string>;
-  txs: {
-    approveWrapChzTx: { to: string; data: string };
-    swapTx: { to: string; data: string };
-    approveUsdcTx: { to: string; data: string };
-    depositTx: { to: string; data: string };
-  };
-}
-
-export interface ChilizTxResponse {
-  ok: boolean;
-  receiverAddress: string;
-  poolIdHash: string;
-  tx: { to: string; data: string };
-}
-
-export interface ChilizTokenTxResponse {
-  ok: boolean;
-  receiverAddress: string;
-  poolIdHash: string;
-  txs: {
-    approveTx: { to: string; data: string };
-    depositTx: { to: string; data: string };
-  };
-}
-
-export interface CrossChainDeposit {
-  id: string;
-  poolId: string;
-  userAddress: string;
-  sourceToken: string;
-  sourceAmount: string;
-  status: string;
-  sharesMinted: string | null;
-  createdAt: string;
-}
-
 export interface BaseChainDeposit {
   id: string;
   poolIdHash: string;
@@ -147,27 +108,6 @@ import type { VaultPosition, AllocationProposal, SelectedMarket, GammaMarket } f
 export const api = {
   getTeams: () =>
     apiFetch<{ ok: boolean; teams: TeamEntry[] }>(`/teams`),
-
-  /** Public platform settings (e.g. whether Chiliz network is enabled). */
-  getPublicSettings: () =>
-    apiFetch<{ ok: boolean; chilizEnabled: boolean; updatedAt: string }>(`/settings/public`),
-
-  /** Real-time CHZ/USD price, always available. */
-  getChzPrice: () =>
-    apiFetch<{ ok: boolean; usd: number; cached?: boolean; stale?: boolean; fetchedAt: number }>(
-      `/chz/price`
-    ),
-
-  /** Admin: toggle Chiliz network on/off. */
-  setChilizEnabled: (enabled: boolean, adminKey: string) =>
-    apiFetch<{ ok: boolean; settings: { chilizEnabled: boolean; updatedAt: string } }>(
-      `/admin/settings/chiliz`,
-      {
-        method: 'PATCH',
-        headers: { 'x-admin-key': adminKey },
-        body: JSON.stringify({ enabled }),
-      }
-    ),
 
   getPool: (poolId: string) =>
     apiFetch<PoolResponse>(`/pools/${poolId}`),
@@ -252,36 +192,4 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ shares, receiver, owner }),
     }),
-
-  prepareDepositWrapChz: (poolId: string, body: {
-    sender: string; receiver: string;
-    wrapChzAmountIn: string; usdcAmountOutMin: string;
-    depositAssets?: string;
-  }) =>
-    apiFetch<DepositWrapChzResponse>(`/pools/${poolId}/tx/deposit-wrapchz`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-
-  prepareChilizDepositChz: (poolId: string) =>
-    apiFetch<ChilizTxResponse>(`/chiliz/tx/deposit-chz`, {
-      method: "POST",
-      body: JSON.stringify({ poolId }),
-    }),
-
-  prepareChilizDepositToken: (poolId: string, token: string, amount: string) =>
-    apiFetch<ChilizTokenTxResponse>(`/chiliz/tx/deposit-token`, {
-      method: "POST",
-      body: JSON.stringify({ poolId, token, amount }),
-    }),
-
-  getChilizDeposits: (userAddress: string) =>
-    apiFetch<{ ok: boolean; deposits: CrossChainDeposit[] }>(
-      `/chiliz/deposits/user/${userAddress}`
-    ),
-
-  getChilizDeposit: (depositId: string) =>
-    apiFetch<{ ok: boolean; deposit: CrossChainDeposit }>(
-      `/chiliz/deposits/${depositId}`
-    ),
 };

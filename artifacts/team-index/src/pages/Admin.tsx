@@ -18,7 +18,6 @@ import {
 } from '@/hooks/use-pools';
 import { api, type TeamEntry } from '@/lib/api';
 import { MarketsSection } from '@/features/pools/MarketsSection';
-import { useChzPrice } from '@/hooks/use-settings';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -1042,114 +1041,6 @@ npx hardhat run scripts/create-club-vault.js --network polygon`}
   );
 }
 
-// ─── Chiliz network toggle ──────────────────────────────────────────────────
-
-function ChilizSettingsCard({ adminKey }: { adminKey: string }) {
-  const [enabled, setEnabled] = useState<boolean | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { data: chzPrice } = useChzPrice();
-  const queryClient = useQueryClient();
-
-  const loadSettings = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/admin/settings`, {
-        headers: { 'x-admin-key': adminKey },
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${res.status}`);
-      }
-      const json = await res.json();
-      setEnabled(!!json.settings?.chilizEnabled);
-      setError(null);
-    } catch (e: any) {
-      setError(e?.message ?? 'failed to load');
-    }
-  }, [adminKey]);
-
-  useEffect(() => { loadSettings(); }, [loadSettings]);
-
-  const handleToggle = async () => {
-    if (enabled === null || busy) return;
-    const next = !enabled;
-    const prev = enabled;
-    setBusy(true);
-    setError(null);
-    setEnabled(next);
-    try {
-      const res = await api.setChilizEnabled(next, adminKey);
-      setEnabled(!!res.settings?.chilizEnabled);
-      queryClient.invalidateQueries({ queryKey: ['settings', 'public'] });
-    } catch (e: any) {
-      setEnabled(prev);
-      setError(e?.message ?? 'update failed');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const chzUsd = Number.isFinite(Number(chzPrice?.usd)) ? Number(chzPrice?.usd) : null;
-
-  return (
-    <div className="bg-[#0d0f18] border border-white/10 rounded-2xl px-6 py-5">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#CD0124]/20 border border-[#CD0124]/30 flex items-center justify-center">
-            <Link className="w-4 h-4 text-[#CD0124]" />
-          </div>
-          <div>
-            <p className="font-bold text-white text-sm">Chiliz Network</p>
-            <p className="text-xs text-muted-foreground">
-              When off, users can only deposit via Polygon. CHZ/USD price is always visible.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">CHZ / USD</p>
-            <p className="font-mono font-bold text-white text-sm">
-              {chzUsd === null ? '—' : `$${chzUsd.toFixed(4)}`}
-            </p>
-          </div>
-          <button
-            type="button"
-            disabled={busy || enabled === null}
-            onClick={handleToggle}
-            className={cn(
-              'relative w-14 h-7 rounded-full transition-colors flex items-center cursor-pointer',
-              enabled ? 'bg-[#3FC86A]' : 'bg-white/10',
-              (busy || enabled === null) && 'opacity-60 cursor-wait'
-            )}
-            aria-label="Toggle Chiliz network"
-            aria-pressed={!!enabled}
-          >
-            <span
-              className={cn(
-                'absolute w-5 h-5 rounded-full bg-white transition-transform',
-                enabled ? 'translate-x-8' : 'translate-x-1'
-              )}
-            />
-          </button>
-          <span className={cn(
-            'text-xs font-jura font-bold uppercase tracking-wider',
-            enabled ? 'text-[#3FC86A]' : 'text-muted-foreground'
-          )}>
-            {enabled === null ? 'Loading' : enabled ? 'Active' : 'Disabled'}
-          </span>
-        </div>
-      </div>
-
-      {error && (
-        <p className="mt-3 text-xs text-red-400 flex items-center gap-1.5">
-          <AlertTriangle className="w-3.5 h-3.5" /> {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
 // ─── Main Admin Page ─────────────────────────────────────────────────────────
 
 export default function Admin() {
@@ -1307,9 +1198,6 @@ export default function Admin() {
             </div>
           ))}
         </div>
-
-        {/* Platform settings */}
-        <ChilizSettingsCard adminKey={adminKey} />
 
         {/* Create Pool */}
         <div className="bg-[#0d0f18] border border-white/10 rounded-2xl overflow-hidden">

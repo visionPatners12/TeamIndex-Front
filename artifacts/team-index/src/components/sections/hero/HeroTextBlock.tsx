@@ -46,8 +46,8 @@ export const HeroTextBlock: React.FC = () => {
 
     <p className="font-golos text-[15px] sm:text-[18px] leading-[1.65] text-white/70 max-w-2xl">
       Pick a team index, enter the pool, and receive an index token that
-      represents your share. The pool follows live Polymarket opportunities
-      linked to that team.
+      represents your share. The pool follows Polymarket match markets and
+      longer-term futures linked to that team.
     </p>
 
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-w-2xl">

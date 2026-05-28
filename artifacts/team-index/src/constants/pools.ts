@@ -12,7 +12,7 @@ export const DEMO_POOLS: LiveIndexPool[] = [
     poolFill: "71%",
     poolSize: "$142.5K",
     poolCap: "$200K",
-    tags: ["USDC / CHZ", "Gains Eligible", "Listing Soon"],
+    tags: ["USDC", "Gains Eligible", "Listing Soon"],
   },
   {
     id: "mancity",
@@ -25,7 +25,7 @@ export const DEMO_POOLS: LiveIndexPool[] = [
     poolFill: "94%",
     poolSize: "$187.2K",
     poolCap: "$200K",
-    tags: ["USDC / CHZ", "Gains Eligible", "Listing Soon"],
+    tags: ["USDC", "Gains Eligible", "Listing Soon"],
   },
   {
     id: "okc",
@@ -38,7 +38,7 @@ export const DEMO_POOLS: LiveIndexPool[] = [
     poolFill: "60%",
     poolSize: "$89.4K",
     poolCap: "$150K",
-    tags: ["USDC / CHZ", "Gains Eligible", "Listing Soon"],
+    tags: ["USDC", "Gains Eligible", "Listing Soon"],
   },
   {
     id: "spurs",
@@ -51,7 +51,7 @@ export const DEMO_POOLS: LiveIndexPool[] = [
     poolFill: "100%",
     poolSize: "$150K",
     poolCap: "$150K",
-    tags: ["USDC / CHZ", "Gains Eligible", "Listing Soon"],
+    tags: ["USDC", "Gains Eligible", "Listing Soon"],
     disabled: true,
   },
 ];

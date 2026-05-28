@@ -17,10 +17,6 @@ import { formatPoolName } from '@/utils/pool';
 import { api } from '@/lib/api';
 import { useBaseUsdcDeposit, usePolygonDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
 import { BASE_CHAIN, POLYGON_CHAIN, POLYGON_USDC_ADDRESS } from '@/lib/config';
-import afcLogo from '@assets/AFC_1776150749882.png';
-import barLogo from '@assets/BAR_1776150749883.png';
-import acmLogo from '@assets/ACM_1776150749863.png';
-import cityLogo from '@assets/CITY_1776150749884.png';
 
 type Network = 'polygon' | 'base';
 type Step = 'select' | 'confirm' | 'processing' | 'success' | 'error';
@@ -42,11 +38,13 @@ const UsdcIcon = ({ size = 24 }: { size?: number }) => (
 
 const PolygonIcon = ({ size = 24 }: { size?: number }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="11" fill="#8247E5" />
-    <path
-      fill="#fff"
-      d="M15.73 8.46c-.28-.16-.64-.16-.96 0l-2.21 1.3-1.5-.87 2.17-1.26 1.5.86 1-.58-2.02-1.16a.98.98 0 0 0-.96 0L9.96 8.38a.94.94 0 0 0-.48.83v3.2l-1.5.87-1.5-.87v-1.73l1.5-.86 1 .58V9.24l-.52-.3a.98.98 0 0 0-.96 0l-2.02 1.17a.94.94 0 0 0-.48.83v2.34c0 .33.18.65.48.82l2.02 1.17c.28.16.64.16.96 0l2.02-1.17a.94.94 0 0 0 .48-.82v-3.2l1.5-.87 1.5.87v1.73l-1.5.87-1-.58v1.16l.52.3c.28.16.64.16.96 0l2.02-1.17a.94.94 0 0 0 .48-.82v-2.34a.94.94 0 0 0-.48-.83Z"
-    />
+    <path fill="url(#depositPolygonGrad)" d="M7.415 8.912a1.13 1.13 0 0 1 1.133 0l2.589 1.546 1.758 1.005 2.594 1.546c.328.201.762.201 1.127 0l2.06-1.207c.333-.2.736-.572.736-.974V8.446c0-.402-.371-.773-.741-.974l-2.023-1.176a1.13 1.13 0 0 0-1.127 0l-2.028 1.176c-.328.2-.434.572-.434.974v1.54L11.47 8.95V7.398c0-.403-.106-.773.264-.974L15.49 4.21a1.13 1.13 0 0 1 1.127 0l3.817 2.213a1.09 1.09 0 0 1 .567.979v4.468a1.1 1.1 0 0 1-.567.974l-3.817 2.213a1.13 1.13 0 0 1-1.127 0l-2.594-1.509-1.758-1.042-2.594-1.51a1.13 1.13 0 0 0-1.128 0l-2.022 1.176c-.334.201-.805.572-.805.974v2.382c0 .403.44.773.805.974l2.022 1.207c.334.202.768.202 1.133 0l2.022-1.175c.334-.201.9-.572.9-.974v-1.54l1.589 1.037v1.546c0 .402-.36.773-.725.974l-3.828 2.208c-.328.206-.763.206-1.128 0l-3.817-2.213A1.17 1.17 0 0 1 3 16.604v-4.468c0-.403.201-.773.566-.974z" />
+    <defs>
+      <linearGradient id="depositPolygonGrad" x1="3" x2="18.757" y1="4.06" y2="21.919" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#8F34C2" />
+        <stop offset="1" stopColor="#7442DB" />
+      </linearGradient>
+    </defs>
   </svg>
 );
 
@@ -59,18 +57,6 @@ const BaseIcon = ({ size = 24 }: { size?: number }) => (
 
 function ChainIcon({ network, size = 24 }: { network: Network; size?: number }) {
   return network === 'base' ? <BaseIcon size={size} /> : <PolygonIcon size={size} />;
-}
-
-const FAN_TOKEN_MAP: Record<string, { name: string; symbol: string; logo: string }> = {
-  AFC: { name: 'Arsenal FC', symbol: '$AFC', logo: afcLogo },
-  BAR: { name: 'FC Barcelona', symbol: '$BAR', logo: barLogo },
-  ACM: { name: 'AC Milan', symbol: '$ACM', logo: acmLogo },
-  CITY: { name: 'Manchester City', symbol: '$CITY', logo: cityLogo },
-};
-
-function getFanTokenForPool(symbol: string) {
-  const clean = symbol.replace(/^[\$]?p?/i, '').toUpperCase();
-  return FAN_TOKEN_MAP[clean] ?? null;
 }
 
 const NETWORK_CONFIG = {
@@ -176,7 +162,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const tokensReceived = pool ? usdValueAfterFee / pool.tokenValue : 0;
   const vaultReady = !!pool?.vaultAddress;
 
-  const fanToken = pool ? getFanTokenForPool(pool.symbol) : null;
   const targetUsdcRaw = useMemo(() => {
     try {
       return parseUnits(amount || '0', 6).toString();
@@ -419,22 +404,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                           </button>
                         );
                       })}
-
-                      {fanToken && (
-                        <div
-                          className="relative p-3.5 rounded-xl border border-white/10 bg-white/[0.02] opacity-50 cursor-not-allowed select-none"
-                        >
-                          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-[#FEB413]/20 border border-[#FEB413]/30">
-                            <span className="font-jura font-bold text-[8px] uppercase tracking-wider text-[#FEB413]">Soon</span>
-                          </div>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <img src={fanToken.logo} alt={fanToken.symbol} className="w-[22px] h-[22px] rounded-full" />
-                            <span className="font-jura font-bold text-sm text-white">{fanToken.symbol}</span>
-                          </div>
-                          <p className="text-[10px] font-golos text-white/40 leading-tight truncate">{fanToken.name}</p>
-                          <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider text-white/20">→ Fan Token</p>
-                        </div>
-                      )}
                     </div>
                       );
                     })()}

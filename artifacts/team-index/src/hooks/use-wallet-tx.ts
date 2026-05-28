@@ -5,8 +5,6 @@ import {
   BASE_CHAIN_ID,
   BASE_DEPOSIT_RECEIVER_ADDRESS,
   BASE_USDC_ADDRESS,
-  CHILIZ_CHAIN,
-  CHILIZ_CHAIN_ID,
   POLYGON_CHAIN,
   POLYGON_CHAIN_ID,
   POLYGON_USDC_ADDRESS,
@@ -28,12 +26,6 @@ const CHAIN_METADATA: Record<number, { chainName: string; rpcUrls: string[]; nat
     rpcUrls: [BASE_CHAIN.rpcUrl],
     nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
     blockExplorerUrls: [BASE_CHAIN.blockExplorer],
-  },
-  [CHILIZ_CHAIN_ID]: {
-    chainName: CHILIZ_CHAIN.name,
-    rpcUrls: [CHILIZ_CHAIN.rpcUrl],
-    nativeCurrency: { name: "CHZ", symbol: "CHZ", decimals: 18 },
-    blockExplorerUrls: [CHILIZ_CHAIN.blockExplorer],
   },
 };
 
@@ -198,91 +190,6 @@ export function useBaseUsdcDeposit() {
   }, [wallets]);
 
   return { deposit, status, txHash, error, reset: () => { setStatus("idle"); setTxHash(null); setError(null); } };
-}
-
-export function useChilizDeposit() {
-  const { wallets } = useWallets();
-  const [status, setStatus] = useState<TxStatus>("idle");
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const depositCHZ = useCallback(async (
-    receiverAddress: string,
-    poolIdHash: string,
-    txData: { to: string; data: string },
-    chzAmountWei: string
-  ) => {
-    setStatus("idle");
-    setTxHash(null);
-    setError(null);
-
-    const wallet = wallets[0];
-    if (!wallet) throw new Error("No wallet connected");
-
-    try {
-      const provider = await getProvider(wallet);
-
-      setStatus("switching");
-      await switchChain(provider, CHILIZ_CHAIN_ID);
-
-      setStatus("sending");
-      const hash = await sendRawTx(provider, wallet.address, {
-        to: txData.to,
-        data: txData.data,
-        value: `0x${BigInt(chzAmountWei).toString(16)}`,
-      });
-      setTxHash(hash);
-
-      setStatus("confirming");
-      await waitForReceipt(provider, hash);
-
-      setStatus("success");
-      return hash;
-    } catch (err: any) {
-      setStatus("error");
-      setError(err.message || "Transaction failed");
-      throw err;
-    }
-  }, [wallets]);
-
-  const depositToken = useCallback(async (
-    approveTx: { to: string; data: string },
-    depositTx: { to: string; data: string }
-  ) => {
-    setStatus("idle");
-    setTxHash(null);
-    setError(null);
-
-    const wallet = wallets[0];
-    if (!wallet) throw new Error("No wallet connected");
-
-    try {
-      const provider = await getProvider(wallet);
-
-      setStatus("switching");
-      await switchChain(provider, CHILIZ_CHAIN_ID);
-
-      setStatus("approving");
-      const appHash = await sendRawTx(provider, wallet.address, approveTx);
-      await waitForReceipt(provider, appHash);
-
-      setStatus("sending");
-      const hash = await sendRawTx(provider, wallet.address, depositTx);
-      setTxHash(hash);
-
-      setStatus("confirming");
-      await waitForReceipt(provider, hash);
-
-      setStatus("success");
-      return hash;
-    } catch (err: any) {
-      setStatus("error");
-      setError(err.message || "Transaction failed");
-      throw err;
-    }
-  }, [wallets]);
-
-  return { depositCHZ, depositToken, status, txHash, error, reset: () => { setStatus("idle"); setTxHash(null); setError(null); } };
 }
 
 function encodeApprove(spender: string, amount: bigint): string {

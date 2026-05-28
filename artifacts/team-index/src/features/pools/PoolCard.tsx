@@ -126,7 +126,7 @@ export function PoolCard({ pool, index, onEnter }: { pool: PoolData; index: numb
         {/* Badges */}
         <div className="flex flex-wrap gap-2 mb-8 mt-auto">
           <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground bg-white/5 px-2 py-1 rounded border border-white/5">
-            <Shield className="w-3 h-3" /> USDC / CHZ
+            <Shield className="w-3 h-3" /> USDC
           </span>
           <span className="inline-flex items-center gap-1 text-[10px] text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
             <TrendingUp className="w-3 h-3" /> Gains Eligible

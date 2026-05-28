@@ -48,7 +48,7 @@ export function toLiveIndexPool(p: PoolData): LiveIndexPool {
     poolFill: `${fillPct}%`,
     poolSize: fmtUsdShort(p.poolSize),
     poolCap: hasFiniteCap ? fmtUsdShort(p.poolCap) : "∞",
-    tags: ["USDC / CHZ", "Gains Eligible", "Listing Soon"],
+    tags: ["USDC", "Gains Eligible", "Listing Soon"],
     disabled: p.status === "Closed",
   };
 }
