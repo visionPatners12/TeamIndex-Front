@@ -3,25 +3,34 @@ import { GradientHeading } from "@/components/ui/GradientHeading";
 import { Sparkline } from "@/features/pools/Sparkline";
 
 type MarketKind = "future" | "game";
+type Dir = "up" | "down" | "flat";
 
 interface MarketDef {
+  id: string;
   kind: MarketKind;
   label: string;
   /** Short context line (competition, date, …) */
   meta: string;
-  /** Share of the index, in percent. Market weights + cash add up to 100. */
-  weight: number;
   /** Anchor probability (the index value is 1.00× when every market sits here). */
   baseProb: number;
 }
 
+interface Position extends MarketDef {
+  /** Live share of the index, in percent. Positions + cash add up to 100. */
+  weight: number;
+  /** Live market probability ("odds"). */
+  prob: number;
+  dir: Dir;
+}
+
 /**
- * Illustrative markets that make up the Arsenal index. Each one is a live
- * prediction market with its own probability ("odds"). The index value is a
- * weighted blend of these markets, so when their odds move, the index moves.
+ * Illustrative starting markets that make up the Arsenal index. Each one is a
+ * live prediction market with its own probability ("odds"). The index value is
+ * a weighted blend of these markets, so when their odds move, the index moves.
  */
-const MARKETS: MarketDef[] = [
+const INITIAL_MARKETS: (MarketDef & { weight: number })[] = [
   {
+    id: "f-pl",
     kind: "future",
     label: "Will Arsenal win the Premier League?",
     meta: "Premier League · Season outright",
@@ -29,6 +38,7 @@ const MARKETS: MarketDef[] = [
     baseProb: 0.42,
   },
   {
+    id: "f-cl",
     kind: "future",
     label: "Will Arsenal win the Champions League?",
     meta: "Champions League · Outright (future)",
@@ -36,6 +46,7 @@ const MARKETS: MarketDef[] = [
     baseProb: 0.18,
   },
   {
+    id: "g-mci",
     kind: "game",
     label: "Arsenal vs Man City",
     meta: "Premier League · Sat 20:00",
@@ -43,6 +54,7 @@ const MARKETS: MarketDef[] = [
     baseProb: 0.55,
   },
   {
+    id: "g-liv",
     kind: "game",
     label: "Arsenal vs Liverpool",
     meta: "Premier League · Next week",
@@ -50,6 +62,7 @@ const MARKETS: MarketDef[] = [
     baseProb: 0.6,
   },
   {
+    id: "g-tot",
     kind: "game",
     label: "Arsenal vs Tottenham",
     meta: "Premier League · Derby",
@@ -58,8 +71,49 @@ const MARKETS: MarketDef[] = [
   },
 ];
 
-const CASH_WEIGHT = 100 - MARKETS.reduce((s, m) => s + m.weight, 0);
+/** Pool of upcoming matches that get added when a live match settles. */
+const UPCOMING_GAMES: Omit<MarketDef, "id">[] = [
+  {
+    kind: "game",
+    label: "Arsenal vs Chelsea",
+    meta: "Premier League · Upcoming",
+    baseProb: 0.58,
+  },
+  {
+    kind: "game",
+    label: "Arsenal vs Newcastle",
+    meta: "Premier League · Upcoming",
+    baseProb: 0.62,
+  },
+  {
+    kind: "game",
+    label: "Arsenal vs Man United",
+    meta: "Premier League · Upcoming",
+    baseProb: 0.57,
+  },
+  {
+    kind: "game",
+    label: "Arsenal vs Brighton",
+    meta: "Premier League · Upcoming",
+    baseProb: 0.64,
+  },
+  {
+    kind: "game",
+    label: "Arsenal vs Aston Villa",
+    meta: "Premier League · Upcoming",
+    baseProb: 0.6,
+  },
+];
+
 const BASE_VALUE = 1.24;
+const INITIAL_CASH = 20;
+const TICK_MS = 1400;
+const EVENT_EVERY = 6; // ticks between market settlements (~8.4s)
+const BANNER_TTL = 5; // ticks the settlement banner stays up
+const NEW_TTL = 4; // ticks the "New" badge stays up
+
+const clamp = (v: number, lo: number, hi: number) =>
+  Math.min(hi, Math.max(lo, v));
 
 const KIND_META: Record<
   MarketKind,
@@ -79,73 +133,178 @@ const KIND_META: Record<
   },
 };
 
-/** Index value = cash (held at par) + each market weighted by how its odds moved. */
-function computeValue(probs: number[]): number {
-  let v = (CASH_WEIGHT / 100) * BASE_VALUE;
-  MARKETS.forEach((m, i) => {
-    v += (m.weight / 100) * BASE_VALUE * (probs[i] / m.baseProb);
+/** Index value = cash (par × idle yield) + each market weighted by its odds. */
+function computeValue(
+  positions: Position[],
+  cashWeight: number,
+  cashFactor: number,
+): number {
+  let v = (cashWeight / 100) * BASE_VALUE * cashFactor;
+  positions.forEach((p) => {
+    v += (p.weight / 100) * BASE_VALUE * (p.prob / p.baseProb);
   });
   return v;
 }
 
-interface LiveMarket extends MarketDef {
-  prob: number;
-  dir: "up" | "down" | "flat";
+/** Scale position weights so that positions + cash always sum to 100%. */
+function rebalance(positions: Position[], cashWeight: number): Position[] {
+  const target = 100 - cashWeight;
+  const sum = positions.reduce((s, p) => s + p.weight, 0) || 1;
+  return positions.map((p) => ({ ...p, weight: (p.weight / sum) * target }));
 }
 
 interface LiveState {
-  probs: number[];
-  dirs: LiveMarket["dir"][];
+  positions: Position[];
+  cashWeight: number;
+  cashFactor: number;
+  cashDir: Dir;
   history: number[];
+  event: { text: string; ttl: number } | null;
+  newIds: Record<string, number>;
+  tick: number;
+  queueIdx: number;
 }
 
-const INITIAL_PROBS = MARKETS.map((m) => m.baseProb);
+function makeInitialState(): LiveState {
+  const positions: Position[] = INITIAL_MARKETS.map((m) => ({
+    ...m,
+    prob: m.baseProb,
+    dir: "flat",
+  }));
+  return {
+    positions,
+    cashWeight: INITIAL_CASH,
+    cashFactor: 1,
+    cashDir: "flat",
+    history: [computeValue(positions, INITIAL_CASH, 1)],
+    event: null,
+    newIds: {},
+    tick: 0,
+    queueIdx: 0,
+  };
+}
 
 /**
- * Drives every market's probability with a gentle random walk and derives the
- * index value from them, so the value visibly reacts to the markets moving.
+ * Drives the index over time: market odds random-walk, the cash buffer drifts
+ * (idle yield + allocation), and every few seconds a match settles, is removed,
+ * and a new upcoming match takes its place — with every weight readjusted so
+ * the basket always sums to 100%. The index value is derived from all of it.
  */
 function useLiveIndex() {
-  const [state, setState] = useState<LiveState>(() => ({
-    probs: INITIAL_PROBS,
-    dirs: MARKETS.map(() => "flat" as const),
-    history: [computeValue(INITIAL_PROBS)],
-  }));
+  const [state, setState] = useState<LiveState>(makeInitialState);
 
   useEffect(() => {
     const id = setInterval(() => {
       setState((prev) => {
-        const probs = prev.probs.map((p, i) => {
-          const drift = (Math.random() - 0.5) * 0.05;
-          // Pull gently back toward the anchor so it wanders without escaping.
-          const pull = (MARKETS[i].baseProb - p) * 0.08;
-          return Math.min(0.95, Math.max(0.05, p + drift + pull));
+        let positions = prev.positions.map((p) => ({ ...p }));
+        let cashWeight = prev.cashWeight;
+        let queueIdx = prev.queueIdx;
+        const tick = prev.tick + 1;
+
+        let event = prev.event ? { ...prev.event, ttl: prev.event.ttl - 1 } : null;
+        if (event && event.ttl <= 0) event = null;
+        const newIds: Record<string, number> = {};
+        Object.entries(prev.newIds).forEach(([k, v]) => {
+          if (v - 1 > 0) newIds[k] = v - 1;
         });
-        const dirs: LiveMarket["dir"][] = probs.map((p, i) =>
-          p > prev.probs[i] + 0.0005
-            ? "up"
-            : p < prev.probs[i] - 0.0005
-              ? "down"
-              : "flat",
+
+        // ── Lifecycle: settle the next match and open a new one ──
+        if (tick % EVENT_EVERY === 0) {
+          const closingIdx = positions.findIndex((p) => p.kind === "game");
+          if (closingIdx !== -1) {
+            const closed = positions[closingIdx];
+            positions.splice(closingIdx, 1);
+            // Proceeds from the settled match flow back into cash…
+            cashWeight += closed.weight;
+            // …then most of it is redeployed into a new upcoming match.
+            const next = UPCOMING_GAMES[queueIdx % UPCOMING_GAMES.length];
+            queueIdx += 1;
+            const deploy = closed.weight * (0.8 + Math.random() * 0.3);
+            cashWeight -= deploy;
+            const newId = `g-${tick}`;
+            positions.push({
+              ...next,
+              id: newId,
+              weight: deploy,
+              prob: next.baseProb,
+              dir: "flat",
+            });
+            newIds[newId] = NEW_TTL;
+            event = {
+              text: `${closed.label} settled → cash · ${next.label} opened · weights rebalanced`,
+              ttl: BANNER_TTL,
+            };
+          }
+        }
+
+        // ── Cash varies: small idle yield + allocation drift ──
+        const cashFactor = clamp(
+          prev.cashFactor + (Math.random() - 0.5) * 0.004 + (1 - prev.cashFactor) * 0.06,
+          0.99,
+          1.012,
         );
-        const history = [...prev.history.slice(-39), computeValue(probs)];
-        return { probs, dirs, history };
+        const cashDir: Dir =
+          cashFactor > prev.cashFactor + 0.0002
+            ? "up"
+            : cashFactor < prev.cashFactor - 0.0002
+              ? "down"
+              : "flat";
+        cashWeight = clamp(cashWeight + (Math.random() - 0.5) * 0.9, 12, 28);
+
+        // ── Market odds random-walk with mean reversion ──
+        positions = positions.map((p) => {
+          const drift = (Math.random() - 0.5) * 0.05;
+          const pull = (p.baseProb - p.prob) * 0.08;
+          const prob = clamp(p.prob + drift + pull, 0.05, 0.95);
+          const dir: Dir =
+            prob > p.prob + 0.0005
+              ? "up"
+              : prob < p.prob - 0.0005
+                ? "down"
+                : "flat";
+          return { ...p, prob, dir };
+        });
+
+        // ── Readjust every weight so the basket sums to 100% ──
+        positions = rebalance(positions, cashWeight);
+
+        const value = computeValue(positions, cashWeight, cashFactor);
+        const history = [...prev.history.slice(-39), value];
+
+        return {
+          positions,
+          cashWeight,
+          cashFactor,
+          cashDir,
+          history,
+          event,
+          newIds,
+          tick,
+          queueIdx,
+        };
       });
-    }, 1400);
+    }, TICK_MS);
     return () => clearInterval(id);
   }, []);
 
   const value = state.history[state.history.length - 1];
   const changePct = ((value - BASE_VALUE) / BASE_VALUE) * 100;
-  const markets: LiveMarket[] = MARKETS.map((m, i) => ({
-    ...m,
-    prob: state.probs[i],
-    dir: state.dirs[i],
-  }));
-  return { value, changePct, history: state.history, markets };
+  // The match that will settle next (first game position) is flagged "closing".
+  const closingId = state.positions.find((p) => p.kind === "game")?.id ?? null;
+  return {
+    value,
+    changePct,
+    history: state.history,
+    positions: state.positions,
+    cashWeight: state.cashWeight,
+    cashDir: state.cashDir,
+    event: state.event,
+    newIds: state.newIds,
+    closingId,
+  };
 }
 
-const DirArrow: React.FC<{ dir: LiveMarket["dir"] }> = ({ dir }) => {
+const DirArrow: React.FC<{ dir: Dir }> = ({ dir }) => {
   if (dir === "flat")
     return <span className="text-white/40 text-xs font-bold">→</span>;
   const up = dir === "up";
@@ -158,22 +317,36 @@ const DirArrow: React.FC<{ dir: LiveMarket["dir"] }> = ({ dir }) => {
   );
 };
 
-const MarketRow: React.FC<{ m: LiveMarket }> = ({ m }) => {
+const MarketRow: React.FC<{
+  m: Position;
+  isNew: boolean;
+  isClosing: boolean;
+}> = ({ m, isNew, isClosing }) => {
   const meta = KIND_META[m.kind];
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-[#232323] bg-[#18140F] px-3.5 py-3 sm:px-4 sm:py-3.5">
+    <div className="flex flex-col gap-2 rounded-xl border border-[#232323] bg-[#18140F] px-3.5 py-3 sm:px-4 sm:py-3.5 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-2.5 min-w-0">
           <span className="text-base leading-none mt-0.5 shrink-0" aria-hidden>
             {meta.icon}
           </span>
           <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span
                 className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border shrink-0 ${meta.tagClass}`}
               >
                 {meta.tag}
               </span>
+              {isNew && (
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border shrink-0 bg-[#FEB413]/20 text-[#FEB413] border-[#FEB413]/40">
+                  New
+                </span>
+              )}
+              {isClosing && !isNew && (
+                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border shrink-0 bg-orange-500/15 text-orange-300 border-orange-500/30">
+                  Closing soon
+                </span>
+              )}
               <span className="font-golos text-sm font-semibold text-white truncate">
                 {m.label}
               </span>
@@ -189,14 +362,14 @@ const MarketRow: React.FC<{ m: LiveMarket }> = ({ m }) => {
             <DirArrow dir={m.dir} />
             {Math.round(m.prob * 100)}%
           </span>
-          <span className="font-golos text-[10px] text-white/40">
-            {m.weight}% of index
+          <span className="font-golos text-[10px] text-white/40 tabular-nums">
+            {Math.round(m.weight)}% of index
           </span>
         </div>
       </div>
       <div className="h-1.5 w-full rounded-full bg-[#232323] overflow-hidden">
         <div
-          className="h-full rounded-full transition-all"
+          className="h-full rounded-full transition-all duration-700"
           style={{ width: `${m.weight}%`, backgroundColor: meta.barColor }}
         />
       </div>
@@ -205,8 +378,19 @@ const MarketRow: React.FC<{ m: LiveMarket }> = ({ m }) => {
 };
 
 export const IndexCompositionSection: React.FC = () => {
-  const { value, changePct, history, markets } = useLiveIndex();
+  const {
+    value,
+    changePct,
+    history,
+    positions,
+    cashWeight,
+    cashDir,
+    event,
+    newIds,
+    closingId,
+  } = useLiveIndex();
   const isPositive = changePct >= 0;
+  const cashPct = Math.round(cashWeight);
 
   return (
     <section
@@ -228,8 +412,9 @@ export const IndexCompositionSection: React.FC = () => {
         <p className="font-golos text-sm sm:text-base text-white/60 max-w-2xl leading-relaxed">
           A team index is a single token backed by a basket of prediction
           markets about that team. Its value is a weighted blend of those
-          markets — when their odds move, the index moves. Here is the Arsenal
-          index live.
+          markets — when their odds move, the index moves. Matches settle and
+          new ones open over time, and the cash buffer flexes to keep the basket
+          balanced. Here is the Arsenal index live.
         </p>
       </div>
 
@@ -293,8 +478,9 @@ export const IndexCompositionSection: React.FC = () => {
             </p>
             <p className="mt-1 font-golos text-xs leading-relaxed text-white/55">
               Index value = weighted blend of every market&apos;s live odds,
-              plus a {CASH_WEIGHT}% cash buffer held at par. As the odds on the
-              right tick up or down, the value above moves with them.
+              plus a cash buffer ({cashPct}% right now). As odds tick up or down
+              the value moves; when a match settles its weight returns to cash
+              and a new match takes its place, so every percentage readjusts.
             </p>
           </div>
 
@@ -303,16 +489,17 @@ export const IndexCompositionSection: React.FC = () => {
               <span className="font-golos text-[11px] text-white/40">
                 Markets in this index
               </span>
-              <span className="font-jura font-bold text-xl text-white">
-                {MARKETS.length}
+              <span className="font-jura font-bold text-xl text-white tabular-nums">
+                {positions.length}
               </span>
             </div>
             <div className="rounded-xl border border-[#3FC86A]/25 bg-[#3FC86A]/10 px-3.5 py-3 flex flex-col gap-0.5">
               <span className="font-golos text-[11px] text-[#3FC86A]/90">
                 Cash buffer
               </span>
-              <span className="font-jura font-bold text-xl text-white">
-                {CASH_WEIGHT}%
+              <span className="flex items-center gap-1.5 font-jura font-bold text-xl text-white tabular-nums">
+                <DirArrow dir={cashDir} />
+                {cashPct}%
               </span>
             </div>
           </div>
@@ -331,10 +518,11 @@ export const IndexCompositionSection: React.FC = () => {
 
           {/* Stacked weight bar */}
           <div className="flex w-full h-3 rounded-full overflow-hidden border border-white/10">
-            {markets.map((m, i) => (
+            {positions.map((m) => (
               <div
-                key={i}
-                title={`${m.label} — ${m.weight}%`}
+                key={m.id}
+                title={`${m.label} — ${Math.round(m.weight)}%`}
+                className="transition-all duration-700"
                 style={{
                   width: `${m.weight}%`,
                   backgroundColor: KIND_META[m.kind].barColor,
@@ -342,17 +530,35 @@ export const IndexCompositionSection: React.FC = () => {
               />
             ))}
             <div
-              title={`Cash buffer — ${CASH_WEIGHT}%`}
-              style={{ width: `${CASH_WEIGHT}%`, backgroundColor: "#3FC86A" }}
+              title={`Cash buffer — ${cashPct}%`}
+              className="transition-all duration-700"
+              style={{ width: `${cashWeight}%`, backgroundColor: "#3FC86A" }}
             />
           </div>
 
+          {/* Settlement / rebalance banner */}
+          {event && (
+            <div className="flex items-start gap-2 rounded-xl border border-[#FEB413]/30 bg-[#FEB413]/10 px-3.5 py-2.5">
+              <span className="text-sm leading-none mt-0.5" aria-hidden>
+                🔁
+              </span>
+              <span className="font-golos text-[11px] leading-snug text-[#FEB413]">
+                {event.text}
+              </span>
+            </div>
+          )}
+
           <div className="flex flex-col gap-2.5">
-            {markets.map((m, i) => (
-              <MarketRow key={i} m={m} />
+            {positions.map((m) => (
+              <MarketRow
+                key={m.id}
+                m={m}
+                isNew={Boolean(newIds[m.id])}
+                isClosing={m.id === closingId}
+              />
             ))}
 
-            {/* Cash buffer — stable, does not move the index */}
+            {/* Cash buffer — flexes as matches settle and reopen */}
             <div className="flex items-center justify-between gap-3 rounded-xl border border-[#3FC86A]/25 bg-[#3FC86A]/[0.07] px-3.5 py-3 sm:px-4">
               <div className="flex items-start gap-2.5 min-w-0">
                 <span className="text-base leading-none mt-0.5 shrink-0" aria-hidden>
@@ -368,13 +574,14 @@ export const IndexCompositionSection: React.FC = () => {
                     </span>
                   </div>
                   <span className="font-golos text-[11px] text-white/45 mt-0.5 truncate">
-                    Idle USDC · held at par, keeps the index stable
+                    Idle USDC · flexes as matches settle & reopen
                   </span>
                 </div>
               </div>
               <div className="flex flex-col items-end shrink-0">
-                <span className="font-jura font-bold text-sm text-white tabular-nums">
-                  {CASH_WEIGHT}%
+                <span className="flex items-center gap-1 font-jura font-bold text-sm text-white tabular-nums">
+                  <DirArrow dir={cashDir} />
+                  {cashPct}%
                 </span>
                 <span className="font-golos text-[10px] text-white/40">
                   of index
@@ -387,5 +594,3 @@ export const IndexCompositionSection: React.FC = () => {
     </section>
   );
 };
-
-export default IndexCompositionSection;
