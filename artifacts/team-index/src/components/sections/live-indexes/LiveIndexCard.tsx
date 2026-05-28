@@ -1,4 +1,6 @@
 import React from "react";
+import { HoldingSourceBadge } from "@/components/ui/HoldingSourceBadge";
+import type { UserHoldingChainBreakdown } from "@/hooks/use-user-holdings";
 
 export type LiveIndexStatus = "open" | "closing soon" | "closed";
 
@@ -21,8 +23,10 @@ export type LiveIndexCardProps = {
   isAuthenticated?: boolean;
   /** USD value of the user's holding in this pool */
   userValueUsd?: number;
-  /** Number of whole shares the user holds */
+  /** Number of whole shares the user holds (Polygon + Base summed) */
   userShares?: number;
+  /** Per-chain breakdown of `userShares`. Used to show a small source badge. */
+  userSharesByChain?: UserHoldingChainBreakdown;
   onLogin?: () => void;
 };
 
@@ -64,6 +68,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
   isAuthenticated,
   userValueUsd,
   userShares,
+  userSharesByChain,
   onLogin,
 }) => {
   const fillPercent = poolFill != null && poolFill !== "" ? parseFloat(poolFill) : NaN;
@@ -164,23 +169,33 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
       )}
 
       {isAuthenticated === true && (userShares ?? 0) > 0 && (
-        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-[#23201A] border border-[#FEB413]/20">
-          <div className="flex flex-col min-w-0">
-            <span className="text-[10px] text-[#B3B3B3] font-medium uppercase tracking-wider">
-              Your Balance
-            </span>
-            <span className="text-white text-sm font-bold font-mono">
-              {fmtShares(userShares)} {symbol?.replace(/^\$/, "") ?? "shares"}
-            </span>
+        <div className="flex flex-col gap-1.5 px-3 py-2 rounded-lg bg-[#23201A] border border-[#FEB413]/20">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col min-w-0">
+              <span className="text-[10px] text-[#B3B3B3] font-medium uppercase tracking-wider">
+                Your Balance
+              </span>
+              <span className="text-white text-sm font-bold font-mono">
+                {fmtShares(userShares)} {symbol?.replace(/^\$/, "") ?? "shares"}
+              </span>
+            </div>
+            <div className="flex flex-col items-end min-w-0">
+              <span className="text-[10px] text-[#B3B3B3] font-medium uppercase tracking-wider">
+                Value
+              </span>
+              <span className="text-[#FEB413] text-sm font-bold font-mono">
+                {fmtUsd(userValueUsd)}
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col items-end min-w-0">
-            <span className="text-[10px] text-[#B3B3B3] font-medium uppercase tracking-wider">
-              Value
-            </span>
-            <span className="text-[#FEB413] text-sm font-bold font-mono">
-              {fmtUsd(userValueUsd)}
-            </span>
-          </div>
+          {userSharesByChain && (userSharesByChain.polygon > 0 && userSharesByChain.base > 0) && (
+            <HoldingSourceBadge
+              polygon={userSharesByChain.polygon}
+              base={userSharesByChain.base}
+              variant="compact"
+              className="pt-0.5"
+            />
+          )}
         </div>
       )}
 

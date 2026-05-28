@@ -18,6 +18,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { GoldButton } from "@/components/ui/GoldButton";
 import { GradientHeading } from "@/components/ui/GradientHeading";
+import { HoldingSourceBadge } from "@/components/ui/HoldingSourceBadge";
+import { PendingBaseDepositsBanner } from "@/components/ui/PendingBaseDepositsBanner";
 import { VaultPositionsModal } from "@/features/pools/VaultPositionsModal";
 import { useUserHoldings, type UserHolding } from "@/hooks/use-user-holdings";
 import { truncateAddr } from "@/utils/address";
@@ -112,6 +114,18 @@ function HoldingRow({
             {fmtUsd(holding.valueUsd)}
           </span>
         </div>
+      </div>
+
+      {/* Chain breakdown — shows which network the shares live on */}
+      <div className="flex flex-col gap-1.5">
+        <span className="text-[#B3B3B3] text-[10px] font-medium uppercase tracking-wider">
+          Source
+        </span>
+        <HoldingSourceBadge
+          polygon={holding.sharesByChain.polygon}
+          base={holding.sharesByChain.base}
+          variant="wide"
+        />
       </div>
 
       {/* Actions */}
@@ -250,6 +264,12 @@ export default function Dashboard() {
               Retry
             </button>
           </div>
+        )}
+
+        {/* In-flight Base bridge deposits — surfaces "Bridging…" progress so users
+            know their deposit is being processed instead of thinking it's lost. */}
+        {ready && authenticated && walletAddress && (
+          <PendingBaseDepositsBanner address={walletAddress} />
         )}
 
         {/* Portfolio summary */}

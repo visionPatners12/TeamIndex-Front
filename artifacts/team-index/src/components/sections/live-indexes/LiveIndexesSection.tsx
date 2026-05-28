@@ -64,6 +64,7 @@ export const LiveIndexesSection: React.FC<LiveIndexesSectionProps> = ({
             onEnter={() => onEnterPool?.(pool)}
             isAuthenticated={isAuthenticated}
             userShares={holding?.shares}
+            userSharesByChain={holding?.sharesByChain}
             userValueUsd={holding?.valueUsd}
             onLogin={onLogin}
           />
