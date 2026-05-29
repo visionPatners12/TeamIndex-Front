@@ -32,8 +32,6 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `VITE_API_BASE_URL=http://localhost:3001` — frontend → API URL
 - `VITE_PRIVY_APP_ID` — Privy app ID (public)
 - `VITE_USDC_ADDRESS` — USDC contract address (Polygon)
-- `VITE_CHILIZ_WRAPPED_SHARE_ADDRESS` — Chiliz wrapped share contract
-- `VITE_CHILIZ_DEPOSIT_RECEIVER_ADDRESS` — Chiliz deposit receiver
 - `DATABASE_URL` — PostgreSQL connection string (provided by Replit)
 
 ## Structure

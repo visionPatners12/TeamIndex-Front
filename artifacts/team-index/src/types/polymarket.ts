@@ -71,6 +71,31 @@ export interface ScoredAllocation {
   allocationAmount: number;
   reasons: string[];
   rejected: false;
+
+  // ─── Quant diagnostics (optional; populated by the v2 engine) ───────────────
+  /** Model-implied "true" probability q for the chosen side (= price + edge). */
+  impliedProb?: number;
+  /** Net per-position edge in basis points: (q − price)/price, after costs. */
+  edgeBps?: number;
+  /** Full-Kelly fraction f* = (q − price)/(1 − price) before fractional scaling. */
+  kellyFraction?: number;
+  /** Share of total portfolio variance contributed by this position (0–1). */
+  riskContributionPct?: number;
+  /** Holding-period return volatility of this position (0–1). */
+  periodVolPct?: number;
+  /** Momentum t-stat of the logit price trend (sign = direction vs chosen side). */
+  momentumZ?: number;
+  /** Variance-ratio persistence: >1 trending, <1 mean-reverting, ~1 random walk. */
+  trendPersistence?: number;
+  /** Which risk limit clipped this position, if any. */
+  bindingConstraint?:
+    | 'per-market'
+    | 'liquidity'
+    | 'depth'
+    | 'per-event'
+    | 'per-cluster'
+    | 'total-exposure'
+    | null;
 }
 
 /** Market rejected by the engine */
@@ -94,6 +119,24 @@ export interface AllocationProposal {
   allocations: ScoredAllocation[];
   rejectedMarkets: RejectedMarket[];
   clusterExposure: Record<string, number>;
+
+  // ─── Portfolio-level quant diagnostics (optional; populated by the v2 engine) ─
+  /** Expected portfolio return on NAV over the holding horizon (fraction). */
+  expectedReturnPct?: number;
+  /** Expected portfolio volatility on NAV over the holding horizon (fraction). */
+  expectedVolPct?: number;
+  /** Annual-ish volatility target the gross exposure was sized to (fraction). */
+  targetVolPct?: number;
+  /** Expected return / expected vol (a Sharpe-like ratio). */
+  riskAdjustedReturn?: number;
+  /** Diversification ratio: Σ(wᵢσᵢ) / σ_portfolio (≥1; higher = more diversified). */
+  diversificationRatio?: number;
+  /** Effective number of independent bets = 1 / Σ wᵢ² (on invested weights). */
+  effectiveBets?: number;
+  /** Confidence in the edge signal (0–1): drives how far gross moves above the floor. */
+  signalConfidence?: number;
+  /** Short label describing the sizing method actually used. */
+  methodology?: string;
 }
 
 /** Current open position in a vault (user-facing) */
