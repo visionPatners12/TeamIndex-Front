@@ -16,6 +16,7 @@ import { HeroSection } from "@/components/sections/hero/HeroSection";
 import { HeroTextBlock } from "@/components/sections/hero/HeroTextBlock";
 import { IndexCard } from "@/components/sections/hero/IndexCard";
 import { HowItWorksSection } from "@/components/sections/how-it-works/HowItWorksSection";
+import { IndexCompositionSection } from "@/components/sections/index-composition/IndexCompositionSection";
 import { LiveIndexesSection } from "@/components/sections/live-indexes/LiveIndexesSection";
 import { ExoticIndexesSection } from "@/components/sections/exotic-indexes/ExoticIndexesSection";
 import { WhyPolymarketSection } from "@/components/sections/why-polymarket/WhyPolymarketSection";
@@ -61,7 +62,15 @@ export default function Home() {
         </div>
       </HeroSection>
 
-      {/* 2. LIVE TEAM INDEXES — shown directly after the hero on mobile */}
+      {/* 2. HOW TEAM INDEX WORKS */}
+      <section id="how-it-works">
+        <HowItWorksSection />
+      </section>
+
+      {/* 3. WHAT'S INSIDE AN INDEX — visual composition before the live cards */}
+      <IndexCompositionSection />
+
+      {/* 4. LIVE TEAM INDEXES */}
       <section id="live-indexes">
         <LiveIndexesSection
           pools={livePools}
@@ -72,24 +81,19 @@ export default function Home() {
         />
       </section>
 
-      {/* 3. EXOTIC INDEXES */}
+      {/* 5. EXOTIC INDEXES */}
       <ExoticIndexesSection />
 
-      {/* 4. HOW TEAM INDEX WORKS */}
-      <section id="how-it-works">
-        <HowItWorksSection />
-      </section>
-
-      {/* 5. TWO DEPOSIT PATHS */}
+      {/* 6. TWO DEPOSIT PATHS */}
       <VaultArchitectureSection />
 
-      {/* 6. WHY POLYMARKET */}
+      {/* 7. WHY POLYMARKET */}
       <WhyPolymarketSection />
 
-      {/* 7. FAQ */}
+      {/* 8. FAQ */}
       <FaqSection />
 
-      {/* 8. CTA */}
+      {/* 9. CTA */}
       <CtaSection onExplore={() => scrollToId("live-indexes")} />
 
       {/* FOOTER */}
