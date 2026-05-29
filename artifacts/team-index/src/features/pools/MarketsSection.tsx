@@ -22,8 +22,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/lib/config';
-import { searchPolymarketMarkets, fetchBatchClobData } from '@/lib/polymarket';
-import { runAllocationEngine } from '@/lib/allocation-engine';
+import { searchPolymarketMarkets } from '@/lib/polymarket';
 import type {
   GammaMarket,
   SelectedMarket,
@@ -390,14 +389,16 @@ function AllocationEngineTab({
       const navNum = parseFloat(nav);
       if (!Number.isFinite(navNum) || navNum <= 0) throw new Error('Invalid NAV value');
 
-      // Fetch live CLOB data for all selected markets
-      const clobMap = await fetchBatchClobData(
-        selectedMarkets.map(m => ({ conditionId: m.conditionId, tokenId: m.tokenId })),
-        adminKey
-      );
-
-      const result = runAllocationEngine(selectedMarkets, clobMap, navNum);
-      onProposalReady(result);
+      // Run the quant engine server-side: the backend fetches a fresh CLOB/Gamma
+      // snapshot for each market, runs the v2 pipeline, and persists the result.
+      const res = await fetch(`${API_BASE_URL}/admin/pools/${poolId}/allocation/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+        body: JSON.stringify({ nav: navNum, selectedMarkets }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+      onProposalReady(data.proposal as AllocationProposal);
     } catch (e: any) {
       setRunError(e.message || 'Engine failed');
     } finally {
