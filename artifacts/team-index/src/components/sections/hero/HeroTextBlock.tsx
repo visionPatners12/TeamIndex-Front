@@ -98,7 +98,7 @@ export const HeroTextBlock: React.FC = () => {
       <div className="flex items-center gap-2">
         <BaseIcon />
         <span className="font-golos text-sm text-white/50">
-          Supported by Base
+          Built on Base
         </span>
       </div>
     </div>

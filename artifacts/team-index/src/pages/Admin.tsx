@@ -8,7 +8,7 @@ import {
   AlertTriangle, ChevronDown, ChevronUp, Settings, Zap, Wallet, LogOut, Link, Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL, POLYGON_CHAIN, POLYGON_CHAIN_ID } from '@/lib/config';
+import { API_BASE_URL, BASE_CHAIN, BASE_CHAIN_ID } from '@/lib/config';
 import {
   useAdminPools,
   tokenPriceUsdPerWholeShare,
@@ -263,7 +263,7 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
   const stepLabel: Record<CreateStep, string> = {
     form: '',
     'vault-already-deployed': 'Vault already deployed, creating pool…',
-    'switching-network': 'Switching to Polygon…',
+    'switching-network': 'Switching to Base…',
     'waiting-metamask': 'Confirm in MetaMask…',
     'confirming-tx': 'Waiting for on-chain confirmation…',
     'saving-db': 'Saving pool to database…',
@@ -313,16 +313,16 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
           throw new Error('Backend did not return a vault deployment transaction.');
         }
 
-        // 2. Switch MetaMask to Polygon
+        // 2. Switch MetaMask to Base
         setCreateStep('switching-network');
         const provider = await wallet.getEthereumProvider();
         try {
           await provider.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${POLYGON_CHAIN_ID.toString(16)}` }],
+            params: [{ chainId: `0x${BASE_CHAIN_ID.toString(16)}` }],
           });
         } catch (switchErr: any) {
-          if (switchErr.code === 4902) throw new Error('Add Polygon network to MetaMask first.');
+          if (switchErr.code === 4902) throw new Error('Add Base network to MetaMask first.');
           throw switchErr;
         }
 
@@ -713,9 +713,9 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
         <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-xs text-green-300 space-y-1">
           <div className="flex items-center gap-2 font-semibold"><CheckCircle className="w-4 h-4" /> Pool created!</div>
           <p>Pool ID: <code className="font-mono">{result.poolId}</code></p>
-          <p>{result.vaultAlreadyDeployed ? 'Vault already deployed; reused existing vault.' : 'Vault deployed and confirmed on Polygon.'}</p>
+          <p>{result.vaultAlreadyDeployed ? 'Vault already deployed; reused existing vault.' : 'Vault deployed and confirmed on Base.'}</p>
           {result.vaultAddress && (
-            <p>Vault: <a href={`${POLYGON_CHAIN.blockExplorer}/address/${result.vaultAddress}`} target="_blank" rel="noopener noreferrer" className="font-mono underline">{result.vaultAddress}</a></p>
+            <p>Vault: <a href={`${BASE_CHAIN.blockExplorer}/address/${result.vaultAddress}`} target="_blank" rel="noopener noreferrer" className="font-mono underline">{result.vaultAddress}</a></p>
           )}
           {result.polymarketSetup && (
             <p className="text-white/70">{result.polymarketSetup}</p>
@@ -907,7 +907,7 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
               {/* Vault Address */}
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
-                  Vault Contract Address (Polygon)
+                  Vault Contract Address (Base)
                 </label>
                 {hasVault && (
                   <div className="flex items-center gap-2 mb-2">
@@ -915,7 +915,7 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
                     <button onClick={() => copyText(pool.vaultAddress!)} className="text-muted-foreground hover:text-white transition-colors">
                       <Copy className="w-3.5 h-3.5" />
                     </button>
-                    <a href={`${POLYGON_CHAIN.blockExplorer}/address/${pool.vaultAddress}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <a href={`${BASE_CHAIN.blockExplorer}/address/${pool.vaultAddress}`} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>
@@ -1010,7 +1010,7 @@ FACTORY_ADDRESS=<your_factory>\\
 CLUB_NAME="${pool.clubName}"\\
 VAULT_SYMBOL="${pool.symbol}"\\
 DEPOSIT_CAP_USDC="${(parseFloat(pool.depositCap) / 1e6 || 200000).toFixed(0)}"\\
-npx hardhat run scripts/create-club-vault.js --network polygon`}
+npx hardhat run scripts/create-club-vault.js --network base`}
                   </code>
                   <p className="text-xs text-muted-foreground mt-2">Then paste the printed vault address above.</p>
                 </div>
@@ -1211,7 +1211,7 @@ export default function Admin() {
               </div>
               <div className="text-left">
                 <p className="font-bold text-white text-sm">Create New Pool</p>
-                <p className="text-xs text-muted-foreground">Deploy a new club pool on Polygon via ClubVaultFactory</p>
+                <p className="text-xs text-muted-foreground">Deploy a new club pool on Base via ClubVaultFactory</p>
               </div>
             </div>
             {showCreate ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}

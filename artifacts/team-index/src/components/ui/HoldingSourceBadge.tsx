@@ -2,8 +2,8 @@ import React from "react";
 import { cn } from "@/lib/utils";
 
 interface HoldingSourceBadgeProps {
-  polygon: number;
   base: number;
+  legacy?: number;
   /** Compact = single-line tiny badge for use inside cards/lists.
    *  Wide = two-line stacked layout for the Dashboard. */
   variant?: "compact" | "wide";
@@ -17,23 +17,16 @@ function fmt(n: number): string {
   return n.toFixed(4);
 }
 
-/** Visualises the cross-chain provenance of a user's pool shares.
- *
- * A user might hold some shares directly on the Polygon vault (deposited
- * from Polygon-side USDC) and some as wrapped ERC20 on Base (deposited via
- * the Base bridge). Showing both makes it clear where their balance lives. */
+/** Shows the user's Base index token balance for a pool. */
 export function HoldingSourceBadge({
-  polygon,
   base,
+  legacy = 0,
   variant = "compact",
   className,
 }: HoldingSourceBadgeProps) {
-  const hasPolygon = polygon > 0;
-  const hasBase = base > 0;
-  if (!hasPolygon && !hasBase) return null;
+  const total = legacy + base;
+  if (total <= 0) return null;
 
-  // Single-chain users get a smaller "source: Polygon" / "source: Base" tag,
-  // multi-chain users get the side-by-side breakdown.
   if (variant === "compact") {
     return (
       <div
@@ -42,33 +35,20 @@ export function HoldingSourceBadge({
           className
         )}
       >
-        {hasPolygon && (
-          <span className="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
-            ⬢ Polygon · {fmt(polygon)}
-          </span>
-        )}
-        {hasBase && (
-          <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30">
-            ◆ Base · {fmt(base)}
-          </span>
-        )}
+        <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30">
+          Base · {fmt(total)}
+        </span>
       </div>
     );
   }
 
   return (
-    <div className={cn("grid grid-cols-2 gap-2 text-xs", className)}>
-      <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg px-2.5 py-2 flex flex-col">
-        <span className="text-[10px] uppercase tracking-wider text-purple-300/80 font-medium">
-          ⬢ Polygon (direct)
-        </span>
-        <span className="font-mono font-bold text-white text-sm mt-0.5">{fmt(polygon)}</span>
-      </div>
+    <div className={cn("grid grid-cols-1 gap-2 text-xs", className)}>
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-2.5 py-2 flex flex-col">
         <span className="text-[10px] uppercase tracking-wider text-blue-300/80 font-medium">
-          ◆ Base (wrapped)
+          Base index token
         </span>
-        <span className="font-mono font-bold text-white text-sm mt-0.5">{fmt(base)}</span>
+        <span className="font-mono font-bold text-white text-sm mt-0.5">{fmt(total)}</span>
       </div>
     </div>
   );

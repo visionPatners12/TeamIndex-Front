@@ -23,9 +23,9 @@ export type LiveIndexCardProps = {
   isAuthenticated?: boolean;
   /** USD value of the user's holding in this pool */
   userValueUsd?: number;
-  /** Number of whole shares the user holds (Polygon + Base summed) */
+  /** Number of whole Base index tokens the user holds */
   userShares?: number;
-  /** Per-chain breakdown of `userShares`. Used to show a small source badge. */
+  /** Backend balance breakdown. Legacy fields are summed into the Base display. */
   userSharesByChain?: UserHoldingChainBreakdown;
   onLogin?: () => void;
 };
@@ -188,10 +188,10 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
               </span>
             </div>
           </div>
-          {userSharesByChain && (userSharesByChain.polygon > 0 && userSharesByChain.base > 0) && (
+          {userSharesByChain && ((userSharesByChain.legacy ?? 0) + userSharesByChain.base > 0) && (
             <HoldingSourceBadge
-              polygon={userSharesByChain.polygon}
               base={userSharesByChain.base}
+              legacy={userSharesByChain.legacy}
               variant="compact"
               className="pt-0.5"
             />

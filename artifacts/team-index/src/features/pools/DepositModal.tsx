@@ -15,10 +15,10 @@ import type { PoolData } from '@/types/pool';
 import { truncateAddr } from '@/utils/address';
 import { formatPoolName } from '@/utils/pool';
 import { api } from '@/lib/api';
-import { useBaseUsdcDeposit, usePolygonDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
-import { BASE_CHAIN, POLYGON_CHAIN, POLYGON_USDC_ADDRESS } from '@/lib/config';
+import { useBaseUsdcDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
+import { BASE_CHAIN } from '@/lib/config';
 
-type Network = 'polygon' | 'base';
+type Network = 'base';
 type Step = 'select' | 'confirm' | 'processing' | 'success' | 'error';
 
 interface DepositModalProps {
@@ -36,46 +36,17 @@ const UsdcIcon = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-const PolygonIcon = ({ size = 24 }: { size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24">
-    <path fill="url(#depositPolygonGrad)" d="M7.415 8.912a1.13 1.13 0 0 1 1.133 0l2.589 1.546 1.758 1.005 2.594 1.546c.328.201.762.201 1.127 0l2.06-1.207c.333-.2.736-.572.736-.974V8.446c0-.402-.371-.773-.741-.974l-2.023-1.176a1.13 1.13 0 0 0-1.127 0l-2.028 1.176c-.328.2-.434.572-.434.974v1.54L11.47 8.95V7.398c0-.403-.106-.773.264-.974L15.49 4.21a1.13 1.13 0 0 1 1.127 0l3.817 2.213a1.09 1.09 0 0 1 .567.979v4.468a1.1 1.1 0 0 1-.567.974l-3.817 2.213a1.13 1.13 0 0 1-1.127 0l-2.594-1.509-1.758-1.042-2.594-1.51a1.13 1.13 0 0 0-1.128 0l-2.022 1.176c-.334.201-.805.572-.805.974v2.382c0 .403.44.773.805.974l2.022 1.207c.334.202.768.202 1.133 0l2.022-1.175c.334-.201.9-.572.9-.974v-1.54l1.589 1.037v1.546c0 .402-.36.773-.725.974l-3.828 2.208c-.328.206-.763.206-1.128 0l-3.817-2.213A1.17 1.17 0 0 1 3 16.604v-4.468c0-.403.201-.773.566-.974z" />
-    <defs>
-      <linearGradient id="depositPolygonGrad" x1="3" x2="18.757" y1="4.06" y2="21.919" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#8F34C2" />
-        <stop offset="1" stopColor="#7442DB" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
-
 const BaseIcon = ({ size = 24 }: { size?: number }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} fill="none" viewBox="0 0 24 24">
-    <circle cx="12" cy="12" r="11" fill="#0052FF" />
-    <path fill="#fff" d="M12.05 19.4a7.4 7.4 0 1 0 0-14.8 7.4 7.4 0 0 0 0 14.8Zm.05-2.42a4.98 4.98 0 0 1-4.7-3.34h9.4a4.98 4.98 0 0 1-4.7 3.34Zm-4.7-6.6a4.98 4.98 0 0 1 9.4 0h-9.4Z" />
+    <path fill="#00F" d="M3 4.706c0-.585 0-.877.11-1.101.106-.215.28-.39.496-.495C3.83 3 4.122 3 4.706 3h14.588c.585 0 .876 0 1.101.11.215.105.389.28.494.495.111.225.111.517.111 1.101v14.588c0 .585 0 .876-.11 1.101-.106.215-.28.389-.495.494-.225.111-.517.111-1.101.111H4.706c-.585 0-.876 0-1.101-.11a1.08 1.08 0 0 1-.494-.495C3 20.17 3 19.878 3 19.294z" />
   </svg>
 );
 
-function ChainIcon({ network, size = 24 }: { network: Network; size?: number }) {
-  return network === 'base' ? <BaseIcon size={size} /> : <PolygonIcon size={size} />;
+function ChainIcon({ size = 24 }: { size?: number }) {
+  return <BaseIcon size={size} />;
 }
 
 const NETWORK_CONFIG = {
-  polygon: {
-    name: 'Polygon',
-    asset: 'USDC',
-    assetFull: 'USD Coin',
-    color: '#8247E5',
-    colorLight: 'rgba(130, 71, 229, 0.15)',
-    colorBorder: 'rgba(130, 71, 229, 0.3)',
-    chain: 'Polygon PoS',
-    receives: 'Native Token',
-    receiveDesc: 'You deposit Polygon USDC directly into the vault and receive native index shares on Polygon.',
-    minAmount: 0.1,
-    maxAmount: 100000,
-    placeholder: '100',
-    decimals: 6,
-    rate: 1,
-  },
   base: {
     name: 'Base',
     asset: 'USDC',
@@ -84,8 +55,8 @@ const NETWORK_CONFIG = {
     colorLight: 'rgba(0, 82, 255, 0.15)',
     colorBorder: 'rgba(0, 82, 255, 0.35)',
     chain: 'Base',
-    receives: 'Wrapped ERC20',
-    receiveDesc: 'You deposit Base USDC into the receiver contract. The relayer mints wrapped index ERC20 shares on Base after completion.',
+    receives: 'Index token',
+    receiveDesc: 'You deposit Base USDC and receive the index token that represents your share of the team pool on Base.',
     minAmount: 0.1,
     maxAmount: 100000,
     placeholder: '100',
@@ -95,7 +66,6 @@ const NETWORK_CONFIG = {
 };
 
 const PRESET_AMOUNTS: Record<Network, number[]> = {
-  polygon: [50, 100, 500, 1000],
   base: [50, 100, 500, 1000],
 };
 
@@ -114,15 +84,15 @@ function baseDepositStatusLabel(status?: string | null): string {
     case 'RECEIVED':
       return 'Base deposit received';
     case 'BRIDGING':
-      return 'Bridge to Polygon USDC in progress';
+      return 'Preparing the Base pool deposit';
     case 'DEPOSITING':
-      return 'Depositing into the Polygon vault';
+      return 'Depositing into the Base index vault';
     case 'MINTING_SHARES':
-      return 'Minting wrapped ERC20 shares on Base';
+      return 'Minting index tokens on Base';
     case 'COMPLETED':
-      return 'Wrapped ERC20 shares minted';
+      return 'Index tokens minted on Base';
     case 'FAILED':
-      return 'Relayer failed';
+      return 'Deposit processing failed';
     case 'NEEDS_MANUAL_RECONCILIATION':
       return 'Manual reconciliation needed';
     default:
@@ -143,7 +113,7 @@ function formatRawTokenAmount(raw?: string, decimals = 18, maxFractionDigits = 6
 
 export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: DepositModalProps) {
   const queryClient = useQueryClient();
-  const [network, setNetwork] = useState<Network>('polygon');
+  const [network, setNetwork] = useState<Network>('base');
   const [amount, setAmount] = useState('');
   const [step, setStep] = useState<Step>('select');
   const [agreed, setAgreed] = useState(false);
@@ -151,7 +121,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const [finalTxHash, setFinalTxHash] = useState<string | null>(null);
   const [finalTxLink, setFinalTxLink] = useState<string | null>(null);
 
-  const polygonHook = usePolygonDeposit();
   const baseHook = useBaseUsdcDeposit();
 
   const config = NETWORK_CONFIG[network];
@@ -228,45 +197,13 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     setFinalTxLink(null);
 
     try {
-      if (network === 'base') {
-        const rawAmount = BigInt(targetUsdcRaw);
-        const prepared = await api.prepareBaseUsdcDeposit(pool.id, rawAmount.toString());
-        const hash = await baseHook.deposit(prepared.txs.approveTx, prepared.txs.depositTx, walletAddress);
-        setFinalTxHash(hash ?? null);
-        await queryClient.invalidateQueries({ queryKey: ['base-deposits', walletAddress] });
-        await refreshPoolViews();
-        setStep('success');
-      } else {
-        const rawAmount = BigInt(targetUsdcRaw);
-        const prepared = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
-        if (!prepared.assetAddress || !prepared.vaultAddress || !prepared.txs?.approveTx || !prepared.txs?.depositTx) {
-          throw new Error('Polygon deposit is temporarily unavailable: backend did not return the vault asset and prepared approval transaction.');
-        }
-        if (prepared.assetAddress.toLowerCase() !== POLYGON_USDC_ADDRESS.toLowerCase()) {
-          throw new Error(
-            `This pool was deployed with a different Polygon USDC contract (${truncateAddr(prepared.assetAddress)}). Use Base for this pool, or create a new pool with the native Polygon USDC factory.`
-          );
-        }
-        const depositTx = prepared.txs.depositTx;
-        const vaultAddress = prepared.vaultAddress;
-        const hash = await polygonHook.deposit(
-          vaultAddress,
-          rawAmount,
-          depositTx,
-          walletAddress,
-          prepared.txs?.approveTx
-        );
-        setFinalTxHash(hash ?? null);
-        if (hash) {
-          try {
-            await api.confirmPoolDeposit(pool.id, hash);
-          } catch (e) {
-            console.warn("POST /pools/:id/deposit/confirm failed", e);
-          }
-        }
-        await refreshPoolViews();
-        setStep('success');
-      }
+      const rawAmount = BigInt(targetUsdcRaw);
+      const prepared = await api.prepareBaseUsdcDeposit(pool.id, rawAmount.toString());
+      const hash = await baseHook.deposit(prepared.txs.approveTx, prepared.txs.depositTx, walletAddress);
+      setFinalTxHash(hash ?? null);
+      await queryClient.invalidateQueries({ queryKey: ['base-deposits', walletAddress] });
+      await refreshPoolViews();
+      setStep('success');
     } catch (err: any) {
       setDepositError(err.message || 'Transaction failed');
       setStep('error');
@@ -275,30 +212,27 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     pool,
     walletAddress,
     isValidAmount,
-    network,
     targetUsdcRaw,
-    polygonHook,
     baseHook,
     refreshPoolViews,
     queryClient,
   ]);
 
   const handleReset = () => {
-    setNetwork('polygon');
+    setNetwork('base');
     setAmount('');
     setStep('select');
     setAgreed(false);
     setDepositError(null);
     setFinalTxHash(null);
     setFinalTxLink(null);
-    polygonHook.reset();
     baseHook.reset();
   };
 
   if (!pool) return null;
 
-  const activeHook = network === 'base' ? baseHook : polygonHook;
-  const explorerUrl = finalTxLink || (finalTxHash ? `${network === 'base' ? BASE_CHAIN.blockExplorer : POLYGON_CHAIN.blockExplorer}/tx/${finalTxHash}` : '');
+  const activeHook = baseHook;
+  const explorerUrl = finalTxLink || (finalTxHash ? `${BASE_CHAIN.blockExplorer}/tx/${finalTxHash}` : '');
   const canContinue =
     isValidAmount &&
     !!walletAddress &&
@@ -370,43 +304,31 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                       </div>
                     )}
 
-                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">1. Choose your entry path</p>
+                    <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">1. Entry path</p>
 
-                    {(() => {
-                      const availableNetworks: Network[] = ['polygon', 'base'];
-                      const cols = "grid grid-cols-2 gap-3 mb-4";
-                      return (
-                    <div className={cols}>
-                      {availableNetworks.map((net) => {
-                        const c = NETWORK_CONFIG[net];
-                        const active = network === net;
-                        return (
-                          <button key={net} onClick={() => { setNetwork(net); setAmount(''); }}
-                            className={cn('relative p-3.5 rounded-xl border text-left transition-all duration-200',
-                              active ? '' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20'
-                            )}
-                            style={active ? { borderColor: c.colorBorder, background: c.colorLight } : {}}
-                          >
-                            {active && <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full" style={{ background: c.color }} />}
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="relative h-7 w-12 shrink-0">
-                                <span className="absolute left-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-black/30 bg-[#0D0A06]">
-                                  <ChainIcon network={net} size={22} />
-                                </span>
-                                <span className="absolute right-0 top-0 flex h-7 w-7 items-center justify-center rounded-full border border-black/30 bg-[#0D0A06]">
-                                  <UsdcIcon size={22} />
-                                </span>
-                              </span>
-                              <span className="font-jura font-bold text-sm text-white">{c.name} {c.asset}</span>
-                            </div>
-                            <p className="text-[10px] font-golos text-white/40 leading-tight">{c.chain}</p>
-                            <p className="text-[10px] font-jura font-semibold mt-1.5 uppercase tracking-wider" style={{ color: c.color }}>→ {c.receives}</p>
-                          </button>
-                        );
-                      })}
+                    <div
+                      className="relative p-4 rounded-xl border text-left mb-4"
+                      style={{ borderColor: config.colorBorder, background: config.colorLight }}
+                    >
+                      <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full" style={{ background: config.color }} />
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="relative h-8 w-14 shrink-0">
+                          <span className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-lg border border-black/30 bg-[#0D0A06]">
+                            <ChainIcon size={24} />
+                          </span>
+                          <span className="absolute right-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border border-black/30 bg-[#0D0A06]">
+                            <UsdcIcon size={24} />
+                          </span>
+                        </span>
+                        <div>
+                          <p className="font-jura font-bold text-sm text-white">Base USDC</p>
+                          <p className="text-[11px] font-golos text-white/45 leading-tight">Built on Base</p>
+                        </div>
+                      </div>
+                      <p className="text-[11px] font-jura font-semibold uppercase tracking-wider" style={{ color: config.color }}>
+                        Receive index token
+                      </p>
                     </div>
-                      );
-                    })()}
 
                     <div className="flex gap-3 p-3 rounded-xl mb-5 text-xs font-golos" style={{ background: config.colorLight, border: `1px solid ${config.colorBorder}` }}>
                       <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: config.color }} />
@@ -492,23 +414,13 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-4">Review your deposit</p>
 
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl divide-y divide-white/[0.06] mb-5">
-                      {(network === 'base'
-                        ? [
+                      {([
                             { label: 'Network', value: config.chain },
                             { label: 'You send', value: `${numAmount.toLocaleString()} ${config.asset}` },
                             { label: 'USD equivalent', value: `≈ $${usdValue.toFixed(2)}` },
-                            { label: 'Estimated wrapped tokens', value: `${displayedTokensReceived.toFixed(4)} $${pool.symbol}` },
+                            { label: 'Estimated index tokens', value: `${displayedTokensReceived.toFixed(4)} $${pool.symbol}` },
                             { label: 'Token type', value: config.receives },
-                            { label: 'Destination', value: 'BaseDepositReceiver' },
-                            { label: 'Signed by', value: 'Connected wallet' },
-                          ]
-                        : [
-                            { label: 'Network', value: config.chain },
-                            { label: 'You send', value: `${numAmount.toLocaleString()} ${config.asset}` },
-                            { label: 'USD equivalent', value: `≈ $${usdValue.toFixed(2)}` },
-                            { label: 'Estimated native tokens', value: `${displayedTokensReceived.toFixed(4)} $${pool.symbol}` },
-                            { label: 'Token type', value: config.receives },
-                            { label: 'Destination', value: 'Polygon vault' },
+                            { label: 'Destination', value: 'Base index vault' },
                             { label: 'Signed by', value: 'Connected wallet' },
                           ]
                       ).map(({ label, value }) => (
@@ -528,9 +440,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <div className="flex gap-3 bg-[#FEB413]/10 border border-[#FEB413]/20 p-3 rounded-xl mb-5 text-xs font-golos text-[#FEB413]/80">
                       <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#FEB413]" />
                       <p>
-                        {network === 'base'
-                          ? 'You will sign 2 Base transactions in your wallet: approve USDC + deposit.'
-                          : 'You will sign 2 Polygon transactions in your wallet: approve USDC + deposit.'}
+                        You will sign 2 Base transactions in your wallet: approve USDC + deposit.
                       </p>
                     </div>
 
@@ -582,10 +492,8 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     </motion.div>
                     <h3 className="text-2xl font-jura font-bold text-white mb-2">Deposit Received!</h3>
                     <p className="font-golos text-white/40 text-sm mb-6">
-                      Your {network === 'base' ? 'Base' : 'Polygon'} USDC deposit into <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was confirmed.
-                      {network === 'base'
-                        ? ' Wrapped ERC20 shares will appear after relayer completion.'
-                        : ' Native index token minted on Polygon.'}
+                      Your Base USDC deposit into <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was confirmed.
+                      {' '}Your index token represents your share of this team pool on Base.
                     </p>
                     {finalTxHash && (
                       <a href={explorerUrl} target="_blank" rel="noopener noreferrer"
@@ -595,18 +503,18 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     )}
                     <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-6 text-left">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="font-golos text-white/40">{network === 'base' ? 'Base USDC sent' : 'Polygon USDC sent'}</span>
+                        <span className="font-golos text-white/40">Base USDC sent</span>
                         <span className="font-mono font-bold text-white">{numAmount.toLocaleString()} {config.asset}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="font-golos text-white/40">{network === 'base' ? 'Estimated wrapped tokens' : 'Estimated native tokens'}</span>
+                        <span className="font-golos text-white/40">Estimated index tokens</span>
                         <span className="font-mono font-bold" style={{ color: config.color }}>{displayedTokensReceived.toFixed(4)} ${pool.symbol}</span>
                       </div>
                     </div>
                     {network === 'base' && (
                       <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-6 text-left">
                         <div className="flex justify-between gap-3 text-sm mb-2">
-                          <span className="font-golos text-white/40">Relayer status</span>
+                          <span className="font-golos text-white/40">Deposit status</span>
                           <span className="font-jura font-semibold text-white text-right">
                             {baseDepositStatusLabel(currentBaseDeposit?.status)}
                           </span>
@@ -619,7 +527,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         )}
                         {currentBaseDeposit?.status === 'COMPLETED' && (
                           <div className="flex justify-between gap-3 text-sm mb-2">
-                            <span className="font-golos text-white/40">ERC20 shares minted</span>
+                            <span className="font-golos text-white/40">Index tokens minted</span>
                             <span className="font-mono font-bold text-white">
                               {formatRawTokenAmount(currentBaseDeposit.sharesMinted ?? undefined, 6, 4)} ${pool.symbol}
                             </span>

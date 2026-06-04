@@ -122,8 +122,8 @@ function HoldingRow({
           Source
         </span>
         <HoldingSourceBadge
-          polygon={holding.sharesByChain.polygon}
           base={holding.sharesByChain.base}
+          legacy={holding.sharesByChain.legacy}
           variant="wide"
         />
       </div>
@@ -266,8 +266,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* In-flight Base bridge deposits — surfaces "Bridging…" progress so users
-            know their deposit is being processed instead of thinking it's lost. */}
+        {/* In-flight Base deposits - surfaces progress so users know their
+            deposit is being processed instead of thinking it's lost. */}
         {ready && authenticated && walletAddress && (
           <PendingBaseDepositsBanner address={walletAddress} />
         )}

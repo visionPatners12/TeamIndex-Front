@@ -94,6 +94,7 @@ export interface ScoredAllocation {
     | 'depth'
     | 'per-event'
     | 'per-cluster'
+    | 'corr-group'
     | 'total-exposure'
     | null;
 }

@@ -84,10 +84,7 @@ export interface BaseChainDeposit {
   baseDepositId: string | number;
   baseTxHash: string | null;
   releaseTxHash: string | null;
-  lifiBridgeTxHash: string | null;
-  polygonBalanceBeforeBridge: string | null;
   usdcAmount: string | null;
-  polygonDepositTxHash: string | null;
   sharesMinted: string | null;
   baseMintTxHash: string | null;
   status: string;

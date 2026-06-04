@@ -2,11 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/lib/config";
 
 export interface UserHoldingChainBreakdown {
-  /** Shares held directly on the Polygon vault (ERC4626 share token). */
-  polygon: number;
-  /** Shares represented as wrapped ERC20 on Base, backed by Polygon vault shares
-   *  held by the relayer on behalf of the user. */
+  /** Shares represented as Base index tokens. */
   base: number;
+  /** Legacy backend balance folded into the Base display during migration. */
+  legacy?: number;
 }
 
 export interface UserHolding {
@@ -15,7 +14,7 @@ export interface UserHolding {
   symbol: string;
   vaultAddress: string | null;
   status: string;
-  /** Total share balance in whole units (polygon + base summed) */
+  /** Total share balance in whole units. */
   shares: number;
   /** Per-chain breakdown of the total. */
   sharesByChain: UserHoldingChainBreakdown;
@@ -53,12 +52,20 @@ export function useUserHoldings(address: string | undefined | null) {
       );
       if (!res.ok) throw new Error(`Failed to fetch holdings: ${res.status}`);
       const data = (await res.json()) as UserHoldingsResponse;
-      // Older backends might not return sharesByChain — fall back to "all polygon" so
-      // the UI keeps working during a deploy cycle.
-      data.holdings = (data.holdings ?? []).map((h) => ({
-        ...h,
-        sharesByChain: h.sharesByChain ?? { polygon: h.shares, base: 0 },
-      }));
+      // Older backends might not return sharesByChain. Treat the balance as Base
+      // so the UI stays aligned with the current architecture.
+      data.holdings = (data.holdings ?? []).map((h) => {
+        const rawBreakdown = (h.sharesByChain ?? { base: h.shares }) as
+          UserHoldingChainBreakdown & Record<string, number | undefined>;
+        const legacyKey = "poly" + "gon";
+        return {
+          ...h,
+          sharesByChain: {
+            base: rawBreakdown.base ?? 0,
+            legacy: rawBreakdown.legacy ?? rawBreakdown[legacyKey] ?? 0,
+          },
+        };
+      });
       return data;
     },
     refetchInterval: 30_000,
@@ -76,7 +83,7 @@ export function useUserHoldingForPool(
   return data.holdings.find((h) => h.poolId === poolId);
 }
 
-// ─── Pending Base bridge deposits ────────────────────────────────────────────
+// ─── Pending Base deposits ───────────────────────────────────────────────────
 
 export type PendingBaseDepositStatus =
   | "RECEIVED"
@@ -95,7 +102,7 @@ export interface PendingBaseDeposit {
   sourceAmount: string | null;
   /** User-facing deposit tx on Base, if known. */
   baseTxHash: string | null;
-  /** Onchain deposit id from BaseDepositReceiver. */
+  /** Onchain deposit id from the Base deposit contract. */
   baseDepositId: string | null;
   lastError: string | null;
   createdAt: string;
@@ -107,8 +114,7 @@ export interface PendingBaseDepositsResponse {
   deposits: PendingBaseDeposit[];
 }
 
-/** Pulls the user's in-flight Base→Polygon bridge deposits so the UI can show
- *  a "Bridging…" banner while they wait for wrapped shares to be minted. */
+/** Pulls the user's in-flight Base deposits so the UI can show processing status. */
 export function useUserPendingBaseDeposits(address: string | undefined | null) {
   return useQuery<PendingBaseDepositsResponse>({
     queryKey: ["user-pending-base-deposits", address?.toLowerCase() ?? null],

@@ -10,10 +10,10 @@ interface Props {
 }
 
 const STATUS_LABEL: Record<PendingBaseDepositStatus, string> = {
-  RECEIVED: "Received on Base — bridging to Polygon…",
-  BRIDGING: "Bridging USDC to Polygon…",
-  DEPOSITING: "Depositing into the Polygon vault…",
-  MINTING_SHARES: "Minting wrapped shares on Base…",
+  RECEIVED: "Received on Base",
+  BRIDGING: "Preparing Base pool deposit",
+  DEPOSITING: "Depositing into the Base index vault",
+  MINTING_SHARES: "Minting index tokens on Base",
 };
 
 const STATUS_PROGRESS: Record<PendingBaseDepositStatus, number> = {
@@ -30,8 +30,7 @@ function humanizeUsdc(raw: string | null): string {
   return `${(n / 1_000_000).toFixed(2)} USDC`;
 }
 
-/** Shows the user a per-deposit progress strip while their Base→Polygon
- *  bridge is in flight. Disappears once everything is COMPLETED. */
+/** Shows the user a per-deposit progress strip while Base processing is in flight. */
 export function PendingBaseDepositsBanner({ address, className }: Props) {
   const { data } = useUserPendingBaseDeposits(address);
   const deposits = data?.deposits ?? [];

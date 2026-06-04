@@ -5,9 +5,6 @@ import {
   BASE_CHAIN_ID,
   BASE_DEPOSIT_RECEIVER_ADDRESS,
   BASE_USDC_ADDRESS,
-  POLYGON_CHAIN,
-  POLYGON_CHAIN_ID,
-  POLYGON_USDC_ADDRESS,
 } from "@/lib/config";
 
 export type TxStatus = "idle" | "switching" | "approving" | "sending" | "confirming" | "success" | "error";
@@ -15,12 +12,6 @@ export type TxStatus = "idle" | "switching" | "approving" | "sending" | "confirm
 type WalletTx = { to: string; data: string; value?: string };
 
 const CHAIN_METADATA: Record<number, { chainName: string; rpcUrls: string[]; nativeCurrency: { name: string; symbol: string; decimals: number }; blockExplorerUrls: string[] }> = {
-  [POLYGON_CHAIN_ID]: {
-    chainName: POLYGON_CHAIN.name,
-    rpcUrls: [POLYGON_CHAIN.rpcUrl],
-    nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
-    blockExplorerUrls: [POLYGON_CHAIN.blockExplorer],
-  },
   [BASE_CHAIN_ID]: {
     chainName: BASE_CHAIN.name,
     rpcUrls: [BASE_CHAIN.rpcUrl],
@@ -78,64 +69,6 @@ async function waitForReceipt(provider: any, txHash: string, maxAttempts = 60): 
   throw new Error("Transaction confirmation timeout");
 }
 
-export function usePolygonDeposit() {
-  const { wallets } = useWallets();
-  const [status, setStatus] = useState<TxStatus>("idle");
-  const [txHash, setTxHash] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const deposit = useCallback(async (
-    vaultAddress: string,
-    usdcAmount: bigint,
-    depositTxData: { to: string; data: string },
-    senderAddress?: string,
-    approveTxData?: WalletTx
-  ) => {
-    setStatus("idle");
-    setTxHash(null);
-    setError(null);
-
-    const wallet = wallets[0];
-    if (!wallet) throw new Error("No wallet connected");
-
-    try {
-      const provider = await getProvider(wallet);
-
-      setStatus("switching");
-      await switchChain(provider, POLYGON_CHAIN_ID);
-
-      setStatus("approving");
-      const fromAddress = senderAddress || wallet.address;
-
-      const approveTxHash = await sendRawTx(
-        provider,
-        fromAddress,
-        approveTxData ?? {
-          to: POLYGON_USDC_ADDRESS,
-          data: encodeApprove(vaultAddress, usdcAmount),
-        }
-      );
-      await waitForReceipt(provider, approveTxHash);
-
-      setStatus("sending");
-      const hash = await sendRawTx(provider, fromAddress, depositTxData);
-      setTxHash(hash);
-
-      setStatus("confirming");
-      await waitForReceipt(provider, hash);
-
-      setStatus("success");
-      return hash;
-    } catch (err: any) {
-      setStatus("error");
-      setError(err.message || "Transaction failed");
-      throw err;
-    }
-  }, [wallets]);
-
-  return { deposit, status, txHash, error, reset: () => { setStatus("idle"); setTxHash(null); setError(null); } };
-}
-
 export function useBaseUsdcDeposit() {
   const { wallets } = useWallets();
   const [status, setStatus] = useState<TxStatus>("idle");
@@ -159,7 +92,7 @@ export function useBaseUsdcDeposit() {
     }
 
     if (depositTx.to.toLowerCase() !== BASE_DEPOSIT_RECEIVER_ADDRESS.toLowerCase()) {
-      throw new Error("Backend returned a deposit transaction for the wrong Base receiver.");
+      throw new Error("Backend returned a deposit transaction for the wrong Base deposit contract.");
     }
 
     try {
@@ -190,11 +123,4 @@ export function useBaseUsdcDeposit() {
   }, [wallets]);
 
   return { deposit, status, txHash, error, reset: () => { setStatus("idle"); setTxHash(null); setError(null); } };
-}
-
-function encodeApprove(spender: string, amount: bigint): string {
-  const fnSelector = "0x095ea7b3";
-  const paddedSpender = spender.slice(2).toLowerCase().padStart(64, "0");
-  const paddedAmount = amount.toString(16).padStart(64, "0");
-  return `${fnSelector}${paddedSpender}${paddedAmount}`;
 }
