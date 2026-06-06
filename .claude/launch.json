@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "team-index",
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "BASE_PATH=/ /usr/local/bin/node node_modules/vite/bin/vite.js --port $PORT"],
+      "cwd": "artifacts/team-index",
+      "autoPort": true,
+      "port": 5000
+    }
+  ]
+}

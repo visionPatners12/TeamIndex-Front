@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { GradientHeading } from "@/components/ui/GradientHeading";
+import { BASE_CHAIN, BASE_CLUB_VAULT_FACTORY_ADDRESS } from "@/lib/config";
 import { ANIMATION, staggerDelay } from "@/utils/animation";
 
 const UsdcIcon = () => (
@@ -25,6 +26,9 @@ const DownArrow = () => (
     </svg>
   </div>
 );
+
+const shortAddress = `${BASE_CLUB_VAULT_FACTORY_ADDRESS.slice(0, 6)}...${BASE_CLUB_VAULT_FACTORY_ADDRESS.slice(-4)}`;
+const factoryExplorerUrl = `${BASE_CHAIN.blockExplorer}/address/${BASE_CLUB_VAULT_FACTORY_ADDRESS}`;
 
 export const VaultArchitectureSection: React.FC = () => (
   <section id="deposit-paths" className="w-full py-16 sm:py-20 px-4 sm:px-10 lg:px-30 bg-[#0D0A06]">
@@ -97,6 +101,19 @@ export const VaultArchitectureSection: React.FC = () => (
             There is no extra token layer. The token the user receives is the
             Base index token for that team pool.
           </p>
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 rounded-xl border border-[#0052FF]/20 bg-[#0052FF]/8 px-4 py-3">
+            <span className="font-jura text-[10px] font-bold uppercase tracking-widest text-[#7EA2FF]">
+              Base ClubVaultFactory
+            </span>
+            <a
+              href={factoryExplorerUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-xs sm:text-sm text-white hover:text-[#7EA2FF] transition-colors"
+            >
+              {shortAddress}
+            </a>
+          </div>
         </div>
       </motion.div>
     </div>

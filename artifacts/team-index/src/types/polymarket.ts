@@ -2,7 +2,7 @@ export type MarketType = 'game' | 'future';
 export type MarketSide = 'YES' | 'NO';
 export type MarketStatus = 'open' | 'closed' | 'settled';
 
-/** Single market returned by Gamma API search */
+/** Legacy market shape kept for allocation data compatibility */
 export interface GammaMarket {
   id: string;
   conditionId: string;

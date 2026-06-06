@@ -31,7 +31,6 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `NODE_ENV=development` — runtime environment
 - `VITE_API_BASE_URL=http://localhost:3001` — frontend → API URL
 - `VITE_PRIVY_APP_ID` — Privy app ID (public)
-- `VITE_USDC_ADDRESS` — USDC contract address (Polygon)
 - `DATABASE_URL` — PostgreSQL connection string (provided by Replit)
 
 ## Structure

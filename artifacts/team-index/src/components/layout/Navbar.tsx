@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useLocation } from "wouter";
-import { ArrowLeft, Menu, X, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, Menu, X, LayoutDashboard, ArrowLeftRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { GoldButton } from "@/components/ui/GoldButton";
@@ -121,6 +121,16 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
 
           {/* Right side */}
           <div className="flex items-center gap-3">
+            {/* Exchange — always available, desktop */}
+            <button
+              onClick={() => navigate("/exchange")}
+              className="hidden min-[1200px]:flex items-center gap-1.5 font-jura text-sm font-medium text-white/70 hover:text-white transition-colors px-2 py-1.5 rounded-lg hover:bg-white/5"
+              title="Exchange"
+            >
+              <ArrowLeftRight className="w-4 h-4" />
+              Exchange
+            </button>
+
             {/* Auth — desktop only (≥1200px): Dashboard + identity + logout */}
             {ready && authenticated && (
               <div className="hidden min-[1200px]:flex items-center gap-3">
@@ -248,6 +258,14 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
                     </motion.button>
                   );
                 })}
+
+                <button
+                  onClick={() => { navigate("/exchange"); closeMenu(); }}
+                  className="flex items-center gap-3 w-full text-left px-4 py-3.5 rounded-xl font-jura text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all mt-1"
+                >
+                  <ArrowLeftRight className="w-4 h-4" />
+                  Exchange
+                </button>
               </div>
 
               {/* Auth footer */}

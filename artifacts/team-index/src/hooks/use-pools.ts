@@ -28,7 +28,7 @@ export interface BackendPool {
   id: string;
   clubName: string;
   symbol: string;
-  polymarketTeamId?: string | null;
+  sportsDataTeamId?: string | null;
   /** Distinct users with vault shares synced into club_pool_users */
   holdersCount?: number;
   vaultAddress: string | null;

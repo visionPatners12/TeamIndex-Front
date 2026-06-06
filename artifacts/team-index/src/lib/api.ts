@@ -95,16 +95,41 @@ export interface BaseChainDeposit {
 
 export interface TeamEntry {
   id: string;
-  internalClubName: string;
-  polymarketTeamId: string;
+  name: string;
+  logoUrl: string | null;
+}
+
+export interface LimitlessTeamMarket {
+  id: string;
+  conditionId?: string | null;
+  question?: string | null;
+  title?: string | null;
+  endDateIso?: string | null;
+  liquidity?: number | string | null;
+  volume24h?: number | string | null;
+  yesPrice?: number | string | null;
+  noPrice?: number | string | null;
+  active?: boolean | null;
+  closed?: boolean | null;
+  eventId?: string | null;
+  eventSlug?: string | null;
+  eventTitle?: string | null;
+  gameStartTime?: string | null;
+  marketType?: "game" | "future" | null;
+  sideHint: "HOME" | "AWAY";
 }
 
 export type { VaultPosition } from '@/types/polymarket';
-import type { VaultPosition, AllocationProposal, SelectedMarket, GammaMarket } from '@/types/polymarket';
+import type { VaultPosition, AllocationProposal, SelectedMarket } from '@/types/polymarket';
 
 export const api = {
   getTeams: () =>
     apiFetch<{ ok: boolean; teams: TeamEntry[] }>(`/teams`),
+
+  getTeamLimitlessMarkets: (teamId: string) =>
+    apiFetch<{ ok: boolean; markets: LimitlessTeamMarket[] }>(
+      `/teams/${encodeURIComponent(teamId)}/limitless-markets`
+    ),
 
   getPool: (poolId: string) =>
     apiFetch<PoolResponse>(`/pools/${poolId}`),
@@ -114,13 +139,6 @@ export const api = {
 
   getPoolPositions: (poolId: string) =>
     apiFetch<{ ok: boolean; positions: VaultPosition[] }>(`/pools/${poolId}/positions`),
-
-  /** Admin: search Polymarket markets by team name / keyword */
-  searchPolymarketMarkets: (query: string, adminKey: string) =>
-    apiFetch<{ ok: boolean; markets: GammaMarket[] }>(
-      `/admin/polymarket/search?q=${encodeURIComponent(query)}`,
-      { headers: { 'x-admin-key': adminKey } }
-    ),
 
   /** Admin: save accepted allocation proposal for a pool */
   saveAllocationProposal: (

@@ -2,12 +2,12 @@
  * Admin Markets Section — inside a PoolRow.
  *
  * Tab 1: Market Selector
- *   - Search Polymarket by team name → shows Game + Future markets
+ *   - Load Limitless markets by sports_data team UUID
  *   - Admin toggles markets on/off, sets manualClusterId, picks YES/NO side
  *
  * Tab 2: Allocation Engine
  *   - Admin inputs NAV
- *   - Fetches live CLOB data for selected markets
+ *   - Fetches live Limitless data for selected markets
  *   - Runs the allocation algorithm
  *   - Displays full proposal table
  *   - "Accept" saves the proposal to backend
@@ -22,9 +22,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/lib/config';
-import { searchPolymarketMarkets } from '@/lib/polymarket';
+import { api, type LimitlessTeamMarket } from '@/lib/api';
 import type {
-  GammaMarket,
   SelectedMarket,
   AllocationProposal,
   ScoredAllocation,
@@ -75,6 +74,19 @@ function RiskBadge({ level }: { level: 'Low' | 'Medium' | 'High' }) {
   );
 }
 
+function asNumber(value: number | string | null | undefined, fallback = 0) {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function marketQuestion(market: LimitlessTeamMarket) {
+  return market.question || market.title || market.id;
+}
+
+function marketConditionId(market: LimitlessTeamMarket) {
+  return market.conditionId || market.id;
+}
+
 // ─── Tab Toggle ───────────────────────────────────────────────────────────────
 
 type ActiveTab = 'selector' | 'engine';
@@ -82,57 +94,65 @@ type ActiveTab = 'selector' | 'engine';
 // ─── Market Selector Tab ──────────────────────────────────────────────────────
 
 interface MarketSelectorProps {
-  adminKey: string;
   poolId: string;
+  sportsDataTeamId?: string | null;
   selectedMarkets: SelectedMarket[];
   onSelectionChange: (markets: SelectedMarket[]) => void;
 }
 
-function MarketSelectorTab({ adminKey, selectedMarkets, onSelectionChange }: MarketSelectorProps) {
+function MarketSelectorTab({ sportsDataTeamId, selectedMarkets, onSelectionChange }: MarketSelectorProps) {
   const [query, setQuery] = useState('');
   const [searching, setSearching] = useState(false);
-  const [results, setResults] = useState<GammaMarket[]>([]);
+  const [results, setResults] = useState<LimitlessTeamMarket[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<'all' | 'game' | 'future'>('all');
 
-  const runSearch = useCallback(async () => {
-    if (!query.trim()) return;
+  const loadMarkets = useCallback(async () => {
+    if (!sportsDataTeamId) {
+      setResults([]);
+      setSearchError('Pool is missing sportsDataTeamId.');
+      return;
+    }
     setSearching(true);
     setSearchError(null);
     try {
-      const markets = await searchPolymarketMarkets(query.trim(), adminKey);
-      setResults(markets);
+      const res = await api.getTeamLimitlessMarkets(sportsDataTeamId);
+      setResults(res.markets);
     } catch (e: any) {
-      setSearchError(e.message || 'Search failed');
+      setSearchError(e.message || 'Could not load Limitless markets');
     } finally {
       setSearching(false);
     }
-  }, [query, adminKey]);
+  }, [sportsDataTeamId]);
+
+  useEffect(() => {
+    void loadMarkets();
+  }, [loadMarkets]);
 
   const filteredResults = results.filter(m => {
-    if (typeFilter === 'all') return true;
-    return (m.marketType ?? 'future') === typeFilter;
+    const matchesType = typeFilter === 'all' || (m.marketType ?? 'future') === typeFilter;
+    const q = query.trim().toLowerCase();
+    if (!q) return matchesType;
+    return matchesType && marketQuestion(m).toLowerCase().includes(q);
   });
 
   const isSelected = (conditionId: string) =>
     selectedMarkets.some(s => s.conditionId === conditionId);
 
-  const toggleMarket = (market: GammaMarket) => {
-    const alreadySelected = isSelected(market.conditionId);
+  const toggleMarket = (market: LimitlessTeamMarket) => {
+    const conditionId = marketConditionId(market);
+    const alreadySelected = isSelected(conditionId);
     if (alreadySelected) {
-      onSelectionChange(selectedMarkets.filter(s => s.conditionId !== market.conditionId));
+      onSelectionChange(selectedMarkets.filter(s => s.conditionId !== conditionId));
       return;
     }
 
-    // Pick YES token by default
-    const yesToken = market.tokens.find(t => t.outcome === 'Yes') ?? market.tokens[0];
-
     const newEntry: SelectedMarket = {
       marketId:        market.id,
-      conditionId:     market.conditionId,
-      tokenId:         yesToken?.token_id ?? '',
+      conditionId,
+      tokenId:         `${market.id}:${market.sideHint === 'HOME' ? '0' : '1'}`,
       eventId:         market.eventId ?? '',
-      question:        market.question,
+      question:        marketQuestion(market),
       marketType:      market.marketType ?? 'future',
       selectedSide:    'YES',
       manualClusterId: '',
@@ -148,30 +168,29 @@ function MarketSelectorTab({ adminKey, selectedMarkets, onSelectionChange }: Mar
 
   return (
     <div className="space-y-4">
-      {/* Search bar */}
+      {/* Filter bar */}
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && runSearch()}
-            placeholder="Search by team, e.g. Arsenal, PSG…"
+            placeholder="Filter loaded markets…"
             className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition-all"
           />
         </div>
         <button
-          onClick={runSearch}
-          disabled={!query.trim() || searching}
+          onClick={loadMarkets}
+          disabled={!sportsDataTeamId || searching}
           className={cn(
             'px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all',
-            !query.trim() || searching
+            !sportsDataTeamId || searching
               ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
               : 'bg-primary text-primary-foreground hover:bg-primary/90'
           )}
         >
-          {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-          {searching ? 'Searching…' : 'Search'}
+          {searching ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          {searching ? 'Loading…' : 'Reload'}
         </button>
       </div>
 
@@ -203,16 +222,12 @@ function MarketSelectorTab({ adminKey, selectedMarkets, onSelectionChange }: Mar
         </div>
       )}
 
-      {/* Empty state: search ran but no sports markets matched the team */}
-      {!searching && !searchError && query.trim() && results.length === 0 && (
+      {/* Empty state */}
+      {!searching && !searchError && results.length === 0 && (
         <div className="flex items-start gap-3 p-3 bg-white/3 border border-white/8 rounded-xl text-xs text-muted-foreground">
           <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
           <div>
-            No sports markets found for <span className="text-white font-semibold">&quot;{query}&quot;</span>.
-            <br />
-            Only markets with a Polymarket <code className="text-white/60">gameId</code> (real matches) or
-            sport-tagged futures for this team are shown. Try the exact club name
-            (e.g. &quot;Arsenal&quot;, &quot;PSG&quot;, &quot;Real Madrid&quot;).
+            No Limitless markets found for this sports_data team.
           </div>
         </div>
       )}
@@ -221,10 +236,11 @@ function MarketSelectorTab({ adminKey, selectedMarkets, onSelectionChange }: Mar
       {filteredResults.length > 0 && (
         <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
           {filteredResults.map(market => {
-            const selected = isSelected(market.conditionId);
+            const conditionId = marketConditionId(market);
+            const selected = isSelected(conditionId);
             return (
               <div
-                key={market.conditionId}
+                key={conditionId}
                 className={cn(
                   'rounded-xl border p-3 transition-all cursor-pointer',
                   selected
@@ -243,7 +259,7 @@ function MarketSelectorTab({ adminKey, selectedMarkets, onSelectionChange }: Mar
                     {selected && <Check className="w-3 h-3 text-white" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white leading-snug">{market.question}</p>
+                    <p className="text-sm text-white leading-snug">{marketQuestion(market)}</p>
                     {market.eventTitle && market.eventTitle !== market.question && (
                       <p className="text-[11px] text-white/40 mt-0.5 truncate">
                         {market.eventTitle}
@@ -252,10 +268,15 @@ function MarketSelectorTab({ adminKey, selectedMarkets, onSelectionChange }: Mar
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <MarketTypeBadge type={market.marketType ?? 'future'} />
                       <span className="text-[10px] text-muted-foreground">
-                        Liq ${market.liquidity.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        Liq ${asNumber(market.liquidity).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        YES {(market.yesPrice * 100).toFixed(0)}¢
+                      {market.yesPrice !== undefined && market.yesPrice !== null && (
+                        <span className="text-[10px] text-muted-foreground">
+                          YES {(asNumber(market.yesPrice) * 100).toFixed(0)}¢
+                        </span>
+                      )}
+                      <span className="text-[10px] text-primary/70">
+                        {market.sideHint}
                       </span>
                       {market.marketType === 'game' && market.gameStartTime && (
                         <span className="text-[10px] text-blue-400/70">
@@ -389,7 +410,7 @@ function AllocationEngineTab({
       const navNum = parseFloat(nav);
       if (!Number.isFinite(navNum) || navNum <= 0) throw new Error('Invalid NAV value');
 
-      // Run the quant engine server-side: the backend fetches a fresh CLOB/Gamma
+      // Run the quant engine server-side: the backend fetches a fresh Limitless
       // snapshot for each market, runs the v2 pipeline, and persists the result.
       const res = await fetch(`${API_BASE_URL}/admin/pools/${poolId}/allocation/run`, {
         method: 'POST',
@@ -561,15 +582,9 @@ function AllocationEngineTab({
                           <p className="text-[10px] text-muted-foreground">{fmtPct(a.allocationWeight)}</p>
                         </td>
                         <td className="py-3 px-2 last:pr-0 text-right">
-                          <a
-                            href={`https://polymarket.com/event/${a.conditionId}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                            onClick={e => e.stopPropagation()}
-                          >
+                          <span className="text-muted-foreground">
                             <ExternalLink className="w-3 h-3" />
-                          </a>
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -687,9 +702,10 @@ interface MarketsSectionProps {
   poolId: string;
   poolNav: number;
   adminKey: string;
+  sportsDataTeamId?: string | null;
 }
 
-export function MarketsSection({ poolId, poolNav, adminKey }: MarketsSectionProps) {
+export function MarketsSection({ poolId, poolNav, adminKey, sportsDataTeamId }: MarketsSectionProps) {
   const [activeTab, setActiveTab] = useState<ActiveTab>('selector');
   const [selectedMarkets, setSelectedMarkets] = useState<SelectedMarket[]>([]);
   const [proposal, setProposal] = useState<AllocationProposal | null>(null);
@@ -774,8 +790,8 @@ export function MarketsSection({ poolId, poolNav, adminKey }: MarketsSectionProp
           {activeTab === 'selector' ? (
             <motion.div key="selector" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <MarketSelectorTab
-                adminKey={adminKey}
                 poolId={poolId}
+                sportsDataTeamId={sportsDataTeamId}
                 selectedMarkets={selectedMarkets}
                 onSelectionChange={handleSelectionChange}
               />
