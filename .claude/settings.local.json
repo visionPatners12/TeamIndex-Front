@@ -40,7 +40,12 @@
       "Bash(sed -n '1585p' src/server/http.ts)",
       "Bash(sed -i '' '1585,1657d' src/server/http.ts)",
       "Bash(sed -i '' '1503,1534d' src/server/http.ts)",
-      "Bash(sed -i '' '1243,1314d' src/server/http.ts)"
+      "Bash(sed -i '' '1243,1314d' src/server/http.ts)",
+      "Bash(npm run *)",
+      "Bash(echo \"=== exit: $? ===\")",
+      "Bash(wc -l src/pages/Exchange.tsx)",
+      "Bash(head -5 src/pages/Exchange.tsx)",
+      "Bash(perl -0pi -e 's/min-h-13\\\\b/min-h-[52px]/g' src/features/exchange/TradeModal.tsx)"
     ]
   }
 }

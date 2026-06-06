@@ -24,7 +24,16 @@ export interface ExchangeMarket {
   pair: string;
   /** Branded index name, e.g. "Pryzen Arsenal FC Index" */
   name: string;
+  /** Live secondary-market price (what people pay right now). Order book + chart track this. */
   price: number;
+  /** Alias of `price` for readability at call sites. */
+  marketPrice: number;
+  /** Intrinsic redeemable value per share (vault NAV). The market can trade above/below this. */
+  nav: number;
+  /** Signed % the market price sits above (+) or below (−) NAV. */
+  premiumPct: number;
+  /** True when redeem-at-NAV is paused (capital deployed / pool paused) → exchange is the only exit. */
+  redeemLocked: boolean;
   change24h: number;
   high24h: number;
   low24h: number;
@@ -126,32 +135,45 @@ function buildMarket(opts: {
   id: string;
   team: string;
   symbol: string;
-  price: number;
+  /** Intrinsic NAV per share (from the vault / pool token value). */
+  nav: number;
   holders: number;
+  redeemLocked?: boolean;
 }): ExchangeMarket {
   const rng = mulberry32(hashSeed(opts.id + opts.symbol));
+  const nav = opts.nav > 0 ? opts.nav : 1;
+
+  // Market trades at a premium/discount to NAV (fan demand skews slightly positive,
+  // wider discount possible when redeem is locked and the exchange is the only exit).
+  const redeemLocked = opts.redeemLocked ?? rng() < 0.4;
+  const premiumPct = +(((rng() - (redeemLocked ? 0.62 : 0.42)) * (redeemLocked ? 18 : 11))).toFixed(2);
+  const marketPrice = +(nav * (1 + premiumPct / 100)).toFixed(4);
+
   const change24h = +((rng() - 0.45) * 9).toFixed(2);
-  const price = opts.price > 0 ? opts.price : 1;
-  const spread = price * (0.004 + rng() * 0.01);
-  const high24h = +(price * (1 + 0.01 + rng() * 0.04)).toFixed(4);
-  const low24h = +(price * (1 - 0.01 - rng() * 0.04)).toFixed(4);
+  const spread = marketPrice * (0.004 + rng() * 0.01);
+  const high24h = +(marketPrice * (1 + 0.01 + rng() * 0.04)).toFixed(4);
+  const low24h = +(marketPrice * (1 - 0.01 - rng() * 0.04)).toFixed(4);
   const volume24h = Math.round((50_000 + rng() * 1_900_000) * (1 + opts.holders / 2000));
 
-  // sparkline that lands on the current price
+  // sparkline that lands on the current market price
   const spark: number[] = [];
-  let v = price * (1 - change24h / 100);
+  let v = marketPrice * (1 - change24h / 100);
   for (let i = 0; i < 24; i++) {
-    v += (price - v) * 0.12 + (rng() - 0.5) * spread * 1.5;
+    v += (marketPrice - v) * 0.12 + (rng() - 0.5) * spread * 1.5;
     spark.push(+v.toFixed(4));
   }
-  spark.push(price);
+  spark.push(marketPrice);
 
   return {
     id: opts.id,
     symbol: opts.symbol,
     pair: `p${opts.symbol}/USDC`,
     name: formatPoolName(opts.team),
-    price,
+    price: marketPrice,
+    marketPrice,
+    nav: +nav.toFixed(4),
+    premiumPct,
+    redeemLocked,
     change24h,
     high24h,
     low24h,
@@ -170,14 +192,16 @@ export function buildMarkets(pools: PoolData[] | undefined): ExchangeMarket[] {
         id: p.id,
         team: p.team,
         symbol: deriveSymbol(p),
-        price: p.tokenValue > 0 ? p.tokenValue : 1,
+        nav: p.tokenValue > 0 ? p.tokenValue : 1,
         holders: p.holders || 0,
+        // "Closing Soon" pools have most capital deployed → redeem effectively locked.
+        redeemLocked: p.status === "Closing Soon" ? true : undefined,
       }),
     );
 
   const usedSymbols = new Set(fromPools.map((m) => m.symbol));
   const padding = FALLBACK_MARKETS.filter((f) => !usedSymbols.has(f.symbol)).map((f) =>
-    buildMarket({ id: `fallback-${f.symbol}`, ...f }),
+    buildMarket({ id: `fallback-${f.symbol}`, team: f.team, symbol: f.symbol, nav: f.price, holders: f.holders }),
   );
 
   const all = [...fromPools, ...padding];
