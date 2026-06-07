@@ -10,6 +10,7 @@ import { usePools } from "@/hooks/use-pools";
 import { buildMarkets, type ExchangeMarket } from "@/features/exchange/data";
 import { TeamIndexCard } from "@/features/exchange/TeamIndexCard";
 import { TradeModal } from "@/features/exchange/TradeModal";
+import { IndexDetailModal } from "@/features/exchange/IndexDetailModal";
 
 type SortKey = "trending" | "premium" | "discount";
 
@@ -38,6 +39,7 @@ export default function Exchange() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("trending");
   const [trade, setTrade] = useState<{ market: ExchangeMarket; side: "buy" | "sell" } | null>(null);
+  const [detail, setDetail] = useState<ExchangeMarket | null>(null);
 
   const markets = useMemo(() => buildMarkets(pools), [pools]);
 
@@ -140,6 +142,7 @@ export default function Exchange() {
                 market={m}
                 index={i}
                 onTrade={(market, side) => setTrade({ market, side })}
+                onOpen={(market) => setDetail(market)}
               />
             ))}
           </div>
@@ -147,6 +150,15 @@ export default function Exchange() {
       </main>
 
       <Footer />
+
+      <IndexDetailModal
+        market={detail}
+        onClose={() => setDetail(null)}
+        onTrade={(market, side) => {
+          setDetail(null);
+          setTrade({ market, side });
+        }}
+      />
 
       <TradeModal
         market={trade?.market ?? null}

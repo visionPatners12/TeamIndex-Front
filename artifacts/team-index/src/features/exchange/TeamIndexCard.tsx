@@ -10,9 +10,10 @@ interface Props {
   market: ExchangeMarket;
   index: number;
   onTrade: (market: ExchangeMarket, side: "buy" | "sell") => void;
+  onOpen: (market: ExchangeMarket) => void;
 }
 
-export function TeamIndexCard({ market, index, onTrade }: Props) {
+export function TeamIndexCard({ market, index, onTrade, onOpen }: Props) {
   const up = market.change24h >= 0;
   const premiumUp = market.premiumPct >= 0;
 
@@ -22,7 +23,16 @@ export function TeamIndexCard({ market, index, onTrade }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.4, delay: Math.min(index * 0.04, 0.3) }}
-      className="group relative rounded-2xl bg-[#18140F] border border-[#232323] p-5 flex flex-col gap-4 hover:border-[#FEB413]/30 transition-colors duration-300"
+      onClick={() => onOpen(market)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(market);
+        }
+      }}
+      className="group relative rounded-2xl bg-[#18140F] border border-[#232323] p-5 flex flex-col gap-4 hover:border-[#FEB413]/30 transition-colors duration-300 cursor-pointer outline-none focus-visible:border-[#FEB413]/50"
       style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.25)" }}
     >
       {/* Header */}
@@ -93,13 +103,13 @@ export function TeamIndexCard({ market, index, onTrade }: Props) {
       {/* Buy / Sell */}
       <div className="grid grid-cols-2 gap-2.5 mt-auto">
         <button
-          onClick={() => onTrade(market, "buy")}
+          onClick={(e) => { e.stopPropagation(); onTrade(market, "buy"); }}
           className="h-11 rounded-full font-jura font-bold text-sm uppercase tracking-wide bg-[#3FC86A] text-[#0D0A06] hover:bg-[#4ad879] active:scale-[0.98] transition-all"
         >
           Buy
         </button>
         <button
-          onClick={() => onTrade(market, "sell")}
+          onClick={(e) => { e.stopPropagation(); onTrade(market, "sell"); }}
           className="h-11 rounded-full font-jura font-bold text-sm uppercase tracking-wide bg-transparent text-[#FF5A5A] border border-[#FF5A5A]/40 hover:bg-[#FF5A5A]/10 active:scale-[0.98] transition-all"
         >
           Sell

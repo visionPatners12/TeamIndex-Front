@@ -279,6 +279,54 @@ export function buildCandles(market: ExchangeMarket, tf: Timeframe): Candle[] {
   return candles;
 }
 
+// ─── NAV vs Market series (for the detail chart) ────────────────────────────────
+
+export interface PricePoint {
+  /** Live exchange/market price at this step. */
+  market: number;
+  /** Intrinsic NAV at this step (slow, low-volatility line). */
+  nav: number;
+}
+
+export interface NavMarketSeries {
+  points: PricePoint[];
+  min: number;
+  max: number;
+  /** First→last % change of the market line over the window. */
+  marketChangePct: number;
+}
+
+/**
+ * Two aligned price lines for the index detail chart: the volatile **market** price
+ * (from `buildCandles` closes) and a smooth **NAV** line that ends exactly on
+ * `market.nav`. Deterministic per market+timeframe so it never jitters on re-render.
+ */
+export function buildNavMarketSeries(market: ExchangeMarket, tf: Timeframe): NavMarketSeries {
+  const candles = buildCandles(market, tf);
+  const n = candles.length;
+  const rng = mulberry32(hashSeed(market.id + tf + "nav"));
+
+  const navEnd = market.nav > 0 ? market.nav : 1;
+  const nav: number[] = [];
+  let v = navEnd * (1 - (rng() - 0.5) * 0.05); // start near, slightly off NAV
+  for (let i = 0; i < n; i++) {
+    // ease toward the current NAV with very low volatility (NAV moves slowly)
+    v += (navEnd - v) * 0.07 + (rng() - 0.5) * navEnd * 0.0016;
+    nav.push(+v.toFixed(4));
+  }
+  if (n > 0) nav[n - 1] = +navEnd.toFixed(4);
+
+  const points: PricePoint[] = candles.map((c, i) => ({ market: c.c, nav: nav[i] }));
+  const all = points.flatMap((p) => [p.market, p.nav]);
+  const min = all.length ? Math.min(...all) : 0;
+  const max = all.length ? Math.max(...all) : 1;
+  const first = points[0]?.market ?? market.marketPrice;
+  const last = points[n - 1]?.market ?? market.marketPrice;
+  const marketChangePct = first > 0 ? +(((last - first) / first) * 100).toFixed(2) : 0;
+
+  return { points, min, max, marketChangePct };
+}
+
 // ─── Trade tape ─────────────────────────────────────────────────────────────────
 
 export function buildTape(market: ExchangeMarket, tick = 0, count = 24): TapeTrade[] {
