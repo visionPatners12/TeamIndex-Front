@@ -12,6 +12,9 @@ import {
   Loader2,
   Copy as CopyIcon,
   Check as CheckIcon,
+  Plus,
+  DollarSign,
+  RefreshCw,
 } from "lucide-react";
 
 import { Navbar } from "@/components/layout/Navbar";
@@ -22,6 +25,8 @@ import { HoldingSourceBadge } from "@/components/ui/HoldingSourceBadge";
 import { PendingBaseDepositsBanner } from "@/components/ui/PendingBaseDepositsBanner";
 import { VaultPositionsModal } from "@/features/pools/VaultPositionsModal";
 import { useUserHoldings, type UserHolding } from "@/hooks/use-user-holdings";
+import { useUsdcBalance } from "@/hooks/use-usdc-balance";
+import { BASE_USDC_ADDRESS } from "@/lib/config";
 import { truncateAddr } from "@/utils/address";
 import { cn } from "@/lib/utils";
 import { formatPoolName } from "@/utils/pool";
@@ -157,6 +162,13 @@ export default function Dashboard() {
   const holdings = data?.holdings ?? [];
   const totalValue = data?.totalValueUsd ?? 0;
 
+  const {
+    data: usdcData,
+    isLoading: usdcLoading,
+    refetch: refetchUsdc,
+  } = useUsdcBalance(authenticated ? walletAddress : null);
+  const usdcBalance = usdcData?.formatted ?? 0;
+
   const copyAddress = () => {
     if (!walletAddress) return;
     navigator.clipboard.writeText(walletAddress).catch(() => {});
@@ -264,6 +276,79 @@ export default function Dashboard() {
               Retry
             </button>
           </div>
+        )}
+
+        {/* USDC Balance & Top Up */}
+        {ready && authenticated && walletAddress && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[10px] border border-[#232323] bg-[#18140F] p-5 sm:p-6 flex flex-col gap-5"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#0B53BF]/15 border border-[#0B53BF]/30 flex items-center justify-center shrink-0">
+                  <DollarSign className="w-5 h-5 text-[#2775CA]" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[#B3B3B3] text-xs font-medium uppercase tracking-wider">
+                    USDC Balance (Base)
+                  </span>
+                  {usdcLoading ? (
+                    <span className="text-white/50 text-2xl font-bold font-mono">…</span>
+                  ) : (
+                    <span className="text-white text-2xl sm:text-3xl font-bold font-mono">
+                      ${usdcBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => refetchUsdc()}
+                className="p-2 rounded-lg hover:bg-white/5 transition-colors text-[#B3B3B3] hover:text-white"
+                title="Refresh balance"
+              >
+                <RefreshCw className={cn("w-4 h-4", usdcLoading && "animate-spin")} />
+              </button>
+            </div>
+
+            {/* Top Up actions */}
+            <div className="flex flex-col gap-3">
+              <span className="text-[#B3B3B3] text-xs font-medium uppercase tracking-wider">
+                Top Up your wallet
+              </span>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href={`https://app.uniswap.org/swap?outputCurrency=${BASE_USDC_ADDRESS}&chain=base`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 h-11 rounded-full text-sm font-semibold transition-all bg-[#0B53BF]/15 border border-[#0B53BF]/30 text-[#5B9FFF] hover:bg-[#0B53BF]/25 active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Buy USDC on Uniswap
+                </a>
+                <button
+                  onClick={() => {
+                    if (walletAddress) {
+                      navigator.clipboard.writeText(walletAddress).catch(() => {});
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1500);
+                    }
+                  }}
+                  className="flex-1 h-11 rounded-full text-sm font-semibold transition-all bg-[#1e1b09] border border-white/10 text-white hover:bg-[#252010] active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {copied ? (
+                    <><CheckIcon className="w-4 h-4 text-[#3FC86A]" /> Address Copied!</>
+                  ) : (
+                    <><CopyIcon className="w-4 h-4" /> Copy Address to Send USDC</>
+                  )}
+                </button>
+              </div>
+              <p className="text-white/40 text-xs">
+                Send USDC on the Base network to your wallet, or swap any token for USDC via Uniswap.
+              </p>
+            </div>
+          </motion.div>
         )}
 
         {/* In-flight Base deposits - surfaces progress so users know their
