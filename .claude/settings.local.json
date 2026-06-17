@@ -45,7 +45,16 @@
       "Bash(echo \"=== exit: $? ===\")",
       "Bash(wc -l src/pages/Exchange.tsx)",
       "Bash(head -5 src/pages/Exchange.tsx)",
-      "Bash(perl -0pi -e 's/min-h-13\\\\b/min-h-[52px]/g' src/features/exchange/TradeModal.tsx)"
+      "Bash(perl -0pi -e 's/min-h-13\\\\b/min-h-[52px]/g' src/features/exchange/TradeModal.tsx)",
+      "Bash(command -v graphify)",
+      "Bash(npx --no-install graphify --version)",
+      "Bash(graphify --version)",
+      "Bash(awk '{print $6, $7}')",
+      "Bash(graphify update *)",
+      "Bash(git check-ignore *)",
+      "Bash(graphify --help)",
+      "Bash(graphify query *)",
+      "Bash(graphify install *)"
     ]
   }
 }

@@ -42,23 +42,9 @@ export const HowItWorksSection: React.FC = () => (
       An index token is your on-chain share of a team pool. When the pool value
       changes, your share value changes with it.
     </p>
-    <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-10 xl:gap-15 w-full max-w-6xl">
-      {/* Dashed connector line with gradient color */}
-      <div
-        className="hidden xl:block absolute left-0 right-0 top-6 h-px z-0"
-        style={{
-          background: "linear-gradient(90deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.10) 46.15%, rgba(255,255,255,0.01) 100%)",
-          maskImage: "repeating-linear-gradient(90deg, black 0px, black 6px, transparent 6px, transparent 12px)",
-          WebkitMaskImage: "repeating-linear-gradient(90deg, black 0px, black 6px, transparent 6px, transparent 12px)",
-        }}
-      />
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 xl:gap-8 w-full max-w-6xl">
       {steps.map((step) => (
-        <div
-          key={step.number}
-          className="relative z-10 flex flex-col items-center"
-        >
-          <HowItWorksStep {...step} />
-        </div>
+        <HowItWorksStep key={step.number} {...step} />
       ))}
     </div>
   </section>

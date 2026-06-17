@@ -62,13 +62,13 @@ export default function Home() {
         </div>
       </HeroSection>
 
-      {/* 2. HOW TEAM INDEX WORKS */}
+      {/* 2. WHAT'S INSIDE AN INDEX — visual composition before the live cards */}
+      <IndexCompositionSection />
+
+      {/* 3. HOW TEAM INDEX WORKS */}
       <section id="how-it-works">
         <HowItWorksSection />
       </section>
-
-      {/* 3. WHAT'S INSIDE AN INDEX — visual composition before the live cards */}
-      <IndexCompositionSection />
 
       {/* 4. LIVE TEAM INDEXES */}
       <section id="live-indexes">
