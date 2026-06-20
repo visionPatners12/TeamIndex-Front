@@ -73,6 +73,8 @@ export interface PreparedTx {
   to: string;
   data: string;
   value?: string;
+  gas?: string;
+  gasLimit?: string;
 }
 
 export interface BaseUsdcDepositTxResponse {

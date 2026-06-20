@@ -10,7 +10,7 @@ import { getWalletForAddress } from "@/utils/wallet";
 
 export type TxStatus = "idle" | "switching" | "approving" | "sending" | "confirming" | "success" | "error";
 
-type WalletTx = { to: string; data: string; value?: string };
+type WalletTx = { to: string; data: string; value?: string; gas?: string; gasLimit?: string };
 
 const CHAIN_METADATA: Record<number, { chainName: string; rpcUrls: string[]; nativeCurrency: { name: string; symbol: string; decimals: number }; blockExplorerUrls: string[] }> = {
   [BASE_CHAIN_ID]: {
@@ -53,6 +53,7 @@ async function sendRawTx(provider: any, from: string, tx: WalletTx) {
       to: tx.to,
       data: tx.data,
       ...(tx.value ? { value: tx.value } : {}),
+      ...(tx.gas || tx.gasLimit ? { gas: tx.gas ?? tx.gasLimit } : {}),
     }],
   });
   return txHash as string;
