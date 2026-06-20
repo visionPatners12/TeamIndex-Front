@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
 import { truncateAddr } from '@/utils/address';
 import { formatPoolName } from '@/utils/pool';
-import { api } from '@/lib/api';
+import { ApiError, api } from '@/lib/api';
 import { useBaseUsdcDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
 import { BASE_CHAIN } from '@/lib/config';
 
@@ -57,9 +57,9 @@ const NETWORK_CONFIG = {
     chain: 'Base',
     receives: 'Index token',
     receiveDesc: 'You deposit Base USDC and receive the index token that represents your share of the team pool on Base.',
-    minAmount: 0.1,
+    minAmount: 0.01,
     maxAmount: 100000,
-    placeholder: '100',
+    placeholder: '0.01',
     decimals: 6,
     rate: 1,
   },
@@ -198,9 +198,24 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
 
     try {
       const rawAmount = BigInt(targetUsdcRaw);
+      if (rawAmount < parseUnits(String(config.minAmount), config.decimals)) {
+        throw new Error(`Minimum deposit is ${config.minAmount.toLocaleString()} ${config.asset}.`);
+      }
+
       const prepared = await api.prepareBaseUsdcDeposit(pool.id, rawAmount.toString());
       const hash = await baseHook.deposit(prepared.txs.approveTx, prepared.txs.depositTx, walletAddress);
       setFinalTxHash(hash ?? null);
+      if (hash) {
+        try {
+          await api.confirmBaseDeposit(hash);
+        } catch (err) {
+          if (err instanceof ApiError && err.code === 'RPC_RATE_LIMITED') {
+            setDepositError('Deposit confirmed on Base. Backend indexing is delayed and will update shortly.');
+          } else {
+            throw err;
+          }
+        }
+      }
       await queryClient.invalidateQueries({ queryKey: ['base-deposits', walletAddress] });
       await refreshPoolViews();
       setStep('success');
@@ -213,6 +228,9 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     walletAddress,
     isValidAmount,
     targetUsdcRaw,
+    config.minAmount,
+    config.decimals,
+    config.asset,
     baseHook,
     refreshPoolViews,
     queryClient,
@@ -338,7 +356,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <p className="text-xs font-jura font-bold uppercase tracking-widest text-white/30 mb-3">2. Enter amount</p>
 
                     <div className="relative rounded-xl border overflow-hidden mb-3 transition-all" style={{ borderColor: amount ? config.colorBorder : 'rgba(255,255,255,0.1)' }}>
-                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={amountPlaceholder} min={config.minAmount} max={config.maxAmount}
+                      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder={amountPlaceholder} min={config.minAmount} max={config.maxAmount} step="0.01"
                         className="w-full bg-white/[0.03] text-white text-xl font-mono font-bold px-4 py-4 pr-24 outline-none placeholder:text-white/15 font-golos" />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                         <UsdcIcon size={18} />
@@ -521,6 +539,9 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         </div>
                         {baseDepositsFetching && !currentBaseDeposit && (
                           <p className="text-xs font-golos text-white/30">Checking backend deposit status…</p>
+                        )}
+                        {depositError && !currentBaseDeposit && (
+                          <p className="text-xs font-golos text-amber-300 mt-2">{depositError}</p>
                         )}
                         {!baseDepositsFetching && !currentBaseDeposit && (
                           <p className="text-xs font-golos text-white/30">Waiting for the backend to index the Base deposit event.</p>

@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
-    "mtime": 1781089064.0917645,
-    "ast_hash": "6f0d03d55a50aa252c5ff51458f0b65e",
+    "mtime": 1781089857.5129757,
+    "ast_hash": "52b9975c0a304dd26a8236f685f0eb6f",
     "semantic_hash": ""
   },
   ".codex/hooks.json": {
@@ -410,8 +410,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/layout/Navbar.tsx": {
-    "mtime": 1780748644.622344,
-    "ast_hash": "ec468651d7ebaa0e5c402e9805240016",
+    "mtime": 1781908867.6117363,
+    "ast_hash": "e744439f18c158961b8a72fc82b940c9",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/sections/exotic-indexes/ExoticIndexCard.tsx": {
@@ -445,13 +445,13 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/sections/how-it-works/HowItWorksSection.tsx": {
-    "mtime": 1779852337.2441146,
-    "ast_hash": "30134476e8ec412b449fcc02a50eb123",
+    "mtime": 1781090444.1576583,
+    "ast_hash": "5762843be7578342bf39cf57a8c39cc3",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/sections/how-it-works/HowItWorksStep.tsx": {
-    "mtime": 1776236071.0,
-    "ast_hash": "344e40f71919d2a9acd1181d41cdec5f",
+    "mtime": 1781090434.6248581,
+    "ast_hash": "d57eea12f917d84144a6e694b7fe9a84",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/sections/index-composition/IndexCompositionSection.tsx": {
@@ -825,8 +825,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/env.d.ts": {
-    "mtime": 1780567389.511489,
-    "ast_hash": "57f9f6f6abecf9ba4d7dc23570ff1192",
+    "mtime": 1781908866.9294035,
+    "ast_hash": "e831e68473234786a77d758f490cb406",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/features/exchange/IndexDetailModal.tsx": {
@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/features/pools/DepositModal.tsx": {
-    "mtime": 1780567401.6378279,
-    "ast_hash": "3fc21032187c32520ad8e947681fdb8b",
+    "mtime": 1781918932.2515059,
+    "ast_hash": "7c92461a1119169c824d55829ce3ca42",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/features/pools/MarketsSection.tsx": {
@@ -930,8 +930,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/hooks/use-wallet-tx.ts": {
-    "mtime": 1780567243.1163006,
-    "ast_hash": "72e23384e9172ed0258d86a623de54c0",
+    "mtime": 1781908867.47165,
+    "ast_hash": "e761c88cded596112e457fc3214377ed",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/lib/allocation-engine.ts": {
@@ -940,8 +940,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/lib/api.ts": {
-    "mtime": 1780748353.419643,
-    "ast_hash": "b17e61ae056a787e0f4a6bbf83b8cee0",
+    "mtime": 1781917741.5825853,
+    "ast_hash": "4b3ff58b619bf055363bd6150d81984f",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/lib/config.ts": {
@@ -955,18 +955,18 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/main.tsx": {
-    "mtime": 1776236071.0,
-    "ast_hash": "3fdb35f250747ea9f8188e8512901262",
+    "mtime": 1781908866.7761621,
+    "ast_hash": "10e7a01c000ef345eadeac8580180476",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Admin.tsx": {
-    "mtime": 1780748764.715663,
-    "ast_hash": "fe15cb90178731fb18b58f26ebf45daf",
+    "mtime": 1781908904.417235,
+    "ast_hash": "7f2e282b32cc7e1813414143131a2388",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Dashboard.tsx": {
-    "mtime": 1780567485.416191,
-    "ast_hash": "532f236be29457fad255f53c679bf348",
+    "mtime": 1781908873.693222,
+    "ast_hash": "5309316ef1c02770f84f292824c8c44e",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Exchange.tsx": {
@@ -975,8 +975,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Home.tsx": {
-    "mtime": 1780035533.8116724,
-    "ast_hash": "db45ed745378fb411a80f94576bd087b",
+    "mtime": 1781908867.757868,
+    "ast_hash": "049d1c049be723b417e3672bcc35503c",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/not-found.tsx": {
@@ -1015,8 +1015,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/utils/wallet.ts": {
-    "mtime": 1779648715.0968757,
-    "ast_hash": "8b95d45948e2f1e1b42e4aa9d20a9208",
+    "mtime": 1781908867.2941,
+    "ast_hash": "d36296c947a962729d9748d467efdb03",
     "semantic_hash": ""
   },
   "artifacts/team-index/tsconfig.json": {
@@ -1382,6 +1382,11 @@
   "attached_assets/CITY_1776150749884.png": {
     "mtime": 1776236071.0,
     "ast_hash": "2dddb7c15ea92137fb487abc9c68e656",
+    "semantic_hash": ""
+  },
+  "artifacts/team-index/src/hooks/use-usdc-balance.ts": {
+    "mtime": 1781678821.8819876,
+    "ast_hash": "bb327f9d921ee5099cfbeeae1a6c66e0",
     "semantic_hash": ""
   }
 }

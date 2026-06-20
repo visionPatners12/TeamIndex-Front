@@ -18,6 +18,7 @@ import {
 } from '@/hooks/use-pools';
 import { api, type TeamEntry } from '@/lib/api';
 import { MarketsSection } from '@/features/pools/MarketsSection';
+import { getWalletForAddress } from '@/utils/wallet';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -92,7 +93,7 @@ interface CreatePoolFormProps {
 }
 
 function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
-  const { wallets } = useWallets();
+  const { ready: walletsReady, wallets } = useWallets();
   const { connectWallet, logout } = usePrivy();
   const [teams, setTeams] = useState<TeamEntry[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
@@ -206,8 +207,13 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
     e.preventDefault();
     if (!clubName.trim() || !symbol.trim()) return;
 
-    const wallet = wallets[0];
-    if (!wallet) {
+    if (!walletsReady) {
+      setError('Wallets are still loading. Please try again in a moment.');
+      return;
+    }
+
+    const wallet = wallets.find((wallet) => wallet.walletClientType !== 'privy') ?? wallets[0];
+    if (!wallet?.address) {
       setError('No wallet connected. Connect MetaMask via the main site first.');
       return;
     }
@@ -336,12 +342,12 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
   };
 
   const isLoading = !['form', 'done', 'error'].includes(createStep);
-  const wallet = wallets[0];
+  const wallet = walletsReady ? getWalletForAddress(wallets) : null;
 
   return (
     <form onSubmit={handleCreate} className="space-y-4">
       {/* Wallet status */}
-      {wallet ? (
+      {wallet?.address ? (
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs border bg-green-500/10 border-green-500/30 text-green-300">
           <Wallet className="w-3.5 h-3.5 shrink-0" />
           <span className="flex-1">

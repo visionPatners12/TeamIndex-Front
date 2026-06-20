@@ -6,6 +6,7 @@ import {
   BASE_DEPOSIT_RECEIVER_ADDRESS,
   BASE_USDC_ADDRESS,
 } from "@/lib/config";
+import { getWalletForAddress } from "@/utils/wallet";
 
 export type TxStatus = "idle" | "switching" | "approving" | "sending" | "confirming" | "success" | "error";
 
@@ -70,7 +71,7 @@ async function waitForReceipt(provider: any, txHash: string, maxAttempts = 60): 
 }
 
 export function useBaseUsdcDeposit() {
-  const { wallets } = useWallets();
+  const { ready, wallets } = useWallets();
   const [status, setStatus] = useState<TxStatus>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +85,9 @@ export function useBaseUsdcDeposit() {
     setTxHash(null);
     setError(null);
 
-    const wallet = wallets[0];
+    if (!ready) throw new Error("Wallets are still loading. Please try again in a moment.");
+
+    const wallet = getWalletForAddress(wallets, senderAddress) as any;
     if (!wallet) throw new Error("No wallet connected");
 
     if (approveTx.to.toLowerCase() !== BASE_USDC_ADDRESS.toLowerCase()) {
@@ -120,7 +123,7 @@ export function useBaseUsdcDeposit() {
       setError(err.message || "Transaction failed");
       throw err;
     }
-  }, [wallets]);
+  }, [ready, wallets]);
 
   return { deposit, status, txHash, error, reset: () => { setStatus("idle"); setTxHash(null); setError(null); } };
 }

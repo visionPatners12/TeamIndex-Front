@@ -29,12 +29,12 @@ import { Footer } from "@/components/layout/Footer";
 
 export default function Home() {
   const { authenticated, login, ready, user } = usePrivy();
-  const { wallets } = useWallets();
+  const { ready: walletsReady, wallets } = useWallets();
   const [selectedPool, setSelectedPool] = useState<PoolData | null>(null);
   const { data: backendPools } = usePools();
 
-  const walletAddress = getPrimaryEvmAddress(user, wallets);
-  const { data: holdingsData } = useUserHoldings(authenticated ? walletAddress : null);
+  const walletAddress = getPrimaryEvmAddress(user, walletsReady ? wallets : []);
+  const { data: holdingsData } = useUserHoldings(authenticated && walletsReady ? walletAddress : null);
 
   const handleEnterPool = (livePool: LiveIndexPool) => {
     if (!authenticated) {

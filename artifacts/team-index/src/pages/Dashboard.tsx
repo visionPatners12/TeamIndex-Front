@@ -150,13 +150,13 @@ function HoldingRow({
 export default function Dashboard() {
   const [, navigate] = useLocation();
   const { ready, authenticated, user, login } = usePrivy();
-  const { wallets } = useWallets();
+  const { ready: walletsReady, wallets } = useWallets();
   const [copied, setCopied] = React.useState(false);
   const [selected, setSelected] = React.useState<UserHolding | null>(null);
 
-  const walletAddress = getPrimaryEvmAddress(user, wallets);
+  const walletAddress = getPrimaryEvmAddress(user, walletsReady ? wallets : []);
   const { data, isLoading, isError, refetch } = useUserHoldings(
-    authenticated ? walletAddress : null
+    authenticated && walletsReady ? walletAddress : null
   );
 
   const holdings = data?.holdings ?? [];
@@ -166,7 +166,7 @@ export default function Dashboard() {
     data: usdcData,
     isLoading: usdcLoading,
     refetch: refetchUsdc,
-  } = useUsdcBalance(authenticated ? walletAddress : null);
+  } = useUsdcBalance(authenticated && walletsReady ? walletAddress : null);
   const usdcBalance = usdcData?.formatted ?? 0;
 
   const copyAddress = () => {

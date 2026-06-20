@@ -1,5 +1,6 @@
 type WalletLike = {
   address?: string | null;
+  walletClientType?: string | null;
 };
 
 type PrivyUserLike = {
@@ -21,4 +22,16 @@ export function getPrimaryEvmAddress(
 
 export function hasSmartWalletAddress(user?: PrivyUserLike | null) {
   return !!user?.smartWallet?.address;
+}
+
+export function getWalletForAddress(
+  wallets: WalletLike[] = [],
+  address?: string | null
+) {
+  if (!address) return wallets.find((wallet) => !!wallet.address) ?? null;
+  const normalized = address.toLowerCase();
+  return (
+    wallets.find((wallet) => wallet.address?.toLowerCase() === normalized) ??
+    null
+  );
 }

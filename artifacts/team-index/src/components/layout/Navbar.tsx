@@ -15,7 +15,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
   const [activeId, setActiveId] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
   const { ready, authenticated, user, login, logout } = usePrivy();
-  const { wallets } = useWallets();
+  const { ready: walletsReady, wallets } = useWallets();
   const [, navigate] = useLocation();
 
   // Scroll-based background
@@ -56,7 +56,7 @@ export const Navbar: React.FC<{ topOffset?: boolean }> = ({ topOffset = false })
     closeMenu();
   };
 
-  const walletAddress = getPrimaryEvmAddress(user, wallets);
+  const walletAddress = getPrimaryEvmAddress(user, walletsReady ? wallets : []);
   const displayIdentity = walletAddress
     ? truncateAddr(walletAddress)
     : user?.email?.address ?? (user as any)?.google?.email ?? null;

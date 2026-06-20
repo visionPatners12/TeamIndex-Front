@@ -1,5 +1,17 @@
 import { API_BASE_URL } from "./config";
 
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     headers: { "Content-Type": "application/json", ...init?.headers },
@@ -7,7 +19,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `API ${res.status}`);
+    throw new ApiError(body.error || `API ${res.status}`, res.status, body.code);
   }
   return res.json();
 }
@@ -178,6 +190,12 @@ export const api = {
     apiFetch<BaseUsdcDepositTxResponse>(`/base/tx/deposit-usdc`, {
       method: "POST",
       body: JSON.stringify({ poolId, amount }),
+    }),
+
+  confirmBaseDeposit: (txHash: string) =>
+    apiFetch<{ ok: boolean; deposits: BaseChainDeposit[] }>(`/base/deposits/confirm`, {
+      method: "POST",
+      body: JSON.stringify({ txHash }),
     }),
 
   getBaseDeposits: (userAddress: string) =>
