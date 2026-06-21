@@ -5031,7 +5031,7 @@
       "source_file": "artifacts/team-index/package.json",
       "source_location": "L6",
       "id": "team_index_package_scripts",
-      "community": 27,
+      "community": 89,
       "norm_label": "scripts"
     },
     {
@@ -5040,7 +5040,7 @@
       "source_file": "artifacts/team-index/package.json",
       "source_location": "L7",
       "id": "team_index_package_scripts_dev",
-      "community": 27,
+      "community": 89,
       "norm_label": "dev"
     },
     {
@@ -5049,7 +5049,7 @@
       "source_file": "artifacts/team-index/package.json",
       "source_location": "L8",
       "id": "team_index_package_scripts_build",
-      "community": 27,
+      "community": 89,
       "norm_label": "build"
     },
     {
@@ -5058,7 +5058,7 @@
       "source_file": "artifacts/team-index/package.json",
       "source_location": "L9",
       "id": "team_index_package_scripts_serve",
-      "community": 27,
+      "community": 89,
       "norm_label": "serve"
     },
     {
@@ -5067,7 +5067,7 @@
       "source_file": "artifacts/team-index/package.json",
       "source_location": "L10",
       "id": "team_index_package_scripts_typecheck",
-      "community": 27,
+      "community": 89,
       "norm_label": "typecheck"
     },
     {
@@ -10498,28 +10498,10 @@
       "norm_label": "statuslabel()"
     },
     {
-      "label": "baseDepositStatusLabel()",
-      "file_type": "code",
-      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
-      "source_location": "L82",
-      "id": "pools_depositmodal_basedepositstatuslabel",
-      "community": 31,
-      "norm_label": "basedepositstatuslabel()"
-    },
-    {
-      "label": "formatRawTokenAmount()",
-      "file_type": "code",
-      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
-      "source_location": "L103",
-      "id": "pools_depositmodal_formatrawtokenamount",
-      "community": 31,
-      "norm_label": "formatrawtokenamount()"
-    },
-    {
       "label": "DepositModal()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
-      "source_location": "L114",
+      "source_location": "L82",
       "id": "pools_depositmodal_depositmodal",
       "community": 31,
       "norm_label": "depositmodal()"
@@ -11194,7 +11176,7 @@
       "label": "TxStatus",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L11",
+      "source_location": "L10",
       "id": "hooks_use_wallet_tx_txstatus",
       "community": 31,
       "norm_label": "txstatus"
@@ -11203,7 +11185,7 @@
       "label": "WalletTx",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L13",
+      "source_location": "L12",
       "id": "hooks_use_wallet_tx_wallettx",
       "community": 31,
       "norm_label": "wallettx"
@@ -11212,7 +11194,7 @@
       "label": "CHAIN_METADATA",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L15",
+      "source_location": "L14",
       "id": "hooks_use_wallet_tx_chain_metadata",
       "community": 31,
       "norm_label": "chain_metadata"
@@ -11221,7 +11203,7 @@
       "label": "getProvider()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L24",
+      "source_location": "L23",
       "id": "hooks_use_wallet_tx_getprovider",
       "community": 31,
       "norm_label": "getprovider()"
@@ -11230,7 +11212,7 @@
       "label": "switchChain()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L28",
+      "source_location": "L27",
       "id": "hooks_use_wallet_tx_switchchain",
       "community": 31,
       "norm_label": "switchchain()"
@@ -11239,7 +11221,7 @@
       "label": "sendRawTx()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L48",
+      "source_location": "L47",
       "id": "hooks_use_wallet_tx_sendrawtx",
       "community": 31,
       "norm_label": "sendrawtx()"
@@ -11248,7 +11230,7 @@
       "label": "waitForReceipt()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L62",
+      "source_location": "L61",
       "id": "hooks_use_wallet_tx_waitforreceipt",
       "community": 31,
       "norm_label": "waitforreceipt()"
@@ -11257,7 +11239,7 @@
       "label": "useBaseUsdcDeposit()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
-      "source_location": "L74",
+      "source_location": "L73",
       "id": "hooks_use_wallet_tx_usebaseusdcdeposit",
       "community": 31,
       "norm_label": "usebaseusdcdeposit()"
@@ -14446,6 +14428,24 @@
       "id": "replit_scripts_workspace_scripts",
       "community": 18,
       "norm_label": "`scripts` (`@workspace/scripts`)"
+    },
+    {
+      "label": "baseDepositStatusLabel()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
+      "source_location": "L82",
+      "community": 31,
+      "norm_label": "basedepositstatuslabel()",
+      "id": "pools_depositmodal_basedepositstatuslabel"
+    },
+    {
+      "label": "formatRawTokenAmount()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
+      "source_location": "L103",
+      "community": 31,
+      "norm_label": "formatrawtokenamount()",
+      "id": "pools_depositmodal_formatrawtokenamount"
     }
   ],
   "links": [
@@ -27682,28 +27682,6 @@
       "target": "pools_depositmodal_statuslabel"
     },
     {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
-      "source_location": "L519",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "pools_depositmodal_depositmodal",
-      "target": "pools_depositmodal_basedepositstatuslabel"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
-      "source_location": "L532",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "pools_depositmodal_depositmodal",
-      "target": "pools_depositmodal_formatrawtokenamount"
-    },
-    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -27724,6 +27702,28 @@
       "weight": 1.0,
       "source": "pools_depositmodal_depositmodal",
       "target": "hooks_use_wallet_tx_usebaseusdcdeposit"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
+      "source_location": "L519",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "pools_depositmodal_depositmodal",
+      "target": "pools_depositmodal_basedepositstatuslabel"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/DepositModal.tsx",
+      "source_location": "L532",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "pools_depositmodal_depositmodal",
+      "target": "pools_depositmodal_formatrawtokenamount"
     },
     {
       "relation": "calls",
@@ -33885,5 +33885,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "af0623df5194403c7251dddf243f82e8f13f87ce"
+  "built_at_commit": "ca9e4a1212c9387fc0e45d3d6bbb2a777afa12a5"
 }

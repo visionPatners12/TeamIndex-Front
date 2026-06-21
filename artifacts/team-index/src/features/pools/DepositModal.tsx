@@ -8,8 +8,8 @@ import {
   Loader2,
   ExternalLink,
 } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { formatUnits, parseUnits } from 'viem';
+import { useQueryClient } from '@tanstack/react-query';
+import { parseUnits } from 'viem';
 import { cn } from '@/lib/utils';
 import type { PoolData } from '@/types/pool';
 import { truncateAddr } from '@/utils/address';
@@ -79,38 +79,6 @@ function statusLabel(s: TxStatus): string {
   }
 }
 
-function baseDepositStatusLabel(status?: string | null): string {
-  switch (status) {
-    case 'RECEIVED':
-      return 'Base deposit received';
-    case 'BRIDGING':
-      return 'Preparing the Base pool deposit';
-    case 'DEPOSITING':
-      return 'Depositing into the Base index vault';
-    case 'MINTING_SHARES':
-      return 'Minting index tokens on Base';
-    case 'COMPLETED':
-      return 'Index tokens minted on Base';
-    case 'FAILED':
-      return 'Deposit processing failed';
-    case 'NEEDS_MANUAL_RECONCILIATION':
-      return 'Manual reconciliation needed';
-    default:
-      return 'Waiting for backend indexing';
-  }
-}
-
-function formatRawTokenAmount(raw?: string, decimals = 18, maxFractionDigits = 6): string {
-  if (!raw) return '0';
-  try {
-    return Number(formatUnits(BigInt(raw), decimals)).toLocaleString(undefined, {
-      maximumFractionDigits: maxFractionDigits,
-    });
-  } catch {
-    return '0';
-  }
-}
-
 export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: DepositModalProps) {
   const queryClient = useQueryClient();
   const [network, setNetwork] = useState<Network>('base');
@@ -143,28 +111,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
   const displayedTokensReceived = tokensReceived;
   const amountTokenLabel = config.asset;
   const amountPlaceholder = config.placeholder;
-  const { data: baseDepositsData, isFetching: baseDepositsFetching } = useQuery({
-    queryKey: ['base-deposits', walletAddress],
-    queryFn: () => api.getBaseDeposits(walletAddress!),
-    enabled: network === 'base' && !!walletAddress && step === 'success',
-    refetchInterval: network === 'base' && step === 'success' ? 5000 : false,
-  });
-  const currentBaseDeposit = useMemo(() => {
-    if (!pool) return null;
-    const deposits = baseDepositsData?.deposits ?? [];
-    const normalizedTxHash = finalTxHash?.toLowerCase();
-    return (
-      deposits.find((deposit) =>
-        normalizedTxHash && deposit.baseTxHash?.toLowerCase() === normalizedTxHash
-      ) ??
-      deposits.find((deposit) => deposit.clubPoolId === pool.id) ??
-      null
-    );
-  }, [baseDepositsData?.deposits, finalTxHash, pool]);
-  const baseMintTxLink = currentBaseDeposit?.baseMintTxHash
-    ? `${BASE_CHAIN.blockExplorer}/tx/${currentBaseDeposit.baseMintTxHash}`
-    : null;
-
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', handleEsc);
@@ -202,12 +148,20 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
         throw new Error(`Minimum deposit is ${config.minAmount.toLocaleString()} ${config.asset}.`);
       }
 
-      const prepared = await api.prepareBaseUsdcDeposit(pool.id, rawAmount.toString());
-      const hash = await baseHook.deposit(prepared.txs.approveTx, prepared.txs.depositTx, walletAddress);
+      const prepared = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
+      if (!prepared.txs?.approveTx || !prepared.txs?.depositTx || !prepared.vaultAddress) {
+        throw new Error('Backend did not return a complete Base vault deposit transaction.');
+      }
+      const hash = await baseHook.deposit(
+        prepared.txs.approveTx,
+        prepared.txs.depositTx,
+        walletAddress,
+        prepared.vaultAddress
+      );
       setFinalTxHash(hash ?? null);
       if (hash) {
         try {
-          await api.confirmBaseDeposit(hash);
+          await api.confirmPoolDeposit(pool.id, hash);
         } catch (err) {
           if (err instanceof ApiError && err.code === 'RPC_RATE_LIMITED') {
             setDepositError('Deposit confirmed on Base. Backend indexing is delayed and will update shortly.');
@@ -216,7 +170,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
           }
         }
       }
-      await queryClient.invalidateQueries({ queryKey: ['base-deposits', walletAddress] });
       await refreshPoolViews();
       setStep('success');
     } catch (err: any) {
@@ -529,40 +482,9 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         <span className="font-mono font-bold" style={{ color: config.color }}>{displayedTokensReceived.toFixed(4)} ${pool.symbol}</span>
                       </div>
                     </div>
-                    {network === 'base' && (
-                      <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 mb-6 text-left">
-                        <div className="flex justify-between gap-3 text-sm mb-2">
-                          <span className="font-golos text-white/40">Deposit status</span>
-                          <span className="font-jura font-semibold text-white text-right">
-                            {baseDepositStatusLabel(currentBaseDeposit?.status)}
-                          </span>
-                        </div>
-                        {baseDepositsFetching && !currentBaseDeposit && (
-                          <p className="text-xs font-golos text-white/30">Checking backend deposit status…</p>
-                        )}
-                        {depositError && !currentBaseDeposit && (
-                          <p className="text-xs font-golos text-amber-300 mt-2">{depositError}</p>
-                        )}
-                        {!baseDepositsFetching && !currentBaseDeposit && (
-                          <p className="text-xs font-golos text-white/30">Waiting for the backend to index the Base deposit event.</p>
-                        )}
-                        {currentBaseDeposit?.status === 'COMPLETED' && (
-                          <div className="flex justify-between gap-3 text-sm mb-2">
-                            <span className="font-golos text-white/40">Index tokens minted</span>
-                            <span className="font-mono font-bold text-white">
-                              {formatRawTokenAmount(currentBaseDeposit.sharesMinted ?? undefined, 6, 4)} ${pool.symbol}
-                            </span>
-                          </div>
-                        )}
-                        {currentBaseDeposit?.lastError && (
-                          <p className="text-xs font-golos text-red-400 mt-2">{currentBaseDeposit.lastError}</p>
-                        )}
-                        {baseMintTxLink && (
-                          <a href={baseMintTxLink} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-xs font-jura font-semibold hover:underline" style={{ color: config.color }}>
-                            View mint on BaseScan <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        )}
+                    {depositError && (
+                      <div className="bg-[#FEB413]/10 border border-[#FEB413]/20 rounded-xl p-4 mb-6 text-left">
+                        <p className="text-xs font-golos text-[#FEB413]/80">{depositError}</p>
                       </div>
                     )}
                     <div className="flex gap-3">

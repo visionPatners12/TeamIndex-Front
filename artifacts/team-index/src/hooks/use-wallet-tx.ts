@@ -3,7 +3,6 @@ import { useWallets } from "@privy-io/react-auth";
 import {
   BASE_CHAIN,
   BASE_CHAIN_ID,
-  BASE_DEPOSIT_RECEIVER_ADDRESS,
   BASE_USDC_ADDRESS,
 } from "@/lib/config";
 import { getWalletForAddress } from "@/utils/wallet";
@@ -80,7 +79,8 @@ export function useBaseUsdcDeposit() {
   const deposit = useCallback(async (
     approveTx: WalletTx,
     depositTx: WalletTx,
-    senderAddress?: string
+    senderAddress?: string,
+    expectedDepositTo?: string
   ) => {
     setStatus("idle");
     setTxHash(null);
@@ -95,8 +95,8 @@ export function useBaseUsdcDeposit() {
       throw new Error("Backend returned an approval transaction for the wrong Base USDC contract.");
     }
 
-    if (depositTx.to.toLowerCase() !== BASE_DEPOSIT_RECEIVER_ADDRESS.toLowerCase()) {
-      throw new Error("Backend returned a deposit transaction for the wrong Base deposit contract.");
+    if (expectedDepositTo && depositTx.to.toLowerCase() !== expectedDepositTo.toLowerCase()) {
+      throw new Error("Backend returned a deposit transaction for the wrong Base vault contract.");
     }
 
     try {

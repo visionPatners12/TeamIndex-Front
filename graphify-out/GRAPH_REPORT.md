@@ -1,16 +1,16 @@
-# Graph Report - TeamIndex-Front  (2026-06-20)
+# Graph Report - TeamIndex-Front  (2026-06-21)
 
 ## Corpus Check
-- 237 files · ~403,095 words
+- 237 files · ~402,799 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1604 nodes · 1891 edges · 182 communities (134 shown, 48 thin omitted)
+- 1604 nodes · 1891 edges · 183 communities (135 shown, 48 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `af0623df`
+- Built from commit: `ca9e4a12`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -104,6 +104,7 @@
 - [[_COMMUNITY_Community 86|Community 86]]
 - [[_COMMUNITY_Community 87|Community 87]]
 - [[_COMMUNITY_Community 88|Community 88]]
+- [[_COMMUNITY_Community 89|Community 89]]
 - [[_COMMUNITY_Community 90|Community 90]]
 - [[_COMMUNITY_Community 91|Community 91]]
 - [[_COMMUNITY_Community 92|Community 92]]
@@ -200,7 +201,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (182 total, 48 thin omitted)
+## Communities (183 total, 48 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.05
@@ -311,8 +312,8 @@ Cohesion: 0.14
 Nodes (12): Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem, CarouselNext, CarouselOptions (+4 more)
 
 ### Community 27 - "Community 27"
-Cohesion: 0.14
-Nodes (13): dependencies, lottie-react, @privy-io/react-auth, viem, name, private, scripts, build (+5 more)
+Cohesion: 0.22
+Nodes (8): dependencies, lottie-react, @privy-io/react-auth, viem, name, private, type, version
 
 ### Community 28 - "Community 28"
 Cohesion: 0.18
@@ -542,6 +543,10 @@ Nodes (4): DialogContent, DialogDescription, DialogOverlay, DialogTitle
 Cohesion: 0.29
 Nodes (6): compilerOptions, outDir, rootDir, types, extends, include
 
+### Community 89 - "Community 89"
+Cohesion: 0.40
+Nodes (5): scripts, build, dev, serve, typecheck
+
 ### Community 90 - "Community 90"
 Cohesion: 0.40
 Nodes (3): FaqItem, FAQS, FaqSection()
@@ -651,7 +656,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `formatPoolName()` connect `Community 44` to `Community 0`, `Community 11`, `Community 31`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **Why does `PoolData` connect `Community 44` to `Community 0`, `Community 69`, `Community 5`, `Community 30`, `Community 31`?**
-  _High betweenness centrality (0.002) - this node is a cross-community bridge._
+  _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **What connects `version`, `configurations`, `allow` to the rest of the system?**
   _820 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
