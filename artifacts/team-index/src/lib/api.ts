@@ -138,7 +138,7 @@ import type { VaultPosition, AllocationProposal, SelectedMarket } from '@/types/
 
 export const api = {
   getTeams: () =>
-    apiFetch<{ ok: boolean; teams: TeamEntry[] }>(`/teams`),
+    apiFetch<{ ok: boolean; teams: TeamEntry[] }>(`/teams?limitlessOnly=1`),
 
   getTeamLimitlessMarkets: (teamId: string) =>
     apiFetch<{ ok: boolean; markets: LimitlessTeamMarket[] }>(
