@@ -17,7 +17,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Loader2, CheckCircle, XCircle, AlertTriangle, TrendingUp,
-  BarChart2, Play, RefreshCw, ExternalLink, ChevronDown, ChevronUp,
+  BarChart2, Play, RefreshCw, ExternalLink, ChevronDown, ChevronUp, ChevronRight,
   Info, Check, X as XIcon, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -87,6 +87,108 @@ function marketConditionId(market: LimitlessTeamMarket) {
   return market.conditionId || market.id;
 }
 
+function effectiveType(m: LimitlessTeamMarket): 'game' | 'future' {
+  return m.marketType ?? (m.gameId ? 'game' : 'future');
+}
+
+// ─── Match → Market group → Outcome grouping ──────────────────────────────────
+
+interface MarketGroupNode {
+  groupId: string;
+  title: string;
+  kind: string | null;
+  outcomes: LimitlessTeamMarket[];
+}
+
+interface MatchNode {
+  key: string;
+  label: string;
+  startsAt: string | null;
+  state: string | null;
+  league: string | null;
+  count: number;
+  groups: MarketGroupNode[];
+}
+
+function prettyKind(kind?: string | null) {
+  if (!kind) return null;
+  return kind.replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function groupMarkets(markets: LimitlessTeamMarket[]): MatchNode[] {
+  const matchMap = new Map<string, MatchNode>();
+
+  for (const m of markets) {
+    // A match is a sports_data game. Player-prop groups without a game fall
+    // back to a per-group bucket so they still render under their own header.
+    const matchKey = m.gameId ? `game:${m.gameId}` : `solo:${m.marketGroupId || m.id}`;
+    let match = matchMap.get(matchKey);
+    if (!match) {
+      match = {
+        key: matchKey,
+        label: m.gameLabel || m.marketGroupTitle || m.eventTitle || 'Other markets',
+        startsAt: m.gameStartsAt || m.gameStartTime || m.endDateIso || null,
+        state: m.gameState ?? null,
+        league: m.leagueName ?? null,
+        count: 0,
+        groups: [],
+      };
+      matchMap.set(matchKey, match);
+    }
+    // A better label may arrive on a later row (fixture group carries team names).
+    if ((match.label === 'Other markets' || !match.label) && m.gameLabel) match.label = m.gameLabel;
+    if (!match.startsAt && (m.gameStartsAt || m.gameStartTime)) {
+      match.startsAt = m.gameStartsAt || m.gameStartTime || null;
+    }
+    if (!match.league && m.leagueName) match.league = m.leagueName;
+
+    const groupKey = m.marketGroupId || m.id;
+    let group = match.groups.find(g => g.groupId === groupKey);
+    if (!group) {
+      group = {
+        groupId: groupKey,
+        title: m.marketGroupTitle || marketQuestion(m),
+        kind: m.marketKind ?? null,
+        outcomes: [],
+      };
+      match.groups.push(group);
+    }
+    group.outcomes.push(m);
+    match.count += 1;
+  }
+
+  const matches = [...matchMap.values()];
+  matches.sort((a, b) => {
+    const at = a.startsAt ? new Date(a.startsAt).getTime() : Number.POSITIVE_INFINITY;
+    const bt = b.startsAt ? new Date(b.startsAt).getTime() : Number.POSITIVE_INFINITY;
+    return at - bt;
+  });
+  for (const match of matches) {
+    match.groups.sort((a, b) => a.title.localeCompare(b.title));
+    for (const g of match.groups) {
+      g.outcomes.sort((x, y) => (x.outcomeIndex ?? 99) - (y.outcomeIndex ?? 99));
+    }
+  }
+  return matches;
+}
+
+function MatchStateBadge({ state }: { state?: string | null }) {
+  if (!state) return null;
+  const s = state.toLowerCase();
+  const live = s === 'in_play' || s === 'live';
+  const finished = s === 'finished' || s === 'ft';
+  return (
+    <span className={cn(
+      'text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border shrink-0',
+      live     ? 'bg-red-500/15 text-red-400 border-red-500/30 animate-pulse' :
+      finished ? 'bg-white/5 text-white/40 border-white/10' :
+                 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+    )}>
+      {live ? '● Live' : finished ? 'Finished' : 'Upcoming'}
+    </span>
+  );
+}
+
 // ─── Tab Toggle ───────────────────────────────────────────────────────────────
 
 type ActiveTab = 'selector' | 'engine';
@@ -106,6 +208,14 @@ function MarketSelectorTab({ sportsDataTeamId, selectedMarkets, onSelectionChang
   const [results, setResults] = useState<LimitlessTeamMarket[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<'all' | 'game' | 'future'>('all');
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  const toggleMatch = (key: string) =>
+    setCollapsed(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
 
   const loadMarkets = useCallback(async () => {
     if (!sportsDataTeamId) {
@@ -130,11 +240,14 @@ function MarketSelectorTab({ sportsDataTeamId, selectedMarkets, onSelectionChang
   }, [loadMarkets]);
 
   const filteredResults = results.filter(m => {
-    const matchesType = typeFilter === 'all' || (m.marketType ?? 'future') === typeFilter;
+    const matchesType = typeFilter === 'all' || effectiveType(m) === typeFilter;
     const q = query.trim().toLowerCase();
     if (!q) return matchesType;
-    return matchesType && marketQuestion(m).toLowerCase().includes(q);
+    const haystack = `${marketQuestion(m)} ${m.marketGroupTitle ?? ''} ${m.gameLabel ?? ''}`.toLowerCase();
+    return matchesType && haystack.includes(q);
   });
+
+  const matches = groupMarkets(filteredResults);
 
   const isSelected = (conditionId: string) =>
     selectedMarkets.some(s => s.conditionId === conditionId);
@@ -232,70 +345,121 @@ function MarketSelectorTab({ sportsDataTeamId, selectedMarkets, onSelectionChang
         </div>
       )}
 
-      {/* Results list */}
-      {filteredResults.length > 0 && (
-        <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-          {filteredResults.map(market => {
-            const conditionId = marketConditionId(market);
-            const selected = isSelected(conditionId);
+      {/* Results — grouped by match → market → outcome */}
+      {matches.length > 0 && (
+        <div className="space-y-3 max-h-[30rem] overflow-y-auto pr-1">
+          {matches.map(match => {
+            const isCollapsed = collapsed.has(match.key);
+            const selectedInMatch = match.groups.reduce(
+              (n, g) => n + g.outcomes.filter(o => isSelected(marketConditionId(o))).length, 0
+            );
             return (
-              <div
-                key={conditionId}
-                className={cn(
-                  'rounded-xl border p-3 transition-all cursor-pointer',
-                  selected
-                    ? 'bg-primary/10 border-primary/30'
-                    : 'bg-white/3 border-white/8 hover:border-white/20'
-                )}
-                onClick={() => toggleMarket(market)}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    'w-5 h-5 rounded shrink-0 mt-0.5 flex items-center justify-center border transition-all',
-                    selected
-                      ? 'bg-primary border-primary'
-                      : 'bg-white/5 border-white/20'
-                  )}>
-                    {selected && <Check className="w-3 h-3 text-white" />}
-                  </div>
+              <div key={match.key} className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+                {/* Match header */}
+                <button
+                  type="button"
+                  onClick={() => toggleMatch(match.key)}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-white/[0.03] transition-colors"
+                >
+                  {isCollapsed
+                    ? <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
+                    : <ChevronDown className="w-4 h-4 text-white/40 shrink-0" />}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white leading-snug">{marketQuestion(market)}</p>
-                    {market.eventTitle && market.eventTitle !== market.question && (
-                      <p className="text-[11px] text-white/40 mt-0.5 truncate">
-                        {market.eventTitle}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <MarketTypeBadge type={market.marketType ?? 'future'} />
-                      <span className="text-[10px] text-muted-foreground">
-                        Liq ${asNumber(market.liquidity).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                      </span>
-                      {market.yesPrice !== undefined && market.yesPrice !== null && (
-                        <span className="text-[10px] text-muted-foreground">
-                          YES {(asNumber(market.yesPrice) * 100).toFixed(0)}¢
-                        </span>
+                    <p className="text-sm font-semibold text-white truncate">{match.label}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {match.league && (
+                        <span className="text-[10px] text-white/40 truncate max-w-[160px]">{match.league}</span>
                       )}
-                      <span className="text-[10px] text-primary/70">
-                        {market.sideHint}
-                      </span>
-                      {market.marketType === 'game' && market.gameStartTime && (
+                      {match.startsAt && (
                         <span className="text-[10px] text-blue-400/70">
-                          Kickoff {new Date(market.gameStartTime).toLocaleString(undefined, {
+                          {new Date(match.startsAt).toLocaleString(undefined, {
                             month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                           })}
                         </span>
                       )}
-                      {market.marketType !== 'game' && market.endDateIso && (
-                        <span className="text-[10px] text-white/30">
-                          Ends {new Date(market.endDateIso).toLocaleDateString()}
-                        </span>
-                      )}
-                      {market.closed && (
-                        <span className="text-[9px] font-bold text-red-400 uppercase">Closed</span>
-                      )}
                     </div>
                   </div>
-                </div>
+                  <MatchStateBadge state={match.state} />
+                  {selectedInMatch > 0 && (
+                    <span className="text-[10px] font-bold text-primary bg-primary/15 border border-primary/30 rounded-full px-2 py-0.5 shrink-0">
+                      {selectedInMatch} ✓
+                    </span>
+                  )}
+                  <span className="text-[10px] text-muted-foreground shrink-0">{match.count} mkt</span>
+                </button>
+
+                {/* Market groups */}
+                {!isCollapsed && (
+                  <div className="px-2.5 pb-2.5 space-y-2">
+                    {match.groups.map(group => {
+                      const multi = group.outcomes.length > 1;
+                      const kindLabel = prettyKind(group.kind);
+                      return (
+                        <div key={group.groupId} className="rounded-lg border border-white/5 bg-white/[0.02] p-2">
+                          {/* Group (= market) header — only for multi-outcome markets */}
+                          {multi && (
+                            <div className="flex items-center gap-2 mb-1.5 px-0.5">
+                              <span className="text-[11px] font-semibold text-white/80 leading-snug flex-1 min-w-0">
+                                {group.title}
+                              </span>
+                              {kindLabel && (
+                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border bg-purple-500/10 text-purple-300 border-purple-500/25 shrink-0">
+                                  {kindLabel}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          <div className={cn('grid gap-1.5', multi ? 'sm:grid-cols-2' : 'grid-cols-1')}>
+                            {group.outcomes.map(o => {
+                              const conditionId = marketConditionId(o);
+                              const selected = isSelected(conditionId);
+                              const label = multi ? (o.title || marketQuestion(o)) : group.title;
+                              return (
+                                <button
+                                  type="button"
+                                  key={conditionId}
+                                  onClick={() => toggleMarket(o)}
+                                  className={cn(
+                                    'flex items-center gap-2.5 rounded-lg border p-2 text-left transition-all',
+                                    selected
+                                      ? 'bg-primary/10 border-primary/30'
+                                      : 'bg-white/[0.02] border-white/8 hover:border-white/20'
+                                  )}
+                                >
+                                  <div className={cn(
+                                    'w-4 h-4 rounded shrink-0 flex items-center justify-center border transition-all',
+                                    selected ? 'bg-primary border-primary' : 'bg-white/5 border-white/20'
+                                  )}>
+                                    {selected && <Check className="w-2.5 h-2.5 text-white" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[12px] text-white leading-snug line-clamp-2">{label}</p>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                      {o.yesPrice !== undefined && o.yesPrice !== null && (
+                                        <span className="text-[10px] font-mono text-muted-foreground">
+                                          YES {(asNumber(o.yesPrice) * 100).toFixed(0)}¢
+                                        </span>
+                                      )}
+                                      <span className="text-[10px] text-primary/60">{o.sideHint}</span>
+                                      {!multi && kindLabel && (
+                                        <span className="text-[9px] font-semibold uppercase tracking-wider text-purple-300/80">
+                                          {kindLabel}
+                                        </span>
+                                      )}
+                                      {o.closed && (
+                                        <span className="text-[9px] font-bold text-red-400 uppercase">Closed</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}

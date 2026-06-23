@@ -121,6 +121,7 @@ export interface LimitlessTeamMarket {
   endDateIso?: string | null;
   liquidity?: number | string | null;
   volume24h?: number | string | null;
+  volume?: number | string | null;
   yesPrice?: number | string | null;
   noPrice?: number | string | null;
   active?: boolean | null;
@@ -131,6 +132,16 @@ export interface LimitlessTeamMarket {
   gameStartTime?: string | null;
   marketType?: "game" | "future" | null;
   sideHint: "HOME" | "AWAY";
+  // ─ Grouping: match (game) → market group → outcome ─
+  gameId?: string | null;
+  gameLabel?: string | null;
+  gameStartsAt?: string | null;
+  gameState?: string | null;
+  leagueName?: string | null;
+  marketGroupId?: string | null;
+  marketGroupTitle?: string | null;
+  marketKind?: string | null;
+  outcomeIndex?: number | null;
 }
 
 export type { VaultPosition } from '@/types/polymarket';
