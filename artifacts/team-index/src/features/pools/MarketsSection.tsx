@@ -25,8 +25,6 @@ import { API_BASE_URL } from '@/lib/config';
 import {
   api,
   type LimitlessTeamMarket,
-  type LimitlessMarketGroup,
-  type LimitlessMarketGroupOutcome,
   type LimitlessBetResult,
 } from '@/lib/api';
 import type {
@@ -875,15 +873,17 @@ interface ManualBetTabProps {
 }
 
 function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps) {
-  const [groups, setGroups] = useState<LimitlessMarketGroup[]>([]);
+  // Markets are loaded the SAME way as the Market Selector tab so they always
+  // render identically: GET /teams/:teamId/limitless-markets → grouped via groupMarkets().
+  const [results, setResults] = useState<LimitlessTeamMarket[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [sport, setSport] = useState('');
-  const [league, setLeague] = useState('');
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'game' | 'future'>('all');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  // Bet form state — keyed on the selected outcome's marketSlug
-  const [selected, setSelected] = useState<LimitlessMarketGroupOutcome | null>(null);
+  // Bet form state — the selected outcome is a single LimitlessTeamMarket row.
+  const [selected, setSelected] = useState<LimitlessTeamMarket | null>(null);
   const [outcome, setOutcome] = useState<'yes' | 'no'>('yes');
   const [amountUsd, setAmountUsd] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -891,36 +891,46 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
   const [betError, setBetError] = useState<string | null>(null);
   const [betResult, setBetResult] = useState<LimitlessBetResult | null>(null);
 
-  const toggleGroup = (groupId: string) =>
+  const toggleMatch = (key: string) =>
     setCollapsed(prev => {
       const next = new Set(prev);
-      next.has(groupId) ? next.delete(groupId) : next.add(groupId);
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
 
-  const loadGroups = useCallback(async () => {
+  const loadMarkets = useCallback(async () => {
+    if (!sportsDataTeamId) {
+      setResults([]);
+      setLoadError('Pool is missing sportsDataTeamId.');
+      return;
+    }
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await api.getLimitlessMarketGroups(adminKey, {
-        teamId: sportsDataTeamId ?? undefined,
-        sport: sport.trim() || undefined,
-        league: league.trim() || undefined,
-      });
-      setGroups(res.groups);
+      const res = await api.getTeamLimitlessMarkets(sportsDataTeamId);
+      setResults(res.markets);
     } catch (e: any) {
-      setLoadError(e.message || 'Could not load Limitless market groups');
+      setLoadError(e.message || 'Could not load Limitless markets');
     } finally {
       setLoading(false);
     }
-  }, [adminKey, sportsDataTeamId, sport, league]);
+  }, [sportsDataTeamId]);
 
   useEffect(() => {
-    void loadGroups();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [adminKey, sportsDataTeamId]);
+    void loadMarkets();
+  }, [loadMarkets]);
 
-  const selectOutcome = (o: LimitlessMarketGroupOutcome) => {
+  const filteredResults = results.filter(m => {
+    const matchesType = typeFilter === 'all' || effectiveType(m) === typeFilter;
+    const q = query.trim().toLowerCase();
+    if (!q) return matchesType;
+    const haystack = `${marketQuestion(m)} ${m.marketGroupTitle ?? ''} ${m.gameLabel ?? ''}`.toLowerCase();
+    return matchesType && haystack.includes(q);
+  });
+
+  const matches = groupMarkets(filteredResults);
+
+  const selectOutcome = (o: LimitlessTeamMarket) => {
     setSelected(o);
     setOutcome('yes');
     setBetError(null);
@@ -948,9 +958,11 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
 
     setSubmitting(true);
     try {
+      // Backend resolves the market by `mk.id::text = marketSlug` (or slug), so
+      // passing the outcome row's id is sufficient — no real slug field is exposed here.
       const res = await api.placeLimitlessBet(adminKey, {
         poolId,
-        marketSlug: selected.marketSlug,
+        marketSlug: selected.id,
         outcome,
         amountUsd: amt,
         ...(maxPriceNum !== undefined ? { maxPrice: maxPriceNum } : {}),
@@ -966,25 +978,22 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
   return (
     <div className="space-y-4">
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-2">
-        <input
-          value={sport}
-          onChange={e => setSport(e.target.value)}
-          placeholder="Sport (optionnel)"
-          className="flex-1 min-w-[140px] bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition-all"
-        />
-        <input
-          value={league}
-          onChange={e => setLeague(e.target.value)}
-          placeholder="League (optionnel)"
-          className="flex-1 min-w-[140px] bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition-all"
-        />
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Filtrer les marchés chargés…"
+            className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-white/20 outline-none focus:border-primary/50 transition-all"
+          />
+        </div>
         <button
-          onClick={loadGroups}
-          disabled={loading}
+          onClick={loadMarkets}
+          disabled={!sportsDataTeamId || loading}
           className={cn(
             'px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all',
-            loading
+            !sportsDataTeamId || loading
               ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
               : 'bg-primary text-primary-foreground hover:bg-primary/90'
           )}
@@ -994,106 +1003,142 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
         </button>
       </div>
 
-      {sportsDataTeamId && (
-        <p className="text-[10px] text-muted-foreground">
-          Filtré sur l'équipe du pool (teamId <code className="text-primary/80">{sportsDataTeamId}</code>).
-        </p>
-      )}
-
       {loadError && (
         <div className="flex items-center gap-2 p-2.5 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-300">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {loadError}
         </div>
       )}
 
-      {/* Empty state */}
-      {!loading && !loadError && groups.length === 0 && (
-        <div className="flex items-start gap-3 p-3 bg-white/3 border border-white/8 rounded-xl text-xs text-muted-foreground">
-          <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
-          <div>Aucun market group Limitless actif trouvé.</div>
+      {/* Type filter */}
+      {results.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Filtre:</span>
+          {(['all', 'game', 'future'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setTypeFilter(f)}
+              className={cn(
+                'text-xs px-2.5 py-1 rounded-full border transition-all font-semibold',
+                typeFilter === f
+                  ? 'bg-primary/20 text-primary border-primary/40'
+                  : 'bg-white/5 text-muted-foreground border-white/10 hover:border-white/20'
+              )}
+            >
+              {f === 'all' ? 'Tous' : f === 'game' ? '⚽ Game' : '🏆 Future'}
+            </button>
+          ))}
+          <span className="text-xs text-muted-foreground ml-auto">{filteredResults.length} résultat(s)</span>
         </div>
       )}
 
-      {/* Market groups */}
-      {groups.length > 0 && (
+      {/* Empty state */}
+      {!loading && !loadError && results.length === 0 && (
+        <div className="flex items-start gap-3 p-3 bg-white/3 border border-white/8 rounded-xl text-xs text-muted-foreground">
+          <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-amber-400" />
+          <div>Aucun marché Limitless trouvé pour cette équipe.</div>
+        </div>
+      )}
+
+      {/* Results — grouped by match → market → outcome */}
+      {matches.length > 0 && (
         <div className="space-y-3 max-h-[30rem] overflow-y-auto pr-1">
-          {groups.map(group => {
-            const isCollapsed = collapsed.has(group.groupId);
-            const teams = group.homeTeamName && group.awayTeamName
-              ? `${group.homeTeamName} vs ${group.awayTeamName}`
-              : null;
+          {matches.map(match => {
+            const isCollapsed = collapsed.has(match.key);
             return (
-              <div key={group.groupId} className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
-                {/* Group header */}
+              <div key={match.key} className="rounded-xl border border-white/10 bg-white/[0.02] overflow-hidden">
+                {/* Match header */}
                 <button
                   type="button"
-                  onClick={() => toggleGroup(group.groupId)}
+                  onClick={() => toggleMatch(match.key)}
                   className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-white/[0.03] transition-colors"
                 >
                   {isCollapsed
                     ? <ChevronRight className="w-4 h-4 text-white/40 shrink-0" />
                     : <ChevronDown className="w-4 h-4 text-white/40 shrink-0" />}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">{group.groupTitle}</p>
+                    <p className="text-sm font-semibold text-white truncate">{match.label}</p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      {teams && (
-                        <span className="text-[10px] text-white/60 truncate max-w-[200px]">{teams}</span>
+                      {match.league && (
+                        <span className="text-[10px] text-white/40 truncate max-w-[160px]">{match.league}</span>
                       )}
-                      {group.league && (
-                        <span className="text-[10px] text-white/40 truncate max-w-[160px]">{group.league}</span>
-                      )}
-                      {group.sport && (
-                        <span className="text-[10px] text-white/40">{group.sport}</span>
-                      )}
-                      {group.startsAt && (
+                      {match.startsAt && (
                         <span className="text-[10px] text-blue-400/70">
-                          {new Date(group.startsAt).toLocaleString(undefined, {
+                          {new Date(match.startsAt).toLocaleString(undefined, {
                             month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                           })}
                         </span>
                       )}
                     </div>
                   </div>
-                  <MatchStateBadge state={group.gameState} />
-                  <span className="text-[10px] text-muted-foreground shrink-0">{group.outcomes.length} outcome(s)</span>
+                  <MatchStateBadge state={match.state} />
+                  <span className="text-[10px] text-muted-foreground shrink-0">{match.count} mkt</span>
                 </button>
 
-                {/* Outcomes */}
+                {/* Market groups */}
                 {!isCollapsed && (
-                  <div className="px-2.5 pb-2.5 grid gap-1.5 sm:grid-cols-2">
-                    {group.outcomes.map(o => {
-                      const isSel = selected?.marketSlug === o.marketSlug;
+                  <div className="px-2.5 pb-2.5 space-y-2">
+                    {match.groups.map(group => {
+                      const multi = group.outcomes.length > 1;
+                      const kindLabel = prettyKind(group.kind);
                       return (
-                        <button
-                          type="button"
-                          key={o.marketSlug}
-                          onClick={() => selectOutcome(o)}
-                          className={cn(
-                            'flex flex-col gap-1 rounded-lg border p-2.5 text-left transition-all',
-                            isSel
-                              ? 'bg-primary/10 border-primary/40'
-                              : 'bg-white/[0.02] border-white/8 hover:border-white/20'
+                        <div key={group.groupId} className="rounded-lg border border-white/5 bg-white/[0.02] p-2">
+                          {multi && (
+                            <div className="flex items-center gap-2 mb-1.5 px-0.5">
+                              <span className="text-[11px] font-semibold text-white/80 leading-snug flex-1 min-w-0">
+                                {group.title}
+                              </span>
+                              {kindLabel && (
+                                <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border bg-purple-500/10 text-purple-300 border-purple-500/25 shrink-0">
+                                  {kindLabel}
+                                </span>
+                              )}
+                            </div>
                           )}
-                        >
-                          <p className="text-[12px] text-white leading-snug line-clamp-2">{o.title}</p>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {o.yesPrice !== null && (
-                              <span className="text-[10px] font-mono text-green-400">
-                                YES {(asNumber(o.yesPrice) * 100).toFixed(0)}¢
-                              </span>
-                            )}
-                            {o.noPrice !== null && (
-                              <span className="text-[10px] font-mono text-red-400">
-                                NO {(asNumber(o.noPrice) * 100).toFixed(0)}¢
-                              </span>
-                            )}
-                            {o.volume !== null && (
-                              <span className="text-[10px] text-muted-foreground">
-                                Vol {fmtUsd(asNumber(o.volume))}
-                              </span>
-                            )}
+                          <div className={cn('grid gap-1.5', multi ? 'sm:grid-cols-2' : 'grid-cols-1')}>
+                            {group.outcomes.map(o => {
+                              const isSel = selected?.id === o.id;
+                              const label = multi ? (o.title || marketQuestion(o)) : group.title;
+                              return (
+                                <button
+                                  type="button"
+                                  key={marketConditionId(o)}
+                                  onClick={() => selectOutcome(o)}
+                                  className={cn(
+                                    'flex items-center gap-2.5 rounded-lg border p-2 text-left transition-all',
+                                    isSel
+                                      ? 'bg-primary/10 border-primary/40'
+                                      : 'bg-white/[0.02] border-white/8 hover:border-white/20'
+                                  )}
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[12px] text-white leading-snug line-clamp-2">{label}</p>
+                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                      {o.yesPrice !== undefined && o.yesPrice !== null && (
+                                        <span className="text-[10px] font-mono text-green-400">
+                                          YES {(asNumber(o.yesPrice) * 100).toFixed(0)}¢
+                                        </span>
+                                      )}
+                                      {o.noPrice !== undefined && o.noPrice !== null && (
+                                        <span className="text-[10px] font-mono text-red-400">
+                                          NO {(asNumber(o.noPrice) * 100).toFixed(0)}¢
+                                        </span>
+                                      )}
+                                      {o.volume !== undefined && o.volume !== null && (
+                                        <span className="text-[10px] text-muted-foreground">
+                                          Vol {fmtUsd(asNumber(o.volume))}
+                                        </span>
+                                      )}
+                                      <span className="text-[10px] text-primary/60">{o.sideHint}</span>
+                                      {o.closed && (
+                                        <span className="text-[9px] font-bold text-red-400 uppercase">Closed</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
                           </div>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -1115,8 +1160,8 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
             <Coins className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Mise immédiate</p>
-              <p className="text-sm text-white leading-snug mt-0.5">{selected.title}</p>
-              <code className="text-[10px] text-white/40 font-mono break-all">{selected.marketSlug}</code>
+              <p className="text-sm text-white leading-snug mt-0.5">{marketQuestion(selected)}</p>
+              <code className="text-[10px] text-white/40 font-mono break-all">{selected.id}</code>
             </div>
             <button
               onClick={() => { setSelected(null); setBetResult(null); setBetError(null); }}
