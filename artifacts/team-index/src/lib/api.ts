@@ -144,6 +144,55 @@ export interface LimitlessTeamMarket {
   outcomeIndex?: number | null;
 }
 
+// ─── Manual Limitless bet flow ────────────────────────────────────────────────
+
+export interface LimitlessMarketGroupOutcome {
+  marketId: string;
+  marketSlug: string;
+  conditionId: string;
+  outcomeIndex: number;
+  title: string;
+  yesPrice: number | null;
+  noPrice: number | null;
+  volume: number | null;
+  tokens: { yes: string; no: string };
+}
+
+export interface LimitlessMarketGroup {
+  groupId: string;
+  groupSlug: string;
+  groupTitle: string;
+  gameId: string | null;
+  homeTeamName: string | null;
+  awayTeamName: string | null;
+  sport: string | null;
+  league: string | null;
+  marketKind: string | null;
+  startsAt: string | null;
+  gameState: string | null;
+  status: string;
+  outcomes: LimitlessMarketGroupOutcome[];
+}
+
+export interface LimitlessMarketGroupsResponse {
+  ok: boolean;
+  total: number;
+  limit: number;
+  offset: number;
+  groups: LimitlessMarketGroup[];
+}
+
+export interface LimitlessBetResult {
+  ok: boolean;
+  positionId: string;
+  marketSlug: string;
+  outcome: 'yes' | 'no';
+  amountUsd: number;
+  price: number;
+  plannedQuantity: number;
+  orderResult: unknown;
+}
+
 export type { VaultPosition } from '@/types/polymarket';
 import type { VaultPosition, AllocationProposal, SelectedMarket } from '@/types/polymarket';
 
@@ -180,6 +229,50 @@ export const api = {
         body: JSON.stringify({ proposal, selectedMarkets }),
       }
     ),
+
+  /** Admin: list Limitless market groups for the manual immediate-bet flow */
+  getLimitlessMarketGroups: (
+    adminKey: string,
+    params?: {
+      teamId?: string;
+      sport?: string;
+      league?: string;
+      status?: string;
+      limit?: number;
+      offset?: number;
+    }
+  ) => {
+    const qs = new URLSearchParams();
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null && `${value}`.trim() !== '') {
+          qs.set(key, `${value}`);
+        }
+      }
+    }
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    return apiFetch<LimitlessMarketGroupsResponse>(
+      `/admin/limitless/market-groups${suffix}`,
+      { headers: { 'x-admin-key': adminKey } }
+    );
+  },
+
+  /** Admin: place an immediate Limitless bet on a market outcome */
+  placeLimitlessBet: (
+    adminKey: string,
+    body: {
+      poolId: string;
+      marketSlug: string;
+      outcome: 'yes' | 'no';
+      amountUsd: number;
+      maxPrice?: number;
+    }
+  ) =>
+    apiFetch<LimitlessBetResult>(`/admin/limitless/bets`, {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey },
+      body: JSON.stringify(body),
+    }),
 
   getLatestSnapshot: (poolId: string) =>
     apiFetch<PriceSnapshotResponse>(`/pools/${poolId}/price-snapshots/latest`),
