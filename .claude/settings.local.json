@@ -54,7 +54,9 @@
       "Bash(git check-ignore *)",
       "Bash(graphify --help)",
       "Bash(graphify query *)",
-      "Bash(graphify install *)"
+      "Bash(graphify install *)",
+      "Bash(cd /Users/karlemmanuelavodo/Documents/GitHub; ls; echo \"=== TeamIndex-Front top ===\"; ls /Users/karlemmanuelavodo/Documents/GitHub/TeamIndex-Front; echo \"=== artifacts ===\"; ls /Users/karlemmanuelavodo/Documents/GitHub/TeamIndex-Front/artifacts)",
+      "Bash(grep -E \"\\\\.ts$\")"
     ]
   }
 }

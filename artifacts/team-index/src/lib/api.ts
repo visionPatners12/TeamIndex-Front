@@ -14,8 +14,11 @@ export class ApiError extends Error {
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
     ...init,
+    // Merge headers AFTER spreading init so Content-Type is never dropped when a
+    // caller passes custom headers (e.g. x-admin-key). Otherwise the request body
+    // is sent without "Content-Type: application/json" and the backend can't parse it.
+    headers: { "Content-Type": "application/json", ...init?.headers },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
