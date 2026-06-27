@@ -624,6 +624,129 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
 
 // ─── Pool Row ────────────────────────────────────────────────────────────────
 
+interface LimitlessAccount {
+  limitlessProfileId: string | null;
+  accountAddress: string | null;
+  status: string | null;
+  allowanceStatus: string | null;
+  serverWallet: boolean | null;
+  displayName: string | null;
+}
+
+function LimitlessProfileSection({ poolId, adminKey, vaultAddress }: { poolId: string; adminKey: string; vaultAddress: string | null }) {
+  const [account, setAccount] = useState<LimitlessAccount | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [actionMsg, setActionMsg] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await adminFetch(`/admin/pools/${poolId}/limitless-account`, adminKey);
+      setAccount(data.account ?? null);
+    } catch (e: any) {
+      setError(e.message || 'Could not load Limitless profile');
+    } finally {
+      setLoading(false);
+    }
+  }, [poolId, adminKey]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const createProfile = async () => {
+    setCreating(true);
+    setError(null);
+    setActionMsg(null);
+    try {
+      const data = await adminFetch('/admin/limitless/backfill-vault-profiles', adminKey, {
+        method: 'POST',
+        body: JSON.stringify({ poolId }),
+      });
+      const r = data.results?.[0];
+      if (r?.profileId) {
+        setActionMsg(`Profil ${r.action} : #${r.profileId}`);
+      } else if (r?.error) {
+        setActionMsg(`Échec : ${r.error}`);
+      } else {
+        setActionMsg(r?.action === 'no-profile' ? 'Aucun profil retourné par Limitless.' : 'Aucun résultat.');
+      }
+      await load();
+    } catch (e: any) {
+      setError(e.message || 'Création échouée');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const hasProfile = !!account?.limitlessProfileId;
+
+  return (
+    <div className="border-t border-white/8 pt-5">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-6 h-6 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center">
+          <Link className="w-3 h-3 text-primary" />
+        </div>
+        <p className="text-xs font-bold uppercase tracking-wider text-white">Profil Limitless du vault</p>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement…
+        </div>
+      ) : hasProfile ? (
+        <div className="flex items-start gap-2 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-xs">
+          <CheckCircle className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 min-w-0">
+            <p className="text-green-300 font-semibold">Profil créé</p>
+            <p className="text-white/80 font-mono">Profile ID : {account!.limitlessProfileId}</p>
+            {account!.accountAddress && (
+              <p className="text-white/50 font-mono break-all">maker : {account!.accountAddress}</p>
+            )}
+            <div className="flex gap-2 flex-wrap mt-1">
+              {account!.status && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">status: {account!.status}</span>}
+              {account!.allowanceStatus && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">allowance: {account!.allowanceStatus}</span>}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>Aucun profil Limitless pour ce vault. Crée-le pour pouvoir miser depuis le vault.</span>
+          </div>
+          <button
+            onClick={createProfile}
+            disabled={creating || !vaultAddress}
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
+              creating || !vaultAddress
+                ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90'
+            )}
+          >
+            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+            {creating ? 'Création…' : 'Créer le profil'}
+          </button>
+          {!vaultAddress && (
+            <p className="text-[11px] text-amber-400/70">Définis d'abord l'adresse du vault ci-dessus.</p>
+          )}
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-2 mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-300">
+          <XCircle className="w-3.5 h-3.5 shrink-0" /> {error}
+        </div>
+      )}
+      {actionMsg && !error && (
+        <div className="mt-3 p-2.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white/70">{actionMsg}</div>
+      )}
+    </div>
+  );
+}
+
 function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: string; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const [vaultInput, setVaultInput] = useState(pool.vaultAddress ?? '');
@@ -897,6 +1020,13 @@ npx hardhat run scripts/create-club-vault.js --network base`}
                   <p className="text-xs text-muted-foreground mt-2">Then paste the printed vault address above.</p>
                 </div>
               )}
+
+              {/* ─── Limitless vault profile ─────────────────────────── */}
+              <LimitlessProfileSection
+                poolId={pool.id}
+                adminKey={adminKey}
+                vaultAddress={pool.vaultAddress}
+              />
 
               {/* ─── Markets & Allocation Engine ─────────────────────── */}
               <div className="border-t border-white/8 pt-5">
