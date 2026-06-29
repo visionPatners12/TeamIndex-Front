@@ -35,7 +35,19 @@ async function adminFetch(path: string, adminKey: string, options?: RequestInit)
       ...(options?.headers ?? {}),
     },
   });
-  const data = await res.json();
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    // Non-JSON response (HTML 404/502 page) — usually the backend isn't deployed/reachable
+    // or VITE_API_BASE_URL points to the wrong host.
+    const snippet = text.slice(0, 120).replace(/\s+/g, ' ').trim();
+    throw new Error(
+      `Backend returned non-JSON (HTTP ${res.status}) for ${path}. ` +
+      `Is the backend deployed & reachable, and VITE_API_BASE_URL correct? ${snippet}`
+    );
+  }
   if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
   return data;
 }
