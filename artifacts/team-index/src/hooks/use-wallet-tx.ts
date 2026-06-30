@@ -96,7 +96,7 @@ export function useBaseUsdcDeposit() {
     }
 
     if (expectedDepositTo && depositTx.to.toLowerCase() !== expectedDepositTo.toLowerCase()) {
-      throw new Error("Backend returned a deposit transaction for the wrong Base vault contract.");
+      throw new Error("Backend returned a deposit transaction for the wrong Base destination contract.");
     }
 
     try {

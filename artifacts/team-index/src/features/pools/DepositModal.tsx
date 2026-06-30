@@ -16,7 +16,7 @@ import { truncateAddr } from '@/utils/address';
 import { formatPoolName } from '@/utils/pool';
 import { ApiError, api } from '@/lib/api';
 import { useBaseUsdcDeposit, type TxStatus } from '@/hooks/use-wallet-tx';
-import { BASE_CHAIN } from '@/lib/config';
+import { BASE_CHAIN, BASE_DEPOSIT_RECEIVER_ADDRESS } from '@/lib/config';
 
 type Network = 'base';
 type Step = 'select' | 'confirm' | 'processing' | 'success' | 'error';
@@ -55,8 +55,8 @@ const NETWORK_CONFIG = {
     colorLight: 'rgba(0, 82, 255, 0.15)',
     colorBorder: 'rgba(0, 82, 255, 0.35)',
     chain: 'Base',
-    receives: 'Index token',
-    receiveDesc: 'You deposit Base USDC and receive the index token that represents your share of the team pool on Base.',
+    receives: 'Base index token',
+    receiveDesc: 'You deposit Base USDC into the receiver. After backend processing, wrapped index tokens are minted to your wallet on Base.',
     minAmount: 0.01,
     maxAmount: 100000,
     placeholder: '0.01',
@@ -148,20 +148,23 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
         throw new Error(`Minimum deposit is ${config.minAmount.toLocaleString()} ${config.asset}.`);
       }
 
-      const prepared = await api.prepareDeposit(pool.id, rawAmount.toString(), walletAddress);
-      if (!prepared.txs?.approveTx || !prepared.txs?.depositTx || !prepared.vaultAddress) {
-        throw new Error('Backend did not return a complete Base vault deposit transaction.');
+      const prepared = await api.prepareBaseUsdcDeposit(pool.id, rawAmount.toString());
+      if (!prepared.txs?.approveTx || !prepared.txs?.depositTx || !prepared.receiverAddress) {
+        throw new Error('Backend did not return a complete Base USDC deposit transaction.');
+      }
+      if (prepared.receiverAddress.toLowerCase() !== BASE_DEPOSIT_RECEIVER_ADDRESS.toLowerCase()) {
+        throw new Error('Backend returned an unexpected Base deposit receiver address.');
       }
       const hash = await baseHook.deposit(
         prepared.txs.approveTx,
         prepared.txs.depositTx,
         walletAddress,
-        prepared.vaultAddress
+        prepared.receiverAddress
       );
       setFinalTxHash(hash ?? null);
       if (hash) {
         try {
-          await api.confirmPoolDeposit(pool.id, hash);
+          await api.confirmBaseDeposit(hash);
         } catch (err) {
           if (err instanceof ApiError && err.code === 'RPC_RATE_LIMITED') {
             setDepositError('Deposit confirmed on Base. Backend indexing is delayed and will update shortly.');
@@ -186,7 +189,6 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
     config.asset,
     baseHook,
     refreshPoolViews,
-    queryClient,
   ]);
 
   const handleReset = () => {
@@ -391,7 +393,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                             { label: 'USD equivalent', value: `≈ $${usdValue.toFixed(2)}` },
                             { label: 'Estimated index tokens', value: `${displayedTokensReceived.toFixed(4)} $${pool.symbol}` },
                             { label: 'Token type', value: config.receives },
-                            { label: 'Destination', value: 'Base index vault' },
+                            { label: 'Destination', value: 'Base deposit receiver' },
                             { label: 'Signed by', value: 'Connected wallet' },
                           ]
                       ).map(({ label, value }) => (
@@ -411,7 +413,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     <div className="flex gap-3 bg-[#FEB413]/10 border border-[#FEB413]/20 p-3 rounded-xl mb-5 text-xs font-golos text-[#FEB413]/80">
                       <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#FEB413]" />
                       <p>
-                        You will sign 2 Base transactions in your wallet: approve USDC + deposit.
+                        You will sign 2 Base transactions in your wallet: approve USDC + deposit to the Base receiver.
                       </p>
                     </div>
 
@@ -463,8 +465,8 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                     </motion.div>
                     <h3 className="text-2xl font-jura font-bold text-white mb-2">Deposit Received!</h3>
                     <p className="font-golos text-white/40 text-sm mb-6">
-                      Your Base USDC deposit into <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was confirmed.
-                      {' '}Your index token represents your share of this team pool on Base.
+                      Your Base USDC deposit for <span className="text-white font-semibold">{formatPoolName(pool.team)}</span> was received.
+                      {' '}Wrapped index tokens will appear after backend processing completes.
                     </p>
                     {finalTxHash && (
                       <a href={explorerUrl} target="_blank" rel="noopener noreferrer"
@@ -478,7 +480,7 @@ export function DepositModal({ pool, onClose, walletAddress, onConnectWallet }: 
                         <span className="font-mono font-bold text-white">{numAmount.toLocaleString()} {config.asset}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="font-golos text-white/40">Estimated index tokens</span>
+                        <span className="font-golos text-white/40">Estimated wrapped index tokens</span>
                         <span className="font-mono font-bold" style={{ color: config.color }}>{displayedTokensReceived.toFixed(4)} ${pool.symbol}</span>
                       </div>
                     </div>
