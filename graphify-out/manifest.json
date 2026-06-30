@@ -960,8 +960,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Admin.tsx": {
-    "mtime": 1782789040.4113765,
-    "ast_hash": "61290375f01c720c8cf84f04494f2474",
+    "mtime": 1782815656.0176072,
+    "ast_hash": "2236a29909dcea5233e99d4ccaaf18db",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Dashboard.tsx": {
@@ -1135,8 +1135,8 @@
     "semantic_hash": ""
   },
   "scripts/package.json": {
-    "mtime": 1776236071.0,
-    "ast_hash": "6a0c373ad679044d10de8c595368cbba",
+    "mtime": 1782811237.0330298,
+    "ast_hash": "7f53641d0571164bef04e21de5112d73",
     "semantic_hash": ""
   },
   "scripts/post-merge.sh": {
@@ -1387,6 +1387,11 @@
   "artifacts/team-index/src/hooks/use-usdc-balance.ts": {
     "mtime": 1781678821.8819876,
     "ast_hash": "bb327f9d921ee5099cfbeeae1a6c66e0",
+    "semantic_hash": ""
+  },
+  "scripts/src/transfer-factory-ownership.ts": {
+    "mtime": 1782811237.1628053,
+    "ast_hash": "a06645261760d47aa914fb1937a909ba",
     "semantic_hash": ""
   }
 }

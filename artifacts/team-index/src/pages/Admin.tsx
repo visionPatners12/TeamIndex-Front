@@ -536,10 +536,18 @@ interface LimitlessAccount {
   displayName: string | null;
 }
 
+function allowanceBadgeClass(status: string | null | undefined) {
+  const normalized = status?.toUpperCase();
+  if (normalized === 'ACTIVE') return 'bg-green-500/15 text-green-300';
+  if (normalized === 'FAILED') return 'bg-red-500/15 text-red-300';
+  return 'bg-amber-500/15 text-amber-300';
+}
+
 function LimitlessServerWalletSection({ poolId, adminKey, vaultAddress }: { poolId: string; adminKey: string; vaultAddress: string | null }) {
   const [account, setAccount] = useState<LimitlessAccount | null>(null);
   const [loading, setLoading] = useState(true);
   const [linking, setLinking] = useState(false);
+  const [checkingAllowance, setCheckingAllowance] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
 
@@ -584,9 +592,39 @@ function LimitlessServerWalletSection({ poolId, adminKey, vaultAddress }: { pool
     }
   };
 
+  const checkAllowances = async () => {
+    setCheckingAllowance(true);
+    setError(null);
+    setActionMsg(null);
+    try {
+      const data = await adminFetch(`/admin/pools/${poolId}/limitless-account/allowances`, adminKey, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      setAccount((prev) => prev
+        ? { ...prev, allowanceStatus: data.allowanceStatus ?? prev.allowanceStatus }
+        : prev
+      );
+      setActionMsg(
+        data.allowanceStatus === 'ACTIVE'
+          ? 'Allowance Limitless validée.'
+          : `Allowance toujours en attente : ${data.allowanceStatus ?? 'PENDING'}`
+      );
+      await load();
+    } catch (e: any) {
+      const message = e.message || 'Vérification allowance échouée';
+      setError(message);
+      setAccount((prev) => prev ? { ...prev, allowanceStatus: 'FAILED' } : prev);
+    } finally {
+      setCheckingAllowance(false);
+    }
+  };
+
   const hasProfile = !!account?.limitlessProfileId;
   const isServerWallet = account?.serverWallet === true;
   const hasLegacyProfile = hasProfile && !isServerWallet;
+  const allowanceStatus = account?.allowanceStatus ?? null;
+  const allowanceReady = allowanceStatus?.toUpperCase() === 'ACTIVE';
 
   return (
     <div className="border-t border-white/8 pt-5">
@@ -630,26 +668,52 @@ function LimitlessServerWalletSection({ poolId, adminKey, vaultAddress }: { pool
                 mode: {isServerWallet ? 'server wallet' : 'legacy vault account'}
               </span>
               {account!.status && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">status: {account!.status}</span>}
-              {account!.allowanceStatus && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">allowance: {account!.allowanceStatus}</span>}
+              <span className={cn('text-[10px] px-1.5 py-0.5 rounded', allowanceBadgeClass(allowanceStatus))}>
+                allowance: {allowanceStatus ?? 'PENDING'}
+              </span>
             </div>
+            {isServerWallet && !allowanceReady && (
+              <p className="text-amber-200/80">
+                Vérifie l'allowance avant de lancer une mise. La requête a maintenant un timeout côté backend, donc elle ne restera pas bloquée indéfiniment.
+              </p>
+            )}
             {hasLegacyProfile && (
               <p className="text-amber-200/80">
                 Les mises doivent passer par un server wallet lié au vault. Relance la liaison pour créer ce compte et l'autoriser on-chain.
               </p>
             )}
-            <button
-              onClick={linkServerWallet}
-              disabled={linking || !vaultAddress}
-              className={cn(
-                'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all',
-                linking || !vaultAddress
-                  ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
-                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={linkServerWallet}
+                disabled={linking || !vaultAddress || checkingAllowance}
+                className={cn(
+                  'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all',
+                  linking || !vaultAddress || checkingAllowance
+                    ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                )}
+              >
+                {linking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link className="w-3.5 h-3.5" />}
+                {isServerWallet ? 'Vérifier / relier on-chain' : 'Créer / lier server wallet'}
+              </button>
+              {isServerWallet && (
+                <button
+                  onClick={checkAllowances}
+                  disabled={checkingAllowance || linking || !account!.limitlessProfileId}
+                  className={cn(
+                    'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all',
+                    checkingAllowance || linking || !account!.limitlessProfileId
+                      ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
+                      : allowanceReady
+                        ? 'bg-green-500/15 text-green-200 border border-green-500/30 hover:bg-green-500/20'
+                        : 'bg-amber-500/15 text-amber-200 border border-amber-500/30 hover:bg-amber-500/20'
+                  )}
+                >
+                  {checkingAllowance ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                  {checkingAllowance ? 'Vérification…' : 'Vérifier allowance'}
+                </button>
               )}
-            >
-              {linking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link className="w-3.5 h-3.5" />}
-              {isServerWallet ? 'Vérifier / relier on-chain' : 'Créer / lier server wallet'}
-            </button>
+            </div>
           </div>
         </div>
       ) : (
