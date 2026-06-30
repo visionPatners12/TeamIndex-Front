@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { useWallets, usePrivy } from '@privy-io/react-auth';
 import {
   Plus, RefreshCw, Trash2, ExternalLink, CheckCircle,
   XCircle, Loader2, Shield, Copy, Eye, EyeOff, Layers,
-  AlertTriangle, ChevronDown, ChevronUp, Settings, Zap, Wallet, LogOut, Link, Search
+  AlertTriangle, ChevronDown, ChevronUp, Settings, Zap, Link, Search
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL, BASE_CHAIN, BASE_CHAIN_ID } from '@/lib/config';
+import { API_BASE_URL, BASE_CHAIN } from '@/lib/config';
 import {
   useAdminPools,
   tokenPriceUsdPerWholeShare,
@@ -18,7 +17,6 @@ import {
 } from '@/hooks/use-pools';
 import { api, type TeamEntry } from '@/lib/api';
 import { MarketsSection } from '@/features/pools/MarketsSection';
-import { getWalletForAddress } from '@/utils/wallet';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -52,25 +50,16 @@ async function adminFetch(path: string, adminKey: string, options?: RequestInit)
   return data;
 }
 
-type DeployVaultResponse = {
-  ok: boolean;
-  alreadyDeployed: boolean;
-  vaultAddress?: string | null;
-  tx?: { to: string; data: string };
-  factoryAddress?: string;
-  clubId?: string;
-};
-
 type CreatePoolResponse = {
   ok: boolean;
   pool: {
     id: string;
     vaultAddress: string | null;
   };
-};
-
-type TxReceipt = {
-  status?: string;
+  vaultDeployment?: {
+    vaultAddress: string;
+    created: boolean;
+  } | null;
 };
 
 function usdcHumanToRawString(value: string) {
@@ -91,10 +80,7 @@ function usdcHumanToRawString(value: string) {
 
 type CreateStep =
   | 'form'
-  | 'vault-already-deployed'
-  | 'switching-network'
-  | 'waiting-metamask'
-  | 'confirming-tx'
+  | 'deploying-vault'
   | 'saving-db'
   | 'linking-limitless'
   | 'done'
@@ -106,8 +92,6 @@ interface CreatePoolFormProps {
 }
 
 function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
-  const { ready: walletsReady, wallets } = useWallets();
-  const { connectWallet, logout } = usePrivy();
   const [teams, setTeams] = useState<TeamEntry[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
   const [teamsFetchError, setTeamsFetchError] = useState<string | null>(null);
@@ -209,10 +193,7 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
 
   const stepLabel: Record<CreateStep, string> = {
     form: '',
-    'vault-already-deployed': 'Vault already deployed, creating pool…',
-    'switching-network': 'Switching to Base…',
-    'waiting-metamask': 'Confirm in MetaMask…',
-    'confirming-tx': 'Waiting for on-chain confirmation…',
+    'deploying-vault': 'Deploying vault via backend owner wallet…',
     'saving-db': 'Saving pool to database…',
     'linking-limitless': 'Linking Limitless server wallet…',
     done: 'Pool created!',
@@ -223,17 +204,6 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
     e.preventDefault();
     if (!clubName.trim() || !symbol.trim()) return;
 
-    if (!walletsReady) {
-      setError('Wallets are still loading. Please try again in a moment.');
-      return;
-    }
-
-    const wallet = wallets.find((wallet) => wallet.walletClientType !== 'privy') ?? wallets[0];
-    if (!wallet?.address) {
-      setError('No wallet connected. Connect MetaMask via the main site first.');
-      return;
-    }
-
     setError(null);
     setResult(null);
 
@@ -241,93 +211,18 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
       const normalizedClubName = clubName.trim();
       const normalizedSymbol = symbol.trim().toUpperCase();
       const depositCapRaw = usdcHumanToRawString(depositCap);
-      const deployPayload = {
-        clubName: normalizedClubName,
-        symbol: normalizedSymbol,
-        depositCap: depositCapRaw,
-      };
-
-      // 1. Get unsigned tx from backend. The backend only prepares the call.
-      const prepared = await adminFetch('/admin/pools/tx/deploy-vault', adminKey, {
-        method: 'POST',
-        body: JSON.stringify(deployPayload),
-      }) as DeployVaultResponse;
-
-      let vaultAddress: string | null = null;
-      let vaultAlreadyDeployed = false;
-
-      if (prepared.alreadyDeployed) {
-        setCreateStep('vault-already-deployed');
-        vaultAddress = prepared.vaultAddress ?? null;
-        vaultAlreadyDeployed = true;
-      } else {
-        if (!prepared.tx?.to || !prepared.tx?.data) {
-          throw new Error('Backend did not return a vault deployment transaction.');
-        }
-
-        // 2. Switch MetaMask to Base
-        setCreateStep('switching-network');
-        const provider = await wallet.getEthereumProvider();
-        try {
-          await provider.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${BASE_CHAIN_ID.toString(16)}` }],
-          });
-        } catch (switchErr: any) {
-          if (switchErr.code === 4902) throw new Error('Add Base network to MetaMask first.');
-          throw switchErr;
-        }
-
-        // 3. Admin signs the createClubVault tx in MetaMask
-        setCreateStep('waiting-metamask');
-        const txHash = await provider.request({
-          method: 'eth_sendTransaction',
-          params: [{
-            from: wallet.address,
-            to: prepared.tx.to,
-            data: prepared.tx.data,
-          }],
-        });
-
-        // 4. Wait for on-chain confirmation
-        setCreateStep('confirming-tx');
-        let receipt: TxReceipt | null = null;
-        for (let i = 0; i < 60; i++) {
-          receipt = await provider.request({
-            method: 'eth_getTransactionReceipt',
-            params: [txHash],
-          }) as any;
-          if (receipt) break;
-          await new Promise(r => setTimeout(r, 2000));
-        }
-
-        if (!receipt) throw new Error('Vault deployment confirmation timed out.');
-        if (receipt.status && receipt.status !== '0x1') {
-          throw new Error('Vault deployment transaction failed on-chain.');
-        }
-
-        const deployed = await adminFetch('/admin/pools/tx/deploy-vault', adminKey, {
-          method: 'POST',
-          body: JSON.stringify(deployPayload),
-        }) as DeployVaultResponse;
-        vaultAddress = deployed.vaultAddress ?? null;
-      }
-
-      if (!vaultAddress) {
-        throw new Error('Vault deployment confirmed, but the backend did not return a vault address.');
-      }
-
-      // 5. Create DB pool record linked to sports_data.teams through sportsDataTeamId.
-      setCreateStep('saving-db');
       const mappedTeam = teams.find((t) => t.id === selectedTeamId);
       if (!mappedTeam) throw new Error('Select a sports_data team before creating the pool.');
+
+      // The factory is onlyOwner; the backend owner wallet deploys the vault.
+      setCreateStep('deploying-vault');
       const poolData = await adminFetch('/admin/pools', adminKey, {
         method: 'POST',
         body: JSON.stringify({
           clubName: normalizedClubName,
           symbol: normalizedSymbol,
           depositCap: depositCapRaw,
-          vaultAddress,
+          deployOnchain: true,
           sportsDataTeamId: mappedTeam.id,
           riskParams: {
             maxPerMatchPct: 3,
@@ -336,6 +231,13 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
           },
         }),
       }) as CreatePoolResponse;
+      setCreateStep('saving-db');
+
+      const vaultAddress = poolData.pool.vaultAddress ?? poolData.vaultDeployment?.vaultAddress ?? null;
+      if (!vaultAddress) {
+        throw new Error('Pool created, but the backend did not return a vault address.');
+      }
+      const vaultAlreadyDeployed = poolData.vaultDeployment?.created === false;
 
       let limitlessLinked = false;
       let limitlessLinkError: string | undefined;
@@ -354,7 +256,7 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
 
       setResult({
         poolId: poolData.pool.id,
-        vaultAddress: poolData.pool.vaultAddress ?? vaultAddress,
+        vaultAddress,
         vaultAlreadyDeployed,
         limitlessLinked,
         limitlessLinkError,
@@ -375,47 +277,13 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
   };
 
   const isLoading = !['form', 'done', 'error'].includes(createStep);
-  const wallet = walletsReady ? getWalletForAddress(wallets) : null;
 
   return (
     <form onSubmit={handleCreate} className="space-y-4">
-      {/* Wallet status */}
-      {wallet?.address ? (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs border bg-green-500/10 border-green-500/30 text-green-300">
-          <Wallet className="w-3.5 h-3.5 shrink-0" />
-          <span className="flex-1">
-            Admin wallet: <code className="font-mono ml-1">{wallet.address.slice(0, 8)}…{wallet.address.slice(-6)}</code>
-          </span>
-          <button
-            type="button"
-            onClick={() => connectWallet()}
-            title="Switch / connect different wallet"
-            className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
-          >
-            <Link className="w-3 h-3" /> Switch
-          </button>
-          <button
-            type="button"
-            onClick={() => logout()}
-            title="Disconnect wallet"
-            className="flex items-center gap-1 px-2 py-0.5 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 transition-all"
-          >
-            <LogOut className="w-3 h-3" /> Disconnect
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs border bg-amber-500/10 border-amber-500/30 text-amber-300">
-          <Wallet className="w-3.5 h-3.5 shrink-0" />
-          <span className="flex-1">No wallet connected</span>
-          <button
-            type="button"
-            onClick={() => connectWallet()}
-            className="flex items-center gap-1 px-3 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 font-semibold transition-all"
-          >
-            <Link className="w-3 h-3" /> Connect MetaMask
-          </button>
-        </div>
-      )}
+      <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs border bg-primary/10 border-primary/30 text-primary">
+        <Shield className="w-3.5 h-3.5 shrink-0" />
+        <span className="flex-1">Vault deployment is signed by the backend owner wallet. No MetaMask factory transaction is required.</span>
+      </div>
 
       <div>
         <label className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1.5 block">
@@ -642,10 +510,10 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
 
       <button
         type="submit"
-        disabled={isLoading || !selectedTeamId || !clubName.trim() || !symbol.trim() || !wallet}
+        disabled={isLoading || !selectedTeamId || !clubName.trim() || !symbol.trim()}
         className={cn(
           'w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all',
-          !isLoading && selectedTeamId && clubName.trim() && symbol.trim() && wallet
+          !isLoading && selectedTeamId && clubName.trim() && symbol.trim()
             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
             : 'bg-white/5 text-muted-foreground cursor-not-allowed border border-white/10'
         )}
