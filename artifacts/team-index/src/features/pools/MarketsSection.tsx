@@ -13,7 +13,7 @@
  *   - "Accept" saves the proposal to backend
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Loader2, CheckCircle, XCircle, AlertTriangle, TrendingUp,
@@ -21,7 +21,7 @@ import {
   Info, Check, X as XIcon, Zap, Coins,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/config';
+import { API_BASE_URL, BASE_CHAIN } from '@/lib/config';
 import {
   api,
   type LimitlessTeamMarket,
@@ -40,6 +40,18 @@ import type {
 
 function fmtUsd(n: number) {
   return `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+function fmtUsdcBaseUnits(value?: string | null) {
+  if (!value) return '0 USDC';
+  const n = Number(value);
+  if (!Number.isFinite(n)) return `${value} base units`;
+  return `${(n / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC`;
+}
+
+function shortAddress(value?: string | null) {
+  if (!value) return '';
+  return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-4)}` : value;
 }
 
 function fmtPct(n: number) {
@@ -93,6 +105,27 @@ function marketConditionId(market: LimitlessTeamMarket) {
 
 function effectiveType(m: LimitlessTeamMarket): 'game' | 'future' {
   return m.marketType ?? (m.gameId ? 'game' : 'future');
+}
+
+function marketTimestamp(value?: string | null) {
+  if (!value) return null;
+  const ts = new Date(value).getTime();
+  return Number.isFinite(ts) ? ts : null;
+}
+
+function marketEndTimestamp(market: LimitlessTeamMarket) {
+  return marketTimestamp(market.endDateIso);
+}
+
+function isDisplayableLimitlessMarket(market: LimitlessTeamMarket, now = Date.now()) {
+  if (market.active === false || market.closed === true) return false;
+  const endsAt = marketEndTimestamp(market);
+  return endsAt === null || endsAt > now;
+}
+
+function displayableLimitlessMarkets(markets: LimitlessTeamMarket[]) {
+  const now = Date.now();
+  return markets.filter(m => isDisplayableLimitlessMarket(m, now));
 }
 
 // ─── Match → Market group → Outcome grouping ──────────────────────────────────
@@ -213,6 +246,16 @@ function MarketSelectorTab({ sportsDataTeamId, selectedMarkets, onSelectionChang
   const [searchError, setSearchError] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<'all' | 'game' | 'future'>('all');
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const selectedMarketsRef = useRef(selectedMarkets);
+  const onSelectionChangeRef = useRef(onSelectionChange);
+
+  useEffect(() => {
+    selectedMarketsRef.current = selectedMarkets;
+  }, [selectedMarkets]);
+
+  useEffect(() => {
+    onSelectionChangeRef.current = onSelectionChange;
+  }, [onSelectionChange]);
 
   const toggleMatch = (key: string) =>
     setCollapsed(prev => {
@@ -231,7 +274,14 @@ function MarketSelectorTab({ sportsDataTeamId, selectedMarkets, onSelectionChang
     setSearchError(null);
     try {
       const res = await api.getTeamLimitlessMarkets(sportsDataTeamId);
-      setResults(res.markets);
+      const freshMarkets = displayableLimitlessMarkets(res.markets);
+      setResults(freshMarkets);
+      const freshConditionIds = new Set(freshMarkets.map(marketConditionId));
+      const currentSelected = selectedMarketsRef.current;
+      const nextSelected = currentSelected.filter(s => freshConditionIds.has(s.conditionId));
+      if (nextSelected.length !== currentSelected.length) {
+        onSelectionChangeRef.current(nextSelected);
+      }
     } catch (e: any) {
       setSearchError(e.message || 'Could not load Limitless markets');
     } finally {
@@ -908,7 +958,11 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
     setLoadError(null);
     try {
       const res = await api.getTeamLimitlessMarkets(sportsDataTeamId);
-      setResults(res.markets);
+      const freshMarkets = displayableLimitlessMarkets(res.markets);
+      setResults(freshMarkets);
+      setSelected(current =>
+        current && freshMarkets.some(m => m.id === current.id) ? current : null
+      );
     } catch (e: any) {
       setLoadError(e.message || 'Could not load Limitless markets');
     } finally {
@@ -1241,8 +1295,8 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
               )}
             >
               {submitting
-                ? <><Loader2 className="w-4 h-4 animate-spin" />Mise en cours…</>
-                : <><Coins className="w-4 h-4" />Miser</>
+                ? <><Loader2 className="w-4 h-4 animate-spin" />Financement + position…</>
+                : <><Coins className="w-4 h-4" />Financer + prendre position</>
               }
             </button>
           </div>
@@ -1275,6 +1329,46 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
                   <p className="text-[9px] uppercase tracking-wider text-green-400/60">Qté planifiée</p>
                   <p className="font-mono text-white/90">{betResult.plannedQuantity}</p>
                 </div>
+                {betResult.serverWallet?.address && (
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Server wallet</p>
+                    <a
+                      href={`${BASE_CHAIN.blockExplorer}/address/${betResult.serverWallet.address}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-white/90 underline decoration-white/20 hover:text-primary"
+                    >
+                      {shortAddress(betResult.serverWallet.address)}
+                    </a>
+                  </div>
+                )}
+                {betResult.funding && (
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Funding vault → wallet</p>
+                    <p className="font-mono text-white/90">
+                      {betResult.funding.funded ? fmtUsdcBaseUnits(betResult.funding.amount) : 'déjà financé'}
+                    </p>
+                  </div>
+                )}
+                {betResult.funding?.txHash && (
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Funding tx</p>
+                    <a
+                      href={`${BASE_CHAIN.blockExplorer}/tx/${betResult.funding.txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-white/90 underline decoration-white/20 hover:text-primary"
+                    >
+                      {shortAddress(betResult.funding.txHash)}
+                    </a>
+                  </div>
+                )}
+                {betResult.clobOrderId && (
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Order ID</p>
+                    <p className="font-mono text-white/90 break-all">{betResult.clobOrderId}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

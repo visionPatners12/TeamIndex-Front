@@ -157,6 +157,26 @@ export interface LimitlessBetResult {
   amountUsd: number;
   price: number;
   plannedQuantity: number;
+  clobOrderId?: string | null;
+  serverWallet?: {
+    ownerId: number;
+    address: string;
+    created: boolean;
+  };
+  funding?: {
+    funded: boolean;
+    wallet: string;
+    amount: string;
+    txHash: string | null;
+  };
+  serverWalletBalanceBefore?: string;
+  serverWalletBalanceAfter?: string;
+  orderQuote?: {
+    price: number;
+    makerAmount: string;
+    takerAmount: string;
+  };
+  allowanceCheck?: unknown;
   orderResult: unknown;
 }
 

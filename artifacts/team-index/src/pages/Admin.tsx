@@ -96,6 +96,7 @@ type CreateStep =
   | 'waiting-metamask'
   | 'confirming-tx'
   | 'saving-db'
+  | 'linking-limitless'
   | 'done'
   | 'error';
 
@@ -124,6 +125,8 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
     poolId: string;
     vaultAddress: string | null;
     vaultAlreadyDeployed: boolean;
+    limitlessLinked: boolean;
+    limitlessLinkError?: string;
   } | null>(null);
 
   const loadTeams = useCallback(async () => {
@@ -211,6 +214,7 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
     'waiting-metamask': 'Confirm in MetaMask…',
     'confirming-tx': 'Waiting for on-chain confirmation…',
     'saving-db': 'Saving pool to database…',
+    'linking-limitless': 'Linking Limitless server wallet…',
     done: 'Pool created!',
     error: '',
   };
@@ -333,10 +337,27 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
         }),
       }) as CreatePoolResponse;
 
+      let limitlessLinked = false;
+      let limitlessLinkError: string | undefined;
+      setCreateStep('linking-limitless');
+      try {
+        const linked = await adminFetch('/admin/limitless/server-wallet-accounts', adminKey, {
+          method: 'POST',
+          body: JSON.stringify({ poolId: poolData.pool.id }),
+        });
+        const first = linked.results?.[0];
+        limitlessLinked = !!first?.serverWalletProfileId && !!first?.serverWalletAddress && !first?.error;
+        if (!limitlessLinked && first?.error) limitlessLinkError = first.error;
+      } catch (e: any) {
+        limitlessLinkError = e.message || 'Limitless server-wallet link failed';
+      }
+
       setResult({
         poolId: poolData.pool.id,
         vaultAddress: poolData.pool.vaultAddress ?? vaultAddress,
         vaultAlreadyDeployed,
+        limitlessLinked,
+        limitlessLinkError,
       });
       setCreateStep('done');
       setSelectedTeamId('');
@@ -611,6 +632,8 @@ function CreatePoolForm({ adminKey, onCreated }: CreatePoolFormProps) {
           <div className="flex items-center gap-2 font-semibold"><CheckCircle className="w-4 h-4" /> Pool created!</div>
           <p>Pool ID: <code className="font-mono">{result.poolId}</code></p>
           <p>{result.vaultAlreadyDeployed ? 'Vault already deployed; reused existing vault.' : 'Vault deployed and confirmed on Base.'}</p>
+          <p>{result.limitlessLinked ? 'Limitless server wallet linked on-chain.' : 'Limitless server wallet not linked yet.'}</p>
+          {result.limitlessLinkError && <p className="text-amber-300">Limitless: {result.limitlessLinkError}</p>}
           {result.vaultAddress && (
             <p>Vault: <a href={`${BASE_CHAIN.blockExplorer}/address/${result.vaultAddress}`} target="_blank" rel="noopener noreferrer" className="font-mono underline">{result.vaultAddress}</a></p>
           )}
@@ -645,10 +668,10 @@ interface LimitlessAccount {
   displayName: string | null;
 }
 
-function LimitlessProfileSection({ poolId, adminKey, vaultAddress }: { poolId: string; adminKey: string; vaultAddress: string | null }) {
+function LimitlessServerWalletSection({ poolId, adminKey, vaultAddress }: { poolId: string; adminKey: string; vaultAddress: string | null }) {
   const [account, setAccount] = useState<LimitlessAccount | null>(null);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [linking, setLinking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
 
@@ -659,7 +682,7 @@ function LimitlessProfileSection({ poolId, adminKey, vaultAddress }: { poolId: s
       const data = await adminFetch(`/admin/pools/${poolId}/limitless-account`, adminKey);
       setAccount(data.account ?? null);
     } catch (e: any) {
-      setError(e.message || 'Could not load Limitless profile');
+      setError(e.message || 'Could not load Limitless server wallet');
     } finally {
       setLoading(false);
     }
@@ -667,32 +690,35 @@ function LimitlessProfileSection({ poolId, adminKey, vaultAddress }: { poolId: s
 
   useEffect(() => { void load(); }, [load]);
 
-  const createProfile = async () => {
-    setCreating(true);
+  const linkServerWallet = async () => {
+    setLinking(true);
     setError(null);
     setActionMsg(null);
     try {
-      const data = await adminFetch('/admin/limitless/backfill-vault-profiles', adminKey, {
+      const data = await adminFetch('/admin/limitless/server-wallet-accounts', adminKey, {
         method: 'POST',
         body: JSON.stringify({ poolId }),
       });
       const r = data.results?.[0];
-      if (r?.profileId) {
-        setActionMsg(`Profil ${r.action} : #${r.profileId}`);
-      } else if (r?.error) {
+      if (r?.error) {
         setActionMsg(`Échec : ${r.error}`);
+      } else if (r?.serverWalletProfileId) {
+        const wallet = r.serverWalletAddress ? ` (${r.serverWalletAddress})` : '';
+        setActionMsg(`Server wallet ${r.action ?? 'lié'} : #${r.serverWalletProfileId}${wallet}`);
       } else {
-        setActionMsg(r?.action === 'no-profile' ? 'Aucun profil retourné par Limitless.' : 'Aucun résultat.');
+        setActionMsg(data.total === 0 ? 'Aucun pool traité par le backend.' : 'Aucun résultat retourné.');
       }
       await load();
     } catch (e: any) {
-      setError(e.message || 'Création échouée');
+      setError(e.message || 'Liaison server wallet échouée');
     } finally {
-      setCreating(false);
+      setLinking(false);
     }
   };
 
   const hasProfile = !!account?.limitlessProfileId;
+  const isServerWallet = account?.serverWallet === true;
+  const hasLegacyProfile = hasProfile && !isServerWallet;
 
   return (
     <div className="border-t border-white/8 pt-5">
@@ -700,7 +726,7 @@ function LimitlessProfileSection({ poolId, adminKey, vaultAddress }: { poolId: s
         <div className="w-6 h-6 rounded-md bg-primary/20 border border-primary/30 flex items-center justify-center">
           <Link className="w-3 h-3 text-primary" />
         </div>
-        <p className="text-xs font-bold uppercase tracking-wider text-white">Profil Limitless du vault</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-white">Server wallet Limitless</p>
       </div>
 
       {loading ? (
@@ -708,38 +734,74 @@ function LimitlessProfileSection({ poolId, adminKey, vaultAddress }: { poolId: s
           <Loader2 className="w-3.5 h-3.5 animate-spin" /> Chargement…
         </div>
       ) : hasProfile ? (
-        <div className="flex items-start gap-2 p-3 rounded-xl bg-green-500/10 border border-green-500/30 text-xs">
-          <CheckCircle className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
-          <div className="space-y-1 min-w-0">
-            <p className="text-green-300 font-semibold">Profil créé</p>
+        <div className={cn(
+          'flex items-start gap-2 p-3 rounded-xl border text-xs',
+          isServerWallet
+            ? 'bg-green-500/10 border-green-500/30'
+            : 'bg-amber-500/10 border-amber-500/30'
+        )}>
+          {isServerWallet ? (
+            <CheckCircle className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          )}
+          <div className="space-y-2 min-w-0 flex-1">
+            <p className={cn('font-semibold', isServerWallet ? 'text-green-300' : 'text-amber-300')}>
+              {isServerWallet ? 'Server wallet lié on-chain' : 'Profil legacy détecté'}
+            </p>
             <p className="text-white/80 font-mono">Profile ID : {account!.limitlessProfileId}</p>
             {account!.accountAddress && (
-              <p className="text-white/50 font-mono break-all">maker : {account!.accountAddress}</p>
+              <p className="text-white/50 font-mono break-all">wallet : {account!.accountAddress}</p>
             )}
+            {account!.displayName && <p className="text-white/50">name: {account!.displayName}</p>}
             <div className="flex gap-2 flex-wrap mt-1">
+              <span className={cn(
+                'text-[10px] px-1.5 py-0.5 rounded',
+                isServerWallet ? 'bg-green-500/15 text-green-300' : 'bg-amber-500/15 text-amber-300'
+              )}>
+                mode: {isServerWallet ? 'server wallet' : 'legacy vault account'}
+              </span>
               {account!.status && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">status: {account!.status}</span>}
               {account!.allowanceStatus && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/60">allowance: {account!.allowanceStatus}</span>}
             </div>
+            {hasLegacyProfile && (
+              <p className="text-amber-200/80">
+                Les mises doivent passer par un server wallet lié au vault. Relance la liaison pour créer ce compte et l'autoriser on-chain.
+              </p>
+            )}
+            <button
+              onClick={linkServerWallet}
+              disabled={linking || !vaultAddress}
+              className={cn(
+                'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all',
+                linking || !vaultAddress
+                  ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              )}
+            >
+              {linking ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link className="w-3.5 h-3.5" />}
+              {isServerWallet ? 'Vérifier / relier on-chain' : 'Créer / lier server wallet'}
+            </button>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
           <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>Aucun profil Limitless pour ce vault. Crée-le pour pouvoir miser depuis le vault.</span>
+            <span>Aucun server wallet Limitless lié à ce pool. Crée-le pour que les mises utilisent le wallet serveur autorisé par le vault.</span>
           </div>
           <button
-            onClick={createProfile}
-            disabled={creating || !vaultAddress}
+            onClick={linkServerWallet}
+            disabled={linking || !vaultAddress}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all',
-              creating || !vaultAddress
+              linking || !vaultAddress
                 ? 'bg-white/5 text-muted-foreground cursor-not-allowed'
                 : 'bg-primary text-primary-foreground hover:bg-primary/90'
             )}
           >
-            {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-            {creating ? 'Création…' : 'Créer le profil'}
+            {linking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+            {linking ? 'Liaison…' : 'Créer / lier server wallet'}
           </button>
           {!vaultAddress && (
             <p className="text-[11px] text-amber-400/70">Définis d'abord l'adresse du vault ci-dessus.</p>
@@ -766,7 +828,12 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
   const [deleting, setDeleting] = useState(false);
   const [toggling, setToggling] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [redeploying, setRedeploying] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  useEffect(() => {
+    setVaultInput(pool.vaultAddress ?? '');
+  }, [pool.vaultAddress]);
 
   const showMsg = (type: 'ok' | 'err', text: string) => {
     setMsg({ type, text });
@@ -820,6 +887,25 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
       showMsg('err', e.message);
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const redeployVault = async () => {
+    if (!confirm(`Redéployer un nouveau vault pour "${pool.clubName}" ? À faire seulement après migration des fonds ou si l'ancien vault est vide.`)) return;
+    setRedeploying(true);
+    try {
+      const data = await adminFetch(`/admin/pools/${pool.id}/redeploy-vault`, adminKey, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      const newVault = data.deployment?.vaultAddress ?? data.vaultAddress ?? data.pool?.vaultAddress ?? null;
+      if (newVault) setVaultInput(newVault);
+      showMsg('ok', newVault ? `New vault deployed: ${newVault}` : 'Vault redeployed');
+      onRefresh();
+    } catch (e: any) {
+      showMsg('err', e.message);
+    } finally {
+      setRedeploying(false);
     }
   };
 
@@ -961,7 +1047,12 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
                 {!hasVault && (
                   <p className="text-xs text-amber-400/70 mt-2 flex items-center gap-1.5">
                     <AlertTriangle className="w-3 h-3" />
-                    No vault set. Run deployment script and paste the address above.
+                    No vault set. Deploy or redeploy from the backend, then paste the address above if needed.
+                  </p>
+                )}
+                {hasVault && (
+                  <p className="text-xs text-white/35 mt-2">
+                    Pour les anciens vaults, redéploie via la nouvelle factory afin d'autoriser le server wallet on-chain.
                   </p>
                 )}
               </div>
@@ -994,6 +1085,15 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
                 )}
 
                 <button
+                  onClick={redeployVault}
+                  disabled={redeploying}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 transition-all"
+                >
+                  {redeploying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Layers className="w-3.5 h-3.5" />}
+                  Redeploy Vault
+                </button>
+
+                <button
                   onClick={deletePool}
                   disabled={deleting}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-all ml-auto"
@@ -1019,22 +1119,13 @@ function PoolRow({ pool, adminKey, onRefresh }: { pool: BackendPool; adminKey: s
                 <div className="bg-black/30 border border-white/8 rounded-xl p-4">
                   <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Deploy Vault On-chain</p>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Run this in terminal to create the vault via ClubVaultFactory:
+                    Use the admin redeploy action to create a vault with the current factory, then link the Limitless server wallet below.
                   </p>
-                  <code className="block text-xs text-white/70 bg-white/5 border border-white/8 rounded-lg p-3 font-mono whitespace-pre-wrap break-all">
-{`cd smartContract
-FACTORY_ADDRESS=<your_factory>\\
-CLUB_NAME="${pool.clubName}"\\
-VAULT_SYMBOL="${pool.symbol}"\\
-DEPOSIT_CAP_USDC="${(parseFloat(pool.depositCap) / 1e6 || 200000).toFixed(0)}"\\
-npx hardhat run scripts/create-club-vault.js --network base`}
-                  </code>
-                  <p className="text-xs text-muted-foreground mt-2">Then paste the printed vault address above.</p>
                 </div>
               )}
 
-              {/* ─── Limitless vault profile ─────────────────────────── */}
-              <LimitlessProfileSection
+              {/* ─── Limitless server wallet ─────────────────────────── */}
+              <LimitlessServerWalletSection
                 poolId={pool.id}
                 adminKey={adminKey}
                 vaultAddress={pool.vaultAddress}
