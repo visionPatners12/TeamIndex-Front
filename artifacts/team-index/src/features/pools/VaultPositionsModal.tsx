@@ -2,16 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, TrendingUp, TrendingDown, Loader2, BarChart2, AlertTriangle,
+  Wallet, Landmark, Activity,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/config';
 import type { VaultPosition, MarketType, MarketSide } from '@/types/polymarket';
+import { api, type PoolBalances, type PoolPositionsSummary } from '@/lib/api';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function fmtUsd(n: number): string {
   if (!Number.isFinite(n)) return '—';
-  return `$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const sign = n < 0 ? '-' : '';
+  return `${sign}$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function fmtPct(n: number): string {
@@ -30,7 +32,7 @@ function MarketTypeBadge({ type }: { type: MarketType }) {
         ? 'bg-blue-500/15 text-blue-400 border-blue-500/30'
         : 'bg-purple-500/15 text-purple-400 border-purple-500/30'
     )}>
-      {type === 'game' ? '⚽ Game' : '🏆 Future'}
+      {type === 'game' ? 'Game' : 'Future'}
     </span>
   );
 }
@@ -122,6 +124,63 @@ function PositionRow({ pos }: { pos: VaultPosition }) {
 
 // ─── Summary Bar ─────────────────────────────────────────────────────────────
 
+function CashBreakdown({
+  balances,
+  summary,
+}: {
+  balances: PoolBalances;
+  summary: PoolPositionsSummary | null;
+}) {
+  const sourceLabel =
+    balances.vaultCashSource === 'onchain'
+      ? 'on-chain'
+      : balances.vaultCashSource === 'db-derived'
+      ? 'db split'
+      : 'db fallback';
+
+  const stats = [
+    {
+      label: 'Vault USDC',
+      value: fmtUsd(balances.vaultCash),
+      meta: sourceLabel,
+      icon: Landmark,
+    },
+    {
+      label: 'Server Wallet USDC',
+      value: fmtUsd(balances.serverWalletCash),
+      meta: balances.readServerWalletCash ? 'on-chain' : 'unread',
+      icon: Wallet,
+    },
+    {
+      label: 'Positions Value',
+      value: fmtUsd(summary?.openPositionsValue ?? 0),
+      meta: `${summary?.openPositionCount ?? 0} open`,
+      icon: Activity,
+    },
+    {
+      label: 'Total NAV',
+      value: fmtUsd(summary?.totalPoolValue ?? balances.totalCash),
+      meta: 'cash + positions',
+      icon: BarChart2,
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-4 py-3 border-b border-white/8 bg-white/2">
+      {stats.map(({ label, value, meta, icon: Icon }) => (
+        <div key={label} className="rounded-lg border border-white/8 bg-black/20 p-3 min-w-0">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+            <Icon className="w-3 h-3 shrink-0" />
+            <span className="truncate">{label}</span>
+          </div>
+          <p className="text-sm font-bold font-mono text-white truncate">{value}</p>
+          <p className="text-[10px] text-white/35 truncate">{meta}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function SummaryBar({ positions }: { positions: VaultPosition[] }) {
   const totalSize = positions.reduce((s: number, p: VaultPosition) => s + p.sizeUsdc, 0);
   const totalPnl  = positions.reduce((s: number, p: VaultPosition) => s + p.unrealizedPnl, 0);
@@ -160,6 +219,8 @@ interface VaultPositionsModalProps {
 
 export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPositionsModalProps) {
   const [positions, setPositions] = useState<VaultPosition[]>([]);
+  const [balances, setBalances] = useState<PoolBalances | null>(null);
+  const [summary, setSummary] = useState<PoolPositionsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -168,11 +229,12 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
     setLoading(true);
     setError(null);
 
-    fetch(`${API_BASE_URL}/pools/${poolId}/positions`)
-      .then(r => r.json())
+    api.getPoolPositions(poolId)
       .then(data => {
         if (!cancelled) {
-          setPositions((data.positions as VaultPosition[]) ?? []);
+          setPositions(data.positions ?? []);
+          setBalances(data.balances ?? null);
+          setSummary(data.summary ?? null);
         }
       })
       .catch((err: unknown) => {
@@ -215,7 +277,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
               </div>
               <div>
                 <h2 className="font-bold text-white text-sm">{poolName} — Vault Positions</h2>
-                <p className="text-xs text-muted-foreground">Current open Polymarket positions</p>
+                <p className="text-xs text-muted-foreground">Vault cash, server wallet cash, and Limitless positions</p>
               </div>
             </div>
             <button
@@ -239,9 +301,13 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
                 {error}
               </div>
             ) : positions.length === 0 ? (
-              <EmptyState />
+              <>
+                {balances && <CashBreakdown balances={balances} summary={summary} />}
+                <EmptyState />
+              </>
             ) : (
               <>
+                {balances && <CashBreakdown balances={balances} summary={summary} />}
                 <SummaryBar positions={positions} />
 
                 {openPositions.length > 0 && (
@@ -250,7 +316,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
                       Open ({openPositions.length})
                     </p>
                     {openPositions.map((p: VaultPosition) => (
-                      <PositionRow key={p.conditionId} pos={p} />
+                      <PositionRow key={`${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
                     ))}
                   </div>
                 )}
@@ -261,7 +327,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
                       Settled / Closed ({closedPositions.length})
                     </p>
                     {closedPositions.map((p: VaultPosition) => (
-                      <PositionRow key={p.conditionId} pos={p} />
+                      <PositionRow key={`${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
                     ))}
                   </div>
                 )}
@@ -271,7 +337,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
 
           {/* Footer */}
           <div className="px-5 py-3 border-t border-white/8 flex items-center justify-between">
-            <p className="text-xs text-white/30">Data refreshed on open · positions are informational only</p>
+            <p className="text-xs text-white/30">Data refreshed on open</p>
             <button
               onClick={onClose}
               className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-muted-foreground hover:text-white hover:bg-white/10 transition-all"

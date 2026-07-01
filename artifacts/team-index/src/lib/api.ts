@@ -180,6 +180,36 @@ export interface LimitlessBetResult {
   orderResult: unknown;
 }
 
+export interface PoolBalances {
+  vaultCash: number;
+  serverWalletCash: number;
+  totalCash: number;
+  readVaultCash: boolean;
+  readServerWalletCash: boolean;
+  vaultCashSource: "onchain" | "db" | "db-derived";
+  serverWalletAddress: string | null;
+  serverWalletProfileId: string | null;
+  serverWalletStatus: string | null;
+  allowanceStatus: string | null;
+}
+
+export interface PoolPositionsSummary {
+  openPositionsValue: number;
+  realizedPnl: number;
+  totalPoolValue: number;
+  positionCount: number;
+  openPositionCount: number;
+  settledPositionCount: number;
+  cancelledPositionCount: number;
+}
+
+export interface PoolPositionsResponse {
+  ok: boolean;
+  balances: PoolBalances;
+  summary: PoolPositionsSummary;
+  positions: VaultPosition[];
+}
+
 export type { VaultPosition } from '@/types/polymarket';
 import type { VaultPosition, AllocationProposal, SelectedMarket } from '@/types/polymarket';
 
@@ -199,7 +229,7 @@ export const api = {
     apiFetch<{ ok: boolean; candidates: unknown[] }>(`/pools/${poolId}/candidates`),
 
   getPoolPositions: (poolId: string) =>
-    apiFetch<{ ok: boolean; positions: VaultPosition[] }>(`/pools/${poolId}/positions`),
+    apiFetch<PoolPositionsResponse>(`/pools/${poolId}/positions`),
 
   /** Admin: save accepted allocation proposal for a pool */
   saveAllocationProposal: (

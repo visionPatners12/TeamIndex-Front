@@ -4,7 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   Plus, RefreshCw, Trash2, ExternalLink, CheckCircle,
   XCircle, Loader2, Shield, Copy, Eye, EyeOff, Layers,
-  AlertTriangle, ChevronDown, ChevronUp, Settings, Zap, Link, Search
+  AlertTriangle, ChevronDown, ChevronUp, Settings, Zap, Link, Search,
+  Wallet, BarChart2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL, BASE_CHAIN } from '@/lib/config';
@@ -15,13 +16,20 @@ import {
   depositCapToHuman,
   type BackendPool,
 } from '@/hooks/use-pools';
-import { api, type TeamEntry } from '@/lib/api';
+import { api, type PoolPositionsResponse, type TeamEntry } from '@/lib/api';
 import { MarketsSection } from '@/features/pools/MarketsSection';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function copyText(text: string) {
   navigator.clipboard.writeText(text).catch(() => {});
+}
+
+function fmtUsd(value: number | null | undefined) {
+  const n = Number(value ?? 0);
+  if (!Number.isFinite(n)) return '$0.00';
+  const sign = n < 0 ? '-' : '';
+  return `${sign}$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 async function adminFetch(path: string, adminKey: string, options?: RequestInit) {
@@ -543,17 +551,107 @@ function allowanceBadgeClass(status: string | null | undefined) {
   return 'bg-amber-500/15 text-amber-300';
 }
 
+function LimitlessPortfolioSnapshot({
+  portfolio,
+  loading,
+  error,
+}: {
+  portfolio: PoolPositionsResponse | null;
+  loading: boolean;
+  error: string | null;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Lecture vault/server wallet…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-300">
+        <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {error}
+      </div>
+    );
+  }
+
+  if (!portfolio) return null;
+
+  const { balances, summary } = portfolio;
+  const vaultSource =
+    balances.vaultCashSource === 'onchain'
+      ? 'on-chain'
+      : balances.vaultCashSource === 'db-derived'
+      ? 'db split'
+      : 'db fallback';
+  const stats = [
+    { label: 'Vault USDC', value: fmtUsd(balances.vaultCash), meta: vaultSource, icon: Shield },
+    {
+      label: 'Server wallet USDC',
+      value: fmtUsd(balances.serverWalletCash),
+      meta: balances.readServerWalletCash ? 'on-chain' : 'unread',
+      icon: Wallet,
+    },
+    {
+      label: 'Positions',
+      value: fmtUsd(summary.openPositionsValue),
+      meta: `${summary.openPositionCount} open`,
+      icon: Layers,
+    },
+    { label: 'Total NAV', value: fmtUsd(summary.totalPoolValue), meta: 'cash + positions', icon: BarChart2 },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        {stats.map(({ label, value, meta, icon: Icon }) => (
+          <div key={label} className="rounded-lg border border-white/8 bg-black/20 p-3 min-w-0">
+            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+              <Icon className="w-3 h-3 shrink-0" />
+              <span className="truncate">{label}</span>
+            </div>
+            <p className="font-mono text-sm font-bold text-white truncate">{value}</p>
+            <p className="text-[10px] text-white/35 truncate">{meta}</p>
+          </div>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2 text-[10px]">
+        <span className="px-1.5 py-0.5 rounded bg-primary/15 text-primary">
+          open: {summary.openPositionCount}
+        </span>
+        <span className="px-1.5 py-0.5 rounded bg-green-500/15 text-green-300">
+          settled: {summary.settledPositionCount}
+        </span>
+        <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/50">
+          cancelled: {summary.cancelledPositionCount}
+        </span>
+        {balances.serverWalletAddress && (
+          <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/50 font-mono truncate max-w-full">
+            wallet: {balances.serverWalletAddress}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LimitlessServerWalletSection({ poolId, adminKey, vaultAddress }: { poolId: string; adminKey: string; vaultAddress: string | null }) {
   const [account, setAccount] = useState<LimitlessAccount | null>(null);
+  const [portfolio, setPortfolio] = useState<PoolPositionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [portfolioLoading, setPortfolioLoading] = useState(true);
   const [linking, setLinking] = useState(false);
   const [checkingAllowance, setCheckingAllowance] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [portfolioError, setPortfolioError] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setPortfolioLoading(true);
     setError(null);
+    setPortfolioError(null);
     try {
       const data = await adminFetch(`/admin/pools/${poolId}/limitless-account`, adminKey);
       setAccount(data.account ?? null);
@@ -561,6 +659,15 @@ function LimitlessServerWalletSection({ poolId, adminKey, vaultAddress }: { pool
       setError(e.message || 'Could not load Limitless server wallet');
     } finally {
       setLoading(false);
+    }
+    try {
+      const data = await api.getPoolPositions(poolId);
+      setPortfolio(data);
+    } catch (e: any) {
+      setPortfolio(null);
+      setPortfolioError(e.message || 'Could not load vault portfolio');
+    } finally {
+      setPortfolioLoading(false);
     }
   }, [poolId, adminKey]);
 
@@ -740,6 +847,14 @@ function LimitlessServerWalletSection({ poolId, adminKey, vaultAddress }: { pool
           )}
         </div>
       )}
+
+      <div className="mt-4">
+        <LimitlessPortfolioSnapshot
+          portfolio={portfolio}
+          loading={portfolioLoading}
+          error={portfolioError}
+        />
+      </div>
 
       {error && (
         <div className="flex items-center gap-2 mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-300">
