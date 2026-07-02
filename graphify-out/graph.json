@@ -5688,7 +5688,7 @@
       "source_file": "artifacts/team-index/src/App.tsx",
       "source_location": "L1",
       "id": "artifacts_team_index_src_app_tsx_src_app",
-      "community": 5,
+      "community": 30,
       "norm_label": "app.tsx"
     },
     {
@@ -5697,7 +5697,7 @@
       "source_file": "artifacts/team-index/src/App.tsx",
       "source_location": "L11",
       "id": "src_app_queryclient",
-      "community": 5,
+      "community": 30,
       "norm_label": "queryclient"
     },
     {
@@ -5706,7 +5706,7 @@
       "source_file": "artifacts/team-index/src/App.tsx",
       "source_location": "L13",
       "id": "src_app_router",
-      "community": 5,
+      "community": 30,
       "norm_label": "router()"
     },
     {
@@ -5715,7 +5715,7 @@
       "source_file": "artifacts/team-index/src/App.tsx",
       "source_location": "L25",
       "id": "artifacts_team_index_src_app_tsx_src_app_app",
-      "community": 5,
+      "community": 30,
       "norm_label": "app()"
     },
     {
@@ -5751,7 +5751,7 @@
       "source_file": "artifacts/team-index/src/components/layout/Footer.tsx",
       "source_location": "L1",
       "id": "layout_footer",
-      "community": 90,
+      "community": 30,
       "norm_label": "footer.tsx"
     },
     {
@@ -5760,7 +5760,7 @@
       "source_file": "artifacts/team-index/src/components/layout/Footer.tsx",
       "source_location": "L3",
       "id": "layout_footer_footer",
-      "community": 90,
+      "community": 30,
       "norm_label": "footer()"
     },
     {
@@ -5787,7 +5787,7 @@
       "source_file": "artifacts/team-index/src/components/sections/exotic-indexes/ExoticIndexCard.tsx",
       "source_location": "L1",
       "id": "exotic_indexes_exoticindexcard",
-      "community": 44,
+      "community": 90,
       "norm_label": "exoticindexcard.tsx"
     },
     {
@@ -5796,7 +5796,7 @@
       "source_file": "artifacts/team-index/src/components/sections/exotic-indexes/ExoticIndexCard.tsx",
       "source_location": "L3",
       "id": "exotic_indexes_exoticindexcard_exoticindexcardprops",
-      "community": 44,
+      "community": 90,
       "norm_label": "exoticindexcardprops"
     },
     {
@@ -5805,7 +5805,7 @@
       "source_file": "artifacts/team-index/src/components/sections/exotic-indexes/ExoticIndexCard.tsx",
       "source_location": "L11",
       "id": "exotic_indexes_exoticindexcard_exoticindexcard",
-      "community": 44,
+      "community": 90,
       "norm_label": "exoticindexcard()"
     },
     {
@@ -5814,7 +5814,7 @@
       "source_file": "artifacts/team-index/src/components/sections/exotic-indexes/ExoticIndexesSection.tsx",
       "source_location": "L1",
       "id": "exotic_indexes_exoticindexessection",
-      "community": 44,
+      "community": 90,
       "norm_label": "exoticindexessection.tsx"
     },
     {
@@ -5823,7 +5823,7 @@
       "source_file": "artifacts/team-index/src/components/sections/exotic-indexes/ExoticIndexesSection.tsx",
       "source_location": "L5",
       "id": "exotic_indexes_exoticindexessection_exotic_indexes",
-      "community": 44,
+      "community": 90,
       "norm_label": "exotic_indexes"
     },
     {
@@ -5832,7 +5832,7 @@
       "source_file": "artifacts/team-index/src/components/sections/exotic-indexes/ExoticIndexesSection.tsx",
       "source_location": "L32",
       "id": "exotic_indexes_exoticindexessection_exoticindexessection",
-      "community": 44,
+      "community": 90,
       "norm_label": "exoticindexessection()"
     },
     {
@@ -6219,7 +6219,7 @@
       "source_file": "artifacts/team-index/src/components/sections/live-indexes/LiveIndexesSection.tsx",
       "source_location": "L1",
       "id": "live_indexes_liveindexessection",
-      "community": 11,
+      "community": 40,
       "norm_label": "liveindexessection.tsx"
     },
     {
@@ -6228,7 +6228,7 @@
       "source_file": "artifacts/team-index/src/components/sections/live-indexes/LiveIndexesSection.tsx",
       "source_location": "L10",
       "id": "live_indexes_liveindexessection_liveindexessectionprops",
-      "community": 11,
+      "community": 40,
       "norm_label": "liveindexessectionprops"
     },
     {
@@ -6237,7 +6237,7 @@
       "source_file": "artifacts/team-index/src/components/sections/live-indexes/LiveIndexesSection.tsx",
       "source_location": "L20",
       "id": "live_indexes_liveindexessection_liveindexessection",
-      "community": 11,
+      "community": 40,
       "norm_label": "liveindexessection()"
     },
     {
@@ -6345,7 +6345,7 @@
       "source_file": "artifacts/team-index/src/components/sections/performance/PerformanceSection.tsx",
       "source_location": "L1",
       "id": "performance_performancesection",
-      "community": 70,
+      "community": 17,
       "norm_label": "performancesection.tsx"
     },
     {
@@ -6354,7 +6354,7 @@
       "source_file": "artifacts/team-index/src/components/sections/performance/PerformanceSection.tsx",
       "source_location": "L6",
       "id": "performance_performancesection_checkitem",
-      "community": 70,
+      "community": 17,
       "norm_label": "checkitem()"
     },
     {
@@ -6363,7 +6363,7 @@
       "source_file": "artifacts/team-index/src/components/sections/performance/PerformanceSection.tsx",
       "source_location": "L20",
       "id": "performance_performancesection_performancesection",
-      "community": 70,
+      "community": 17,
       "norm_label": "performancesection()"
     },
     {
@@ -6372,7 +6372,7 @@
       "source_file": "artifacts/team-index/src/components/sections/simple-smart/SimpleSmartSection.tsx",
       "source_location": "L1",
       "id": "simple_smart_simplesmartsection",
-      "community": 70,
+      "community": 17,
       "norm_label": "simplesmartsection.tsx"
     },
     {
@@ -6381,7 +6381,7 @@
       "source_file": "artifacts/team-index/src/components/sections/simple-smart/SimpleSmartSection.tsx",
       "source_location": "L3",
       "id": "simple_smart_simplesmartsection_steps",
-      "community": 70,
+      "community": 17,
       "norm_label": "steps"
     },
     {
@@ -6390,7 +6390,7 @@
       "source_file": "artifacts/team-index/src/components/sections/simple-smart/SimpleSmartSection.tsx",
       "source_location": "L10",
       "id": "simple_smart_simplesmartsection_simplesmartsection",
-      "community": 70,
+      "community": 17,
       "norm_label": "simplesmartsection()"
     },
     {
@@ -6498,7 +6498,7 @@
       "source_file": "artifacts/team-index/src/components/sections/why-polymarket/WhyPolymarketSection.tsx",
       "source_location": "L1",
       "id": "why_polymarket_whypolymarketsection",
-      "community": 105,
+      "community": 17,
       "norm_label": "whypolymarketsection.tsx"
     },
     {
@@ -6507,7 +6507,7 @@
       "source_file": "artifacts/team-index/src/components/sections/why-polymarket/WhyPolymarketSection.tsx",
       "source_location": "L9",
       "id": "why_polymarket_whypolymarketsection_bracketsvg",
-      "community": 105,
+      "community": 17,
       "norm_label": "bracketsvg()"
     },
     {
@@ -6516,7 +6516,7 @@
       "source_file": "artifacts/team-index/src/components/sections/why-polymarket/WhyPolymarketSection.tsx",
       "source_location": "L33",
       "id": "why_polymarket_whypolymarketsection_statcardprops",
-      "community": 105,
+      "community": 17,
       "norm_label": "statcardprops"
     },
     {
@@ -6525,7 +6525,7 @@
       "source_file": "artifacts/team-index/src/components/sections/why-polymarket/WhyPolymarketSection.tsx",
       "source_location": "L38",
       "id": "why_polymarket_whypolymarketsection_statcard",
-      "community": 105,
+      "community": 17,
       "norm_label": "statcard()"
     },
     {
@@ -6534,7 +6534,7 @@
       "source_file": "artifacts/team-index/src/components/sections/why-polymarket/WhyPolymarketSection.tsx",
       "source_location": "L51",
       "id": "why_polymarket_whypolymarketsection_whypolymarketsection",
-      "community": 105,
+      "community": 17,
       "norm_label": "whypolymarketsection()"
     },
     {
@@ -6570,7 +6570,7 @@
       "source_file": "artifacts/team-index/src/components/ui/GradientHeading.tsx",
       "source_location": "L1",
       "id": "ui_gradientheading",
-      "community": 70,
+      "community": 17,
       "norm_label": "gradientheading.tsx"
     },
     {
@@ -6579,7 +6579,7 @@
       "source_file": "artifacts/team-index/src/components/ui/GradientHeading.tsx",
       "source_location": "L4",
       "id": "ui_gradientheading_gradientheadingprops",
-      "community": 70,
+      "community": 17,
       "norm_label": "gradientheadingprops"
     },
     {
@@ -6588,7 +6588,7 @@
       "source_file": "artifacts/team-index/src/components/ui/GradientHeading.tsx",
       "source_location": "L11",
       "id": "ui_gradientheading_gradientheading",
-      "community": 70,
+      "community": 17,
       "norm_label": "gradientheading()"
     },
     {
@@ -9765,7 +9765,7 @@
       "source_file": "artifacts/team-index/src/constants/pools.ts",
       "source_location": "L1",
       "id": "constants_pools",
-      "community": 11,
+      "community": 40,
       "norm_label": "pools.ts"
     },
     {
@@ -9774,7 +9774,7 @@
       "source_file": "artifacts/team-index/src/constants/pools.ts",
       "source_location": "L3",
       "id": "constants_pools_demo_pools",
-      "community": 11,
+      "community": 40,
       "norm_label": "demo_pools"
     },
     {
@@ -10296,7 +10296,7 @@
       "source_file": "artifacts/team-index/src/features/exchange/data.ts",
       "source_location": "L187",
       "id": "exchange_data_buildmarkets",
-      "community": 0,
+      "community": 30,
       "norm_label": "buildmarkets()"
     },
     {
@@ -10525,19 +10525,37 @@
       "norm_label": "fmtusd()"
     },
     {
-      "label": "fmtUsdcBaseUnits()",
+      "label": "fmtFixed4()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
       "source_location": "L45",
+      "id": "pools_marketssection_fmtfixed4",
+      "community": 9,
+      "norm_label": "fmtfixed4()"
+    },
+    {
+      "label": "fmtUsdcBaseUnits()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
+      "source_location": "L50",
       "id": "pools_marketssection_fmtusdcbaseunits",
       "community": 9,
       "norm_label": "fmtusdcbaseunits()"
     },
     {
+      "label": "fmtOrderPrice()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
+      "source_location": "L57",
+      "id": "pools_marketssection_fmtorderprice",
+      "community": 9,
+      "norm_label": "fmtorderprice()"
+    },
+    {
       "label": "shortAddress()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L52",
+      "source_location": "L63",
       "id": "pools_marketssection_shortaddress",
       "community": 9,
       "norm_label": "shortaddress()"
@@ -10546,7 +10564,7 @@
       "label": "fmtPct()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L57",
+      "source_location": "L68",
       "id": "pools_marketssection_fmtpct",
       "community": 9,
       "norm_label": "fmtpct()"
@@ -10555,7 +10573,7 @@
       "label": "qualityColor()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L61",
+      "source_location": "L72",
       "id": "pools_marketssection_qualitycolor",
       "community": 9,
       "norm_label": "qualitycolor()"
@@ -10564,7 +10582,7 @@
       "label": "MarketTypeBadge()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L67",
+      "source_location": "L78",
       "id": "pools_marketssection_markettypebadge",
       "community": 9,
       "norm_label": "markettypebadge()"
@@ -10573,7 +10591,7 @@
       "label": "RiskBadge()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L80",
+      "source_location": "L91",
       "id": "pools_marketssection_riskbadge",
       "community": 9,
       "norm_label": "riskbadge()"
@@ -10582,7 +10600,7 @@
       "label": "asNumber()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L93",
+      "source_location": "L104",
       "id": "pools_marketssection_asnumber",
       "community": 9,
       "norm_label": "asnumber()"
@@ -10591,7 +10609,7 @@
       "label": "marketQuestion()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L98",
+      "source_location": "L109",
       "id": "pools_marketssection_marketquestion",
       "community": 9,
       "norm_label": "marketquestion()"
@@ -10600,7 +10618,7 @@
       "label": "marketConditionId()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L102",
+      "source_location": "L113",
       "id": "pools_marketssection_marketconditionid",
       "community": 9,
       "norm_label": "marketconditionid()"
@@ -10609,7 +10627,7 @@
       "label": "effectiveType()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L106",
+      "source_location": "L117",
       "id": "pools_marketssection_effectivetype",
       "community": 9,
       "norm_label": "effectivetype()"
@@ -10618,7 +10636,7 @@
       "label": "marketTimestamp()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L110",
+      "source_location": "L121",
       "id": "pools_marketssection_markettimestamp",
       "community": 9,
       "norm_label": "markettimestamp()"
@@ -10627,7 +10645,7 @@
       "label": "marketEndTimestamp()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L116",
+      "source_location": "L127",
       "id": "pools_marketssection_marketendtimestamp",
       "community": 9,
       "norm_label": "marketendtimestamp()"
@@ -10636,7 +10654,7 @@
       "label": "isDisplayableLimitlessMarket()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L120",
+      "source_location": "L131",
       "id": "pools_marketssection_isdisplayablelimitlessmarket",
       "community": 9,
       "norm_label": "isdisplayablelimitlessmarket()"
@@ -10645,7 +10663,7 @@
       "label": "displayableLimitlessMarkets()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L126",
+      "source_location": "L137",
       "id": "pools_marketssection_displayablelimitlessmarkets",
       "community": 9,
       "norm_label": "displayablelimitlessmarkets()"
@@ -10654,7 +10672,7 @@
       "label": "MarketGroupNode",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L133",
+      "source_location": "L144",
       "id": "pools_marketssection_marketgroupnode",
       "community": 9,
       "norm_label": "marketgroupnode"
@@ -10663,7 +10681,7 @@
       "label": "MatchNode",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L140",
+      "source_location": "L151",
       "id": "pools_marketssection_matchnode",
       "community": 9,
       "norm_label": "matchnode"
@@ -10672,7 +10690,7 @@
       "label": "prettyKind()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L150",
+      "source_location": "L161",
       "id": "pools_marketssection_prettykind",
       "community": 9,
       "norm_label": "prettykind()"
@@ -10681,7 +10699,7 @@
       "label": "groupMarkets()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L155",
+      "source_location": "L166",
       "id": "pools_marketssection_groupmarkets",
       "community": 9,
       "norm_label": "groupmarkets()"
@@ -10690,7 +10708,7 @@
       "label": "MatchStateBadge()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L212",
+      "source_location": "L223",
       "id": "pools_marketssection_matchstatebadge",
       "community": 9,
       "norm_label": "matchstatebadge()"
@@ -10699,7 +10717,7 @@
       "label": "ActiveTab",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L231",
+      "source_location": "L242",
       "id": "pools_marketssection_activetab",
       "community": 9,
       "norm_label": "activetab"
@@ -10708,7 +10726,7 @@
       "label": "MarketSelectorProps",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L235",
+      "source_location": "L246",
       "id": "pools_marketssection_marketselectorprops",
       "community": 9,
       "norm_label": "marketselectorprops"
@@ -10717,7 +10735,7 @@
       "label": "MarketSelectorTab()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L242",
+      "source_location": "L253",
       "id": "pools_marketssection_marketselectortab",
       "community": 9,
       "norm_label": "marketselectortab()"
@@ -10726,7 +10744,7 @@
       "label": "EngineTabProps",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L601",
+      "source_location": "L612",
       "id": "pools_marketssection_enginetabprops",
       "community": 9,
       "norm_label": "enginetabprops"
@@ -10735,7 +10753,7 @@
       "label": "AllocationEngineTab()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L610",
+      "source_location": "L621",
       "id": "pools_marketssection_allocationenginetab",
       "community": 9,
       "norm_label": "allocationenginetab()"
@@ -10744,7 +10762,7 @@
       "label": "ManualBetTabProps",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L919",
+      "source_location": "L930",
       "id": "pools_marketssection_manualbettabprops",
       "community": 9,
       "norm_label": "manualbettabprops"
@@ -10753,7 +10771,7 @@
       "label": "ManualBetTab()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L925",
+      "source_location": "L936",
       "id": "pools_marketssection_manualbettab",
       "community": 9,
       "norm_label": "manualbettab()"
@@ -10762,7 +10780,7 @@
       "label": "MarketsSectionProps",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L1383",
+      "source_location": "L1418",
       "id": "pools_marketssection_marketssectionprops",
       "community": 9,
       "norm_label": "marketssectionprops"
@@ -10771,7 +10789,7 @@
       "label": "MarketsSection()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
-      "source_location": "L1390",
+      "source_location": "L1425",
       "id": "pools_marketssection_marketssection",
       "community": 5,
       "norm_label": "marketssection()"
@@ -10831,28 +10849,82 @@
       "norm_label": "vaultpositionsmodal.tsx"
     },
     {
-      "label": "fmtUsd()",
+      "label": "asNumber()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L13",
+      "id": "pools_vaultpositionsmodal_asnumber",
+      "community": 41,
+      "norm_label": "asnumber()"
+    },
+    {
+      "label": "fmtNumber4()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L18",
+      "id": "pools_vaultpositionsmodal_fmtnumber4",
+      "community": 41,
+      "norm_label": "fmtnumber4()"
+    },
+    {
+      "label": "fmtUsd()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L22",
       "id": "pools_vaultpositionsmodal_fmtusd",
       "community": 41,
       "norm_label": "fmtusd()"
     },
     {
+      "label": "fmtUsdDetailed()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L28",
+      "id": "pools_vaultpositionsmodal_fmtusddetailed",
+      "community": 41,
+      "norm_label": "fmtusddetailed()"
+    },
+    {
+      "label": "fmtPlainDetailed()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L33",
+      "id": "pools_vaultpositionsmodal_fmtplaindetailed",
+      "community": 41,
+      "norm_label": "fmtplaindetailed()"
+    },
+    {
+      "label": "fmtPriceDetailed()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L37",
+      "id": "pools_vaultpositionsmodal_fmtpricedetailed",
+      "community": 41,
+      "norm_label": "fmtpricedetailed()"
+    },
+    {
       "label": "fmtPct()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L19",
+      "source_location": "L43",
       "id": "pools_vaultpositionsmodal_fmtpct",
       "community": 41,
       "norm_label": "fmtpct()"
     },
     {
+      "label": "shortId()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L47",
+      "id": "pools_vaultpositionsmodal_shortid",
+      "community": 41,
+      "norm_label": "shortid()"
+    },
+    {
       "label": "pctColor()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L23",
+      "source_location": "L52",
       "id": "pools_vaultpositionsmodal_pctcolor",
       "community": 41,
       "norm_label": "pctcolor()"
@@ -10861,7 +10933,7 @@
       "label": "MarketTypeBadge()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L27",
+      "source_location": "L56",
       "id": "pools_vaultpositionsmodal_markettypebadge",
       "community": 41,
       "norm_label": "markettypebadge()"
@@ -10870,7 +10942,7 @@
       "label": "SideBadge()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L40",
+      "source_location": "L69",
       "id": "pools_vaultpositionsmodal_sidebadge",
       "community": 41,
       "norm_label": "sidebadge()"
@@ -10879,16 +10951,25 @@
       "label": "StatusBadge()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L53",
+      "source_location": "L82",
       "id": "pools_vaultpositionsmodal_statusbadge",
       "community": 41,
       "norm_label": "statusbadge()"
     },
     {
+      "label": "DetailCell()",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L97",
+      "id": "pools_vaultpositionsmodal_detailcell",
+      "community": 41,
+      "norm_label": "detailcell()"
+    },
+    {
       "label": "EmptyState()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L70",
+      "source_location": "L116",
       "id": "pools_vaultpositionsmodal_emptystate",
       "community": 41,
       "norm_label": "emptystate()"
@@ -10897,7 +10978,7 @@
       "label": "PositionRow()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L82",
+      "source_location": "L128",
       "id": "pools_vaultpositionsmodal_positionrow",
       "community": 41,
       "norm_label": "positionrow()"
@@ -10906,7 +10987,7 @@
       "label": "CashBreakdown()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L127",
+      "source_location": "L214",
       "id": "pools_vaultpositionsmodal_cashbreakdown",
       "community": 41,
       "norm_label": "cashbreakdown()"
@@ -10915,7 +10996,7 @@
       "label": "SummaryBar()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L184",
+      "source_location": "L271",
       "id": "pools_vaultpositionsmodal_summarybar",
       "community": 41,
       "norm_label": "summarybar()"
@@ -10924,7 +11005,7 @@
       "label": "VaultPositionsModalProps",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L214",
+      "source_location": "L301",
       "id": "pools_vaultpositionsmodal_vaultpositionsmodalprops",
       "community": 41,
       "norm_label": "vaultpositionsmodalprops"
@@ -10933,7 +11014,7 @@
       "label": "VaultPositionsModal()",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L220",
+      "source_location": "L307",
       "id": "pools_vaultpositionsmodal_vaultpositionsmodal",
       "community": 41,
       "norm_label": "vaultpositionsmodal()"
@@ -11016,7 +11097,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-pools.ts",
       "source_location": "L98",
       "id": "hooks_use_pools_usepools",
-      "community": 0,
+      "community": 30,
       "norm_label": "usepools()"
     },
     {
@@ -11178,7 +11259,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-usdc-balance.ts",
       "source_location": "L1",
       "id": "hooks_use_usdc_balance",
-      "community": 31,
+      "community": 44,
       "norm_label": "use-usdc-balance.ts"
     },
     {
@@ -11187,7 +11268,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-usdc-balance.ts",
       "source_location": "L7",
       "id": "hooks_use_usdc_balance_encodebalanceof",
-      "community": 31,
+      "community": 44,
       "norm_label": "encodebalanceof()"
     },
     {
@@ -11196,7 +11277,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-usdc-balance.ts",
       "source_location": "L11",
       "id": "hooks_use_usdc_balance_fetchusdcbalance",
-      "community": 31,
+      "community": 44,
       "norm_label": "fetchusdcbalance()"
     },
     {
@@ -11232,7 +11313,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-user-holdings.ts",
       "source_location": "L11",
       "id": "hooks_use_user_holdings_userholding",
-      "community": 11,
+      "community": 40,
       "norm_label": "userholding"
     },
     {
@@ -11250,7 +11331,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-user-holdings.ts",
       "source_location": "L44",
       "id": "hooks_use_user_holdings_useuserholdings",
-      "community": 22,
+      "community": 89,
       "norm_label": "useuserholdings()"
     },
     {
@@ -11304,7 +11385,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L1",
       "id": "hooks_use_wallet_tx",
-      "community": 31,
+      "community": 44,
       "norm_label": "use-wallet-tx.ts"
     },
     {
@@ -11313,7 +11394,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L10",
       "id": "hooks_use_wallet_tx_txstatus",
-      "community": 31,
+      "community": 44,
       "norm_label": "txstatus"
     },
     {
@@ -11322,7 +11403,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L12",
       "id": "hooks_use_wallet_tx_wallettx",
-      "community": 31,
+      "community": 44,
       "norm_label": "wallettx"
     },
     {
@@ -11331,7 +11412,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L14",
       "id": "hooks_use_wallet_tx_chain_metadata",
-      "community": 31,
+      "community": 44,
       "norm_label": "chain_metadata"
     },
     {
@@ -11340,7 +11421,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L23",
       "id": "hooks_use_wallet_tx_getprovider",
-      "community": 31,
+      "community": 44,
       "norm_label": "getprovider()"
     },
     {
@@ -11349,7 +11430,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L27",
       "id": "hooks_use_wallet_tx_switchchain",
-      "community": 31,
+      "community": 44,
       "norm_label": "switchchain()"
     },
     {
@@ -11358,7 +11439,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L47",
       "id": "hooks_use_wallet_tx_sendrawtx",
-      "community": 31,
+      "community": 44,
       "norm_label": "sendrawtx()"
     },
     {
@@ -11367,7 +11448,7 @@
       "source_file": "artifacts/team-index/src/hooks/use-wallet-tx.ts",
       "source_location": "L61",
       "id": "hooks_use_wallet_tx_waitforreceipt",
-      "community": 31,
+      "community": 44,
       "norm_label": "waitforreceipt()"
     },
     {
@@ -11646,7 +11727,7 @@
       "source_file": "artifacts/team-index/src/lib/allocation-engine.ts",
       "source_location": "L412",
       "id": "lib_allocation_engine_prepared",
-      "community": 30,
+      "community": 4,
       "norm_label": "prepared"
     },
     {
@@ -11794,10 +11875,19 @@
       "norm_label": "limitlessteammarket"
     },
     {
-      "label": "LimitlessBetResult",
+      "label": "LimitlessBetFormatted",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/lib/api.ts",
       "source_location": "L152",
+      "id": "lib_api_limitlessbetformatted",
+      "community": 32,
+      "norm_label": "limitlessbetformatted"
+    },
+    {
+      "label": "LimitlessBetResult",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/lib/api.ts",
+      "source_location": "L161",
       "id": "lib_api_limitlessbetresult",
       "community": 32,
       "norm_label": "limitlessbetresult"
@@ -11806,7 +11896,7 @@
       "label": "PoolBalances",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/lib/api.ts",
-      "source_location": "L183",
+      "source_location": "L217",
       "id": "lib_api_poolbalances",
       "community": 41,
       "norm_label": "poolbalances"
@@ -11815,7 +11905,7 @@
       "label": "PoolPositionsSummary",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/lib/api.ts",
-      "source_location": "L196",
+      "source_location": "L230",
       "id": "lib_api_poolpositionssummary",
       "community": 41,
       "norm_label": "poolpositionssummary"
@@ -11824,7 +11914,7 @@
       "label": "PoolPositionsResponse",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/lib/api.ts",
-      "source_location": "L206",
+      "source_location": "L240",
       "id": "lib_api_poolpositionsresponse",
       "community": 32,
       "norm_label": "poolpositionsresponse"
@@ -11833,9 +11923,9 @@
       "label": "api",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/lib/api.ts",
-      "source_location": "L216",
+      "source_location": "L250",
       "id": "lib_api_api",
-      "community": 41,
+      "community": 31,
       "norm_label": "api"
     },
     {
@@ -11844,7 +11934,7 @@
       "source_file": "artifacts/team-index/src/lib/config.ts",
       "source_location": "L1",
       "id": "lib_config",
-      "community": 31,
+      "community": 44,
       "norm_label": "config.ts"
     },
     {
@@ -11853,7 +11943,7 @@
       "source_file": "artifacts/team-index/src/lib/config.ts",
       "source_location": "L10",
       "id": "lib_config_base_chain",
-      "community": 31,
+      "community": 44,
       "norm_label": "base_chain"
     },
     {
@@ -12069,7 +12159,7 @@
       "source_file": "artifacts/team-index/src/pages/Exchange.tsx",
       "source_location": "L1",
       "id": "pages_exchange",
-      "community": 0,
+      "community": 30,
       "norm_label": "exchange.tsx"
     },
     {
@@ -12078,7 +12168,7 @@
       "source_file": "artifacts/team-index/src/pages/Exchange.tsx",
       "source_location": "L15",
       "id": "pages_exchange_sortkey",
-      "community": 0,
+      "community": 30,
       "norm_label": "sortkey"
     },
     {
@@ -12087,7 +12177,7 @@
       "source_file": "artifacts/team-index/src/pages/Exchange.tsx",
       "source_location": "L17",
       "id": "pages_exchange_explainers",
-      "community": 0,
+      "community": 30,
       "norm_label": "explainers"
     },
     {
@@ -12096,7 +12186,7 @@
       "source_file": "artifacts/team-index/src/pages/Exchange.tsx",
       "source_location": "L35",
       "id": "pages_exchange_exchange",
-      "community": 0,
+      "community": 30,
       "norm_label": "exchange()"
     },
     {
@@ -12114,7 +12204,7 @@
       "source_file": "artifacts/team-index/src/pages/Home.tsx",
       "source_location": "L30",
       "id": "pages_home_home",
-      "community": 22,
+      "community": 89,
       "norm_label": "home()"
     },
     {
@@ -12123,7 +12213,7 @@
       "source_file": "artifacts/team-index/src/pages/not-found.tsx",
       "source_location": "L1",
       "id": "pages_not_found",
-      "community": 5,
+      "community": 30,
       "norm_label": "not-found.tsx"
     },
     {
@@ -12132,7 +12222,7 @@
       "source_file": "artifacts/team-index/src/pages/not-found.tsx",
       "source_location": "L4",
       "id": "pages_not_found_notfound",
-      "community": 5,
+      "community": 30,
       "norm_label": "notfound()"
     },
     {
@@ -12141,7 +12231,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L1",
       "id": "types_polymarket",
-      "community": 30,
+      "community": 4,
       "norm_label": "polymarket.ts"
     },
     {
@@ -12159,7 +12249,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L2",
       "id": "types_polymarket_marketside",
-      "community": 41,
+      "community": 4,
       "norm_label": "marketside"
     },
     {
@@ -12168,7 +12258,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L3",
       "id": "types_polymarket_marketstatus",
-      "community": 30,
+      "community": 4,
       "norm_label": "marketstatus"
     },
     {
@@ -12177,7 +12267,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L6",
       "id": "types_polymarket_gammamarket",
-      "community": 30,
+      "community": 4,
       "norm_label": "gammamarket"
     },
     {
@@ -12186,7 +12276,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L31",
       "id": "types_polymarket_selectedmarket",
-      "community": 30,
+      "community": 4,
       "norm_label": "selectedmarket"
     },
     {
@@ -12195,7 +12285,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L43",
       "id": "types_polymarket_marketclobdata",
-      "community": 30,
+      "community": 4,
       "norm_label": "marketclobdata"
     },
     {
@@ -12204,7 +12294,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L60",
       "id": "types_polymarket_scoredallocation",
-      "community": 30,
+      "community": 4,
       "norm_label": "scoredallocation"
     },
     {
@@ -12213,7 +12303,7 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L103",
       "id": "types_polymarket_rejectedmarket",
-      "community": 30,
+      "community": 4,
       "norm_label": "rejectedmarket"
     },
     {
@@ -12222,14 +12312,32 @@
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
       "source_location": "L112",
       "id": "types_polymarket_allocationproposal",
-      "community": 30,
+      "community": 4,
       "norm_label": "allocationproposal"
+    },
+    {
+      "label": "VaultPositionFormatted",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/types/polymarket.ts",
+      "source_location": "L143",
+      "id": "types_polymarket_vaultpositionformatted",
+      "community": 4,
+      "norm_label": "vaultpositionformatted"
+    },
+    {
+      "label": "VaultPositionOrder",
+      "file_type": "code",
+      "source_file": "artifacts/team-index/src/types/polymarket.ts",
+      "source_location": "L159",
+      "id": "types_polymarket_vaultpositionorder",
+      "community": 4,
+      "norm_label": "vaultpositionorder"
     },
     {
       "label": "VaultPosition",
       "file_type": "code",
       "source_file": "artifacts/team-index/src/types/polymarket.ts",
-      "source_location": "L144",
+      "source_location": "L171",
       "id": "types_polymarket_vaultposition",
       "community": 32,
       "norm_label": "vaultposition"
@@ -12276,7 +12384,7 @@
       "source_file": "artifacts/team-index/src/types/pool.ts",
       "source_location": "L19",
       "id": "types_pool_liveindexpool",
-      "community": 11,
+      "community": 40,
       "norm_label": "liveindexpool"
     },
     {
@@ -28185,6 +28293,26 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "pools_marketssection",
+      "target": "pools_marketssection_fmtfixed4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "pools_marketssection",
+      "target": "pools_marketssection_fmtorderprice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
       "source_location": "L41",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -28504,6 +28632,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "pools_marketssection_fmtorderprice",
+      "target": "pools_marketssection_fmtfixed4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/MarketsSection.tsx",
       "source_location": "L1349",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -28789,9 +28928,9 @@
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal",
-      "target": "lib_api",
-      "confidence_score": 1.0
+      "target": "lib_api"
     },
     {
       "relation": "imports",
@@ -28800,9 +28939,9 @@
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal",
-      "target": "lib_api_api",
-      "confidence_score": 1.0
+      "target": "lib_api_api"
     },
     {
       "relation": "imports",
@@ -28811,9 +28950,9 @@
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal",
-      "target": "lib_api_poolbalances",
-      "confidence_score": 1.0
+      "target": "lib_api_poolbalances"
     },
     {
       "relation": "imports",
@@ -28822,9 +28961,9 @@
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal",
-      "target": "lib_api_poolpositionssummary",
-      "confidence_score": 1.0
+      "target": "lib_api_poolpositionssummary"
     },
     {
       "relation": "imports_from",
@@ -28841,10 +28980,30 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
-      "source_location": "L127",
+      "source_location": "L13",
       "weight": 1.0,
       "source": "pools_vaultpositionsmodal",
-      "target": "pools_vaultpositionsmodal_cashbreakdown",
+      "target": "pools_vaultpositionsmodal_asnumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L127",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "pools_vaultpositionsmodal",
+      "target": "pools_vaultpositionsmodal_cashbreakdown"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L97",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal",
+      "target": "pools_vaultpositionsmodal_detailcell",
       "confidence_score": 1.0
     },
     {
@@ -28861,6 +29020,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal",
+      "target": "pools_vaultpositionsmodal_fmtnumber4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L17",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -28871,11 +29040,41 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal",
+      "target": "pools_vaultpositionsmodal_fmtplaindetailed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal",
+      "target": "pools_vaultpositionsmodal_fmtpricedetailed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L12",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal",
       "target": "pools_vaultpositionsmodal_fmtusd"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal",
+      "target": "pools_vaultpositionsmodal_fmtusddetailed",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -28906,6 +29105,16 @@
       "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal",
       "target": "pools_vaultpositionsmodal_positionrow"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal",
+      "target": "pools_vaultpositionsmodal_shortid",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -29006,9 +29215,75 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_fmtnumber4",
+      "target": "pools_vaultpositionsmodal_asnumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_fmtpricedetailed",
+      "target": "pools_vaultpositionsmodal_asnumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_fmtusddetailed",
+      "target": "pools_vaultpositionsmodal_asnumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L34",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_fmtplaindetailed",
+      "target": "pools_vaultpositionsmodal_fmtnumber4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_fmtusd",
+      "target": "pools_vaultpositionsmodal_fmtnumber4",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L144",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal_cashbreakdown",
+      "target": "pools_vaultpositionsmodal_fmtusd"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_fmtusddetailed",
       "target": "pools_vaultpositionsmodal_fmtusd",
       "confidence_score": 1.0
     },
@@ -29039,11 +29314,55 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L158",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_positionrow",
+      "target": "pools_vaultpositionsmodal_fmtusddetailed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L190",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_positionrow",
+      "target": "pools_vaultpositionsmodal_fmtplaindetailed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_positionrow",
+      "target": "pools_vaultpositionsmodal_fmtpricedetailed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
       "source_location": "L111",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "pools_vaultpositionsmodal_positionrow",
       "target": "pools_vaultpositionsmodal_fmtpct"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx",
+      "source_location": "L181",
+      "weight": 1.0,
+      "source": "pools_vaultpositionsmodal_positionrow",
+      "target": "pools_vaultpositionsmodal_shortid",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -30874,6 +31193,16 @@
       "source_file": "artifacts/team-index/src/lib/api.ts",
       "source_location": "L152",
       "weight": 1.0,
+      "source": "lib_api",
+      "target": "lib_api_limitlessbetformatted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/lib/api.ts",
+      "source_location": "L152",
+      "weight": 1.0,
       "confidence_score": 1.0,
       "source": "lib_api",
       "target": "lib_api_limitlessbetresult"
@@ -30894,9 +31223,9 @@
       "source_file": "artifacts/team-index/src/lib/api.ts",
       "source_location": "L183",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api",
-      "target": "lib_api_poolbalances",
-      "confidence_score": 1.0
+      "target": "lib_api_poolbalances"
     },
     {
       "relation": "contains",
@@ -30904,9 +31233,9 @@
       "source_file": "artifacts/team-index/src/lib/api.ts",
       "source_location": "L206",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api",
-      "target": "lib_api_poolpositionsresponse",
-      "confidence_score": 1.0
+      "target": "lib_api_poolpositionsresponse"
     },
     {
       "relation": "contains",
@@ -30914,9 +31243,9 @@
       "source_file": "artifacts/team-index/src/lib/api.ts",
       "source_location": "L196",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api",
-      "target": "lib_api_poolpositionssummary",
-      "confidence_score": 1.0
+      "target": "lib_api_poolpositionssummary"
     },
     {
       "relation": "contains",
@@ -31072,9 +31401,9 @@
       "source_file": "artifacts/team-index/src/lib/api.ts",
       "source_location": "L210",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_poolpositionsresponse",
-      "target": "types_polymarket_vaultposition",
-      "confidence_score": 1.0
+      "target": "types_polymarket_vaultposition"
     },
     {
       "relation": "imports",
@@ -31083,9 +31412,9 @@
       "source_file": "artifacts/team-index/src/pages/Admin.tsx",
       "source_location": "L19",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pages_admin",
-      "target": "lib_api_poolpositionsresponse",
-      "confidence_score": 1.0
+      "target": "lib_api_poolpositionsresponse"
     },
     {
       "relation": "imports",
@@ -31247,9 +31576,9 @@
       "source_file": "artifacts/team-index/src/pages/Admin.tsx",
       "source_location": "L28",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pages_admin",
-      "target": "pages_admin_fmtusd",
-      "confidence_score": 1.0
+      "target": "pages_admin_fmtusd"
     },
     {
       "relation": "contains",
@@ -31267,9 +31596,9 @@
       "source_file": "artifacts/team-index/src/pages/Admin.tsx",
       "source_location": "L554",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pages_admin",
-      "target": "pages_admin_limitlessportfoliosnapshot",
-      "confidence_score": 1.0
+      "target": "pages_admin_limitlessportfoliosnapshot"
     },
     {
       "relation": "contains",
@@ -31350,9 +31679,9 @@
       "source_file": "artifacts/team-index/src/pages/Admin.tsx",
       "source_location": "L589",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "pages_admin_limitlessportfoliosnapshot",
-      "target": "pages_admin_fmtusd",
-      "confidence_score": 1.0
+      "target": "pages_admin_fmtusd"
     },
     {
       "relation": "calls",
@@ -31829,6 +32158,26 @@
       "confidence_score": 1.0,
       "source": "types_polymarket",
       "target": "types_polymarket_vaultposition"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/types/polymarket.ts",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "types_polymarket",
+      "target": "types_polymarket_vaultpositionformatted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "artifacts/team-index/src/types/polymarket.ts",
+      "source_location": "L159",
+      "weight": 1.0,
+      "source": "types_polymarket",
+      "target": "types_polymarket_vaultpositionorder",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -34744,5 +35093,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b1a49a404bd6ba71e0008f71bde9e9247cde3086"
+  "built_at_commit": "a2a814d786d29a151d314481978cbfdcbb5009f4"
 }

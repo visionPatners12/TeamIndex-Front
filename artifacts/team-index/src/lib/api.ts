@@ -149,6 +149,15 @@ export interface LimitlessTeamMarket {
 
 // ─── Manual Limitless bet flow ────────────────────────────────────────────────
 
+export interface LimitlessBetFormatted {
+  price?: string;
+  amountUsd?: string;
+  plannedQuantity?: string;
+  makerAmountUsdc?: string;
+  takerQuantity?: string;
+  quotePrice?: string;
+}
+
 export interface LimitlessBetResult {
   ok: boolean;
   positionId: string;
@@ -158,6 +167,28 @@ export interface LimitlessBetResult {
   price: number;
   plannedQuantity: number;
   clobOrderId?: string | null;
+  formatted?: LimitlessBetFormatted;
+  order?: {
+    id: string | null;
+    status: string;
+    marketSlug: string;
+    outcome: 'yes' | 'no';
+    side: string;
+    price: number;
+    amountUsd: number;
+    plannedQuantity: number;
+    makerAmountUsdc?: number;
+    takerQuantity?: number;
+    positionId: string;
+    formatted?: LimitlessBetFormatted;
+    quote?: {
+      price: number;
+      makerAmount: string;
+      takerAmount: string;
+      makerAmountUsdc?: number;
+      takerQuantity?: number;
+    };
+  };
   serverWallet?: {
     ownerId: number;
     address: string;
@@ -175,6 +206,9 @@ export interface LimitlessBetResult {
     price: number;
     makerAmount: string;
     takerAmount: string;
+    makerAmountUsdc?: number;
+    takerQuantity?: number;
+    formatted?: LimitlessBetFormatted;
   };
   allowanceCheck?: unknown;
   orderResult: unknown;

@@ -890,8 +890,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/features/pools/MarketsSection.tsx": {
-    "mtime": 1782790706.259762,
-    "ast_hash": "3affbef3a1db8127b8ad6a53d9206727",
+    "mtime": 1782961240.8765352,
+    "ast_hash": "2501cd594c7b6bf4892879c387993984",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/features/pools/PoolCard.tsx": {
@@ -905,8 +905,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx": {
-    "mtime": 1782926505.638299,
-    "ast_hash": "450b0042701bf9619deec562df2f6ef8",
+    "mtime": 1782961338.0490174,
+    "ast_hash": "4a4cadd33a1de92e90005a6aaf5b5017",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/hooks/use-mobile.tsx": {
@@ -940,8 +940,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/lib/api.ts": {
-    "mtime": 1782926464.568241,
-    "ast_hash": "b6cca6a95e7f195430873779ae830c45",
+    "mtime": 1782961240.8721354,
+    "ast_hash": "f736121ddef55f9aea0a154dc5d4f458",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/lib/config.ts": {
@@ -985,8 +985,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/types/polymarket.ts": {
-    "mtime": 1780750048.7595758,
-    "ast_hash": "139e75ae51f05ed01b2102b00d984acf",
+    "mtime": 1782961240.870513,
+    "ast_hash": "0e97c68f37be61a2f76fdd4d521e451e",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/types/pool.ts": {

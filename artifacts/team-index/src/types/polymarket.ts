@@ -1,6 +1,6 @@
 export type MarketType = 'game' | 'future';
 export type MarketSide = 'YES' | 'NO';
-export type MarketStatus = 'open' | 'closed' | 'settled';
+export type MarketStatus = 'open' | 'closed' | 'settled' | 'cancelled';
 
 /** Legacy market shape kept for allocation data compatibility */
 export interface GammaMarket {
@@ -140,8 +140,42 @@ export interface AllocationProposal {
   methodology?: string;
 }
 
+export interface VaultPositionFormatted {
+  sizeUsdc?: string;
+  entryPrice?: string;
+  currentPrice?: string;
+  unrealizedPnl?: string;
+  unrealizedPnlPct?: string;
+  realizedPnl?: string;
+  plannedStake?: string;
+  plannedQuantity?: string;
+  filledStake?: string;
+  filledQuantity?: string;
+  fillPct?: string;
+  investedAmount?: string;
+  currentValue?: string;
+}
+
+export interface VaultPositionOrder {
+  id: string | null;
+  status: string;
+  side: MarketSide | string;
+  marketId: string;
+  tokenId: string;
+  queueId: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
 /** Current open position in a vault (user-facing) */
 export interface VaultPosition {
+  id?: string;
+  poolId?: string;
+  queueId?: string | null;
+  eventId?: string;
+  marketId?: string;
+  tokenId?: string;
+  clobOrderId?: string | null;
   conditionId: string;
   question: string;
   marketType: MarketType;
@@ -151,6 +185,29 @@ export interface VaultPosition {
   currentPrice: number;
   unrealizedPnl: number;
   unrealizedPnlPct: number;
+  realizedPnl?: number;
   status: MarketStatus;
   endsAt: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  order?: VaultPositionOrder;
+  planned?: {
+    stake: number;
+    quantity: number;
+  };
+  filled?: {
+    stake: number;
+    quantity: number;
+    fillPct: number;
+  };
+  valuation?: {
+    entryPrice: number;
+    currentPrice: number;
+    investedAmount: number;
+    currentValue: number;
+    unrealizedPnl: number;
+    unrealizedPnlPct: number;
+    realizedPnl: number;
+  };
+  formatted?: VaultPositionFormatted;
 }

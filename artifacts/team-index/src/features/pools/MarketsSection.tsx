@@ -42,11 +42,22 @@ function fmtUsd(n: number) {
   return `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
+function fmtFixed4(value: number | string | null | undefined) {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? n.toFixed(4) : '0.0000';
+}
+
 function fmtUsdcBaseUnits(value?: string | null) {
-  if (!value) return '0 USDC';
+  if (!value) return '0.0000 USDC';
   const n = Number(value);
   if (!Number.isFinite(n)) return `${value} base units`;
-  return `${(n / 1_000_000).toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC`;
+  return `${(n / 1_000_000).toFixed(4)} USDC`;
+}
+
+function fmtOrderPrice(value: number | string | null | undefined, formatted?: string) {
+  const n = Number(value ?? 0);
+  const price = formatted ?? fmtFixed4(n);
+  return `${price} / ${(Number.isFinite(n) ? n * 100 : 0).toFixed(4)}¢`;
 }
 
 function shortAddress(value?: string | null) {
@@ -1308,68 +1319,92 @@ function ManualBetTab({ poolId, adminKey, sportsDataTeamId }: ManualBetTabProps)
           )}
 
           {betResult && (
-            <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-xs text-green-300 space-y-1.5">
+            <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-xs text-green-300 space-y-2">
               <div className="flex items-center gap-2 font-semibold">
                 <CheckCircle className="w-3.5 h-3.5 shrink-0" /> Mise placée avec succès.
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                <div>
-                  <p className="text-[9px] uppercase tracking-wider text-green-400/60">Position ID</p>
-                  <p className="font-mono text-white/90 break-all">{betResult.positionId}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-wider text-green-400/60">Outcome</p>
-                  <p className="font-mono text-white/90 uppercase">{betResult.outcome}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-wider text-green-400/60">Prix exécuté</p>
-                  <p className="font-mono text-white/90">{(asNumber(betResult.price) * 100).toFixed(1)}¢</p>
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase tracking-wider text-green-400/60">Qté planifiée</p>
-                  <p className="font-mono text-white/90">{betResult.plannedQuantity}</p>
-                </div>
-                {betResult.serverWallet?.address && (
-                  <div>
-                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Server wallet</p>
-                    <a
-                      href={`${BASE_CHAIN.blockExplorer}/address/${betResult.serverWallet.address}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-white/90 underline decoration-white/20 hover:text-primary"
-                    >
-                      {shortAddress(betResult.serverWallet.address)}
-                    </a>
+              {(() => {
+                const formatted = betResult.formatted ?? betResult.order?.formatted ?? {};
+                const quoteFormatted = betResult.orderQuote?.formatted ?? {};
+                const orderId = betResult.order?.id ?? betResult.clobOrderId;
+                const makerAmountUsdc = betResult.orderQuote?.makerAmountUsdc ?? betResult.order?.quote?.makerAmountUsdc;
+                const takerQuantity = betResult.orderQuote?.takerQuantity ?? betResult.order?.quote?.takerQuantity;
+
+                return (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 pt-1">
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Position ID</p>
+                      <p className="font-mono text-white/90 break-all">{betResult.positionId}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Order ID</p>
+                      <p className="font-mono text-white/90 break-all">{orderId ?? 'pending'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Outcome</p>
+                      <p className="font-mono text-white/90 uppercase">{betResult.outcome}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Prix exécuté</p>
+                      <p className="font-mono text-white/90">{fmtOrderPrice(betResult.price, formatted.price)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Montant USDC</p>
+                      <p className="font-mono text-white/90">${formatted.amountUsd ?? fmtFixed4(betResult.amountUsd)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Qté planifiée</p>
+                      <p className="font-mono text-white/90">{formatted.plannedQuantity ?? fmtFixed4(betResult.plannedQuantity)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Maker USDC</p>
+                      <p className="font-mono text-white/90">
+                        ${quoteFormatted.makerAmountUsdc ?? formatted.makerAmountUsdc ?? fmtFixed4(makerAmountUsdc)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-green-400/60">Taker qty</p>
+                      <p className="font-mono text-white/90">
+                        {quoteFormatted.takerQuantity ?? formatted.takerQuantity ?? fmtFixed4(takerQuantity)}
+                      </p>
+                    </div>
+                    {betResult.serverWallet?.address && (
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-green-400/60">Server wallet</p>
+                        <a
+                          href={`${BASE_CHAIN.blockExplorer}/address/${betResult.serverWallet.address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-white/90 underline decoration-white/20 hover:text-primary"
+                        >
+                          {shortAddress(betResult.serverWallet.address)}
+                        </a>
+                      </div>
+                    )}
+                    {betResult.funding && (
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-green-400/60">Funding vault → wallet</p>
+                        <p className="font-mono text-white/90">
+                          {betResult.funding.funded ? fmtUsdcBaseUnits(betResult.funding.amount) : 'déjà financé'}
+                        </p>
+                      </div>
+                    )}
+                    {betResult.funding?.txHash && (
+                      <div>
+                        <p className="text-[9px] uppercase tracking-wider text-green-400/60">Funding tx</p>
+                        <a
+                          href={`${BASE_CHAIN.blockExplorer}/tx/${betResult.funding.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-mono text-white/90 underline decoration-white/20 hover:text-primary"
+                        >
+                          {shortAddress(betResult.funding.txHash)}
+                        </a>
+                      </div>
+                    )}
                   </div>
-                )}
-                {betResult.funding && (
-                  <div>
-                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Funding vault → wallet</p>
-                    <p className="font-mono text-white/90">
-                      {betResult.funding.funded ? fmtUsdcBaseUnits(betResult.funding.amount) : 'déjà financé'}
-                    </p>
-                  </div>
-                )}
-                {betResult.funding?.txHash && (
-                  <div>
-                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Funding tx</p>
-                    <a
-                      href={`${BASE_CHAIN.blockExplorer}/tx/${betResult.funding.txHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-white/90 underline decoration-white/20 hover:text-primary"
-                    >
-                      {shortAddress(betResult.funding.txHash)}
-                    </a>
-                  </div>
-                )}
-                {betResult.clobOrderId && (
-                  <div>
-                    <p className="text-[9px] uppercase tracking-wider text-green-400/60">Order ID</p>
-                    <p className="font-mono text-white/90 break-all">{betResult.clobOrderId}</p>
-                  </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
           )}
         </motion.div>

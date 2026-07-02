@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, TrendingUp, TrendingDown, Loader2, BarChart2, AlertTriangle,
-  Wallet, Landmark, Activity,
+  Wallet, Landmark, Activity, Hash, Clock3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { VaultPosition, MarketType, MarketSide } from '@/types/polymarket';
@@ -10,14 +10,43 @@ import { api, type PoolBalances, type PoolPositionsSummary } from '@/lib/api';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function asNumber(value: unknown, fallback = 0): number {
+  const n = Number(value ?? fallback);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function fmtNumber4(value: unknown): string {
+  return asNumber(value).toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+}
+
 function fmtUsd(n: number): string {
   if (!Number.isFinite(n)) return '—';
   const sign = n < 0 ? '-' : '';
-  return `${sign}$${Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `${sign}$${fmtNumber4(Math.abs(n))}`;
+}
+
+function fmtUsdDetailed(value: unknown, formatted?: string): string {
+  if (formatted) return `$${formatted}`;
+  return fmtUsd(asNumber(value));
+}
+
+function fmtPlainDetailed(value: unknown, formatted?: string): string {
+  return formatted ?? fmtNumber4(value);
+}
+
+function fmtPriceDetailed(value: unknown, formatted?: string): string {
+  const n = asNumber(value);
+  const price = formatted ?? n.toFixed(4);
+  return `${price} / ${(n * 100).toFixed(4)}¢`;
 }
 
 function fmtPct(n: number): string {
-  return `${n >= 0 ? '+' : ''}${(n * 100).toFixed(1)}%`;
+  return `${n >= 0 ? '+' : ''}${(n * 100).toFixed(4)}%`;
+}
+
+function shortId(value?: string | null): string {
+  if (!value) return 'pending';
+  return value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value;
 }
 
 function pctColor(n: number): string {
@@ -65,6 +94,23 @@ function StatusBadge({ status }: { status: VaultPosition['status'] }) {
   );
 }
 
+function DetailCell({
+  label,
+  value,
+  mono = true,
+}: {
+  label: string;
+  value: React.ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="min-w-0 rounded-md border border-white/8 bg-black/20 px-2.5 py-2">
+      <p className="text-[9px] uppercase tracking-wider text-white/35 truncate">{label}</p>
+      <p className={cn('text-[11px] text-white/90 truncate', mono && 'font-mono')}>{value}</p>
+    </div>
+  );
+}
+
 // ─── Mock fallback for pools without live position data ──────────────────────
 
 function EmptyState() {
@@ -80,43 +126,84 @@ function EmptyState() {
 // ─── Position Row ─────────────────────────────────────────────────────────────
 
 function PositionRow({ pos }: { pos: VaultPosition }) {
-  const pnlPositive = pos.unrealizedPnl >= 0;
+  const f = pos.formatted ?? {};
+  const pnl = pos.valuation?.unrealizedPnl ?? pos.unrealizedPnl;
+  const pnlPct = pos.valuation?.unrealizedPnlPct ?? pos.unrealizedPnlPct;
+  const pnlPositive = pnl >= 0;
+  const orderId = pos.order?.id ?? pos.clobOrderId ?? null;
+  const orderStatus = pos.order?.status ?? pos.status;
+  const filledQty = pos.filled?.quantity ?? 0;
+  const plannedQty = pos.planned?.quantity ?? 0;
+  const fillPct = pos.filled?.fillPct ?? (plannedQty > 0 ? filledQty / plannedQty : 0);
 
   return (
-    <div className="grid grid-cols-[1fr_auto] gap-2 items-start px-4 py-3 border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
-      <div className="min-w-0">
-        <p className="text-sm text-white leading-snug line-clamp-2">{pos.question}</p>
-        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <MarketTypeBadge type={pos.marketType} />
-          <SideBadge side={pos.selectedSide} />
-          <StatusBadge status={pos.status} />
-          {pos.endsAt && (
-            <span className="text-[9px] text-white/30">
-              Ends {new Date(pos.endsAt).toLocaleDateString()}
+    <div className="px-4 py-4 border-b border-white/5 last:border-0 hover:bg-white/3 transition-colors">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-start">
+        <div className="min-w-0">
+          <p className="text-sm text-white leading-snug line-clamp-2">{pos.question}</p>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <MarketTypeBadge type={pos.marketType} />
+            <SideBadge side={pos.selectedSide} />
+            <StatusBadge status={pos.status} />
+            {pos.endsAt && (
+              <span className="text-[9px] text-white/30">
+                Ends {new Date(pos.endsAt).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="text-left sm:text-right shrink-0 space-y-1">
+          <p className="text-sm font-bold font-mono text-white">
+            {fmtUsdDetailed(pos.valuation?.investedAmount ?? pos.sizeUsdc, f.investedAmount ?? f.sizeUsdc)}
+          </p>
+          <div className="flex items-center gap-1 sm:justify-end">
+            {pnlPositive
+              ? <TrendingUp className="w-3 h-3 text-green-400" />
+              : <TrendingDown className="w-3 h-3 text-red-400" />
+            }
+            <span className={cn('text-xs font-mono font-semibold', pctColor(pnl))}>
+              {fmtUsdDetailed(pnl, f.unrealizedPnl)}
             </span>
-          )}
+          </div>
+          <p className={cn('text-[10px] font-mono', pctColor(pnlPct))}>
+            {f.unrealizedPnlPct ?? fmtPct(pnlPct)}
+          </p>
         </div>
       </div>
 
-      <div className="text-right shrink-0 space-y-1">
-        <p className="text-sm font-bold font-mono text-white">{fmtUsd(pos.sizeUsdc)}</p>
-        <div className="flex items-center gap-1 justify-end">
-          {pnlPositive
-            ? <TrendingUp className="w-3 h-3 text-green-400" />
-            : <TrendingDown className="w-3 h-3 text-red-400" />
+      <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <DetailCell
+          label="Order ID"
+          value={
+            <span title={orderId ?? undefined} className="inline-flex items-center gap-1 min-w-0">
+              <Hash className="w-3 h-3 text-white/35 shrink-0" />
+              <span className="truncate">{shortId(orderId)}</span>
+            </span>
           }
-          <span className={cn('text-xs font-mono font-semibold', pctColor(pos.unrealizedPnl))}>
-            {fmtUsd(pos.unrealizedPnl)}
-          </span>
-        </div>
-        <p className={cn('text-[10px] font-mono', pctColor(pos.unrealizedPnlPct))}>
-          {fmtPct(pos.unrealizedPnlPct)}
-        </p>
-        <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-1">
-          <span>Entry {(pos.entryPrice * 100).toFixed(0)}¢</span>
-          <span>·</span>
-          <span>Now {(pos.currentPrice * 100).toFixed(0)}¢</span>
-        </div>
+        />
+        <DetailCell label="Order status" value={orderStatus} />
+        <DetailCell label="Entry price" value={fmtPriceDetailed(pos.entryPrice, f.entryPrice)} />
+        <DetailCell label="Current price" value={fmtPriceDetailed(pos.currentPrice, f.currentPrice)} />
+        <DetailCell label="Planned stake" value={fmtUsdDetailed(pos.planned?.stake ?? pos.sizeUsdc, f.plannedStake)} />
+        <DetailCell label="Filled stake" value={fmtUsdDetailed(pos.filled?.stake ?? 0, f.filledStake)} />
+        <DetailCell label="Planned qty" value={fmtPlainDetailed(pos.planned?.quantity ?? pos.sizeUsdc / Math.max(pos.entryPrice, 0.0001), f.plannedQuantity)} />
+        <DetailCell label="Filled qty" value={fmtPlainDetailed(filledQty, f.filledQuantity)} />
+        <DetailCell label="Fill" value={f.fillPct ?? fmtPct(fillPct)} />
+        <DetailCell label="Current value" value={fmtUsdDetailed(pos.valuation?.currentValue ?? pos.sizeUsdc + pos.unrealizedPnl, f.currentValue)} />
+        <DetailCell label="Realized P&L" value={fmtUsdDetailed(pos.valuation?.realizedPnl ?? pos.realizedPnl ?? 0, f.realizedPnl)} />
+        <DetailCell
+          label="Updated"
+          value={
+            pos.updatedAt ? (
+              <span className="inline-flex items-center gap-1">
+                <Clock3 className="w-3 h-3 text-white/35" />
+                {new Date(pos.updatedAt).toLocaleString()}
+              </span>
+            ) : '—'
+          }
+          mono={false}
+        />
       </div>
     </div>
   );
@@ -267,7 +354,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
           exit={{ opacity: 0, scale: 0.96, y: 16 }}
           transition={{ duration: 0.2 }}
           onClick={e => e.stopPropagation()}
-          className="w-full max-w-2xl bg-[#0d0f18] border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
+          className="w-full max-w-4xl bg-[#0d0f18] border border-white/10 rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
@@ -316,7 +403,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
                       Open ({openPositions.length})
                     </p>
                     {openPositions.map((p: VaultPosition) => (
-                      <PositionRow key={`${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
+                      <PositionRow key={p.id ?? p.clobOrderId ?? `${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
                     ))}
                   </div>
                 )}
@@ -327,7 +414,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
                       Settled / Closed ({closedPositions.length})
                     </p>
                     {closedPositions.map((p: VaultPosition) => (
-                      <PositionRow key={`${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
+                      <PositionRow key={p.id ?? p.clobOrderId ?? `${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
                     ))}
                   </div>
                 )}
