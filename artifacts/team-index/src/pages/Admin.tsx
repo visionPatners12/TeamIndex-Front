@@ -5,7 +5,7 @@ import {
   Plus, RefreshCw, Trash2, ExternalLink, CheckCircle,
   XCircle, Loader2, Shield, Copy, Eye, EyeOff, Layers,
   AlertTriangle, ChevronDown, ChevronUp, Settings, Zap, Link, Search,
-  Wallet, BarChart2
+  Wallet, BarChart2, Clock, Receipt
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL, BASE_CHAIN } from '@/lib/config';
@@ -578,7 +578,8 @@ function LimitlessPortfolioSnapshot({
 
   if (!portfolio) return null;
 
-  const { balances, summary } = portfolio;
+  const { balances, summary, positions } = portfolio;
+  const orders = positions ?? [];
   const vaultSource =
     balances.vaultCashSource === 'onchain'
       ? 'on-chain'
@@ -630,6 +631,67 @@ function LimitlessPortfolioSnapshot({
           <span className="px-1.5 py-0.5 rounded bg-white/5 text-white/50 font-mono truncate max-w-full">
             wallet: {balances.serverWalletAddress}
           </span>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+          <Receipt className="w-3 h-3 shrink-0" />
+          <span>Ordres du vault ({orders.length})</span>
+        </div>
+        {orders.length === 0 ? (
+          <p className="text-[11px] text-white/35 px-1">Aucun ordre passé pour ce vault.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {orders.map((order, i) => {
+              const stake = order.formatted?.investedAmount
+                ? `$${order.formatted.investedAmount}`
+                : fmtUsd(order.sizeUsdc);
+              const entryPrice = order.formatted?.entryPrice ?? String(order.entryPrice ?? '');
+              const side = String(order.selectedSide ?? '').toUpperCase();
+              const createdAt = order.createdAt ? new Date(order.createdAt).toLocaleString() : null;
+              const statusClass =
+                order.status === 'open'
+                  ? 'bg-primary/15 text-primary'
+                  : order.status === 'settled'
+                  ? 'bg-green-500/15 text-green-300'
+                  : 'bg-white/5 text-white/50';
+              return (
+                <div
+                  key={order.id ?? order.order?.id ?? `${order.marketId}-${i}`}
+                  className="rounded-lg border border-white/8 bg-black/20 p-2.5 min-w-0"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs font-medium text-white truncate min-w-0 flex-1">{order.question}</p>
+                    <span className={cn('text-[10px] px-1.5 py-0.5 rounded shrink-0', statusClass)}>
+                      {order.status}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-white/50">
+                    {side && (
+                      <span
+                        className={cn(
+                          'px-1.5 py-0.5 rounded font-semibold',
+                          side === 'YES' || side === 'BUY'
+                            ? 'bg-green-500/15 text-green-300'
+                            : 'bg-red-500/15 text-red-300'
+                        )}
+                      >
+                        {side}
+                      </span>
+                    )}
+                    <span className="font-mono text-white/70">{stake}</span>
+                    {entryPrice && <span className="font-mono">@ {entryPrice}</span>}
+                    {createdAt && (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="w-2.5 h-2.5" /> {createdAt}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
