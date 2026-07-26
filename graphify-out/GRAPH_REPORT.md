@@ -1,16 +1,16 @@
-# Graph Report - TeamIndex-Front  (2026-07-02)
+# Graph Report - TeamIndex-Front  (2026-07-25)
 
 ## Corpus Check
-- 238 files · ~407,703 words
+- 239 files · ~408,641 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1649 nodes · 1968 edges · 181 communities (134 shown, 47 thin omitted)
+- 1654 nodes · 1980 edges · 183 communities (135 shown, 48 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a2a814d7`
+- Built from commit: `a7f4cea6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -85,6 +85,7 @@
 - [[_COMMUNITY_Community 67|Community 67]]
 - [[_COMMUNITY_Community 68|Community 68]]
 - [[_COMMUNITY_Community 69|Community 69]]
+- [[_COMMUNITY_Community 70|Community 70]]
 - [[_COMMUNITY_Community 71|Community 71]]
 - [[_COMMUNITY_Community 72|Community 72]]
 - [[_COMMUNITY_Community 73|Community 73]]
@@ -119,6 +120,7 @@
 - [[_COMMUNITY_Community 102|Community 102]]
 - [[_COMMUNITY_Community 103|Community 103]]
 - [[_COMMUNITY_Community 104|Community 104]]
+- [[_COMMUNITY_Community 105|Community 105]]
 - [[_COMMUNITY_Community 106|Community 106]]
 - [[_COMMUNITY_Community 107|Community 107]]
 - [[_COMMUNITY_Community 108|Community 108]]
@@ -199,11 +201,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (181 total, 47 thin omitted)
+## Communities (183 total, 48 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.06
-Nodes (46): buildCandles(), buildMarket(), buildNavMarketSeries(), buildOpenOrders(), buildOrderBook(), buildTape(), Candle, ExchangeMarket (+38 more)
+Cohesion: 0.05
+Nodes (51): buildCandles(), buildMarket(), buildMarkets(), buildNavMarketSeries(), buildOpenOrders(), buildOrderBook(), buildTape(), Candle (+43 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.03
@@ -218,12 +220,12 @@ Cohesion: 0.08
 Nodes (40): Awaited, AwaitedInput, getHealthCheckQueryKey(), getHealthCheckQueryOptions(), getHealthCheckUrl(), healthCheck(), HealthCheckQueryError, HealthCheckQueryResult (+32 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.09
-Nodes (40): alignedLogitReturnCorr(), blendedCorr(), buildCovariance(), chosenSideSeries(), clamp(), computeEdge(), computeTsFeatures(), Edge (+32 more)
+Cohesion: 0.14
+Nodes (29): alignedLogitReturnCorr(), blendedCorr(), buildCovariance(), chosenSideSeries(), clamp(), computeEdge(), computeTsFeatures(), Edge (+21 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.11
-Nodes (21): BackendPool, depositCapToHuman(), mapToPoolData(), tokenPriceUsdPerWholeShare(), totalPoolValueToHuman(), useAdminPools(), Admin(), allowanceBadgeClass() (+13 more)
+Cohesion: 0.09
+Nodes (22): BackendPool, depositCapToHuman(), mapToPoolData(), tokenPriceUsdPerWholeShare(), totalPoolValueToHuman(), useAdminPools(), Admin(), allowanceBadgeClass() (+14 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.07
@@ -246,8 +248,8 @@ Cohesion: 0.09
 Nodes (22): compilerOptions, alwaysStrict, customConditions, isolatedModules, lib, module, moduleResolution, noEmitOnError (+14 more)
 
 ### Community 11 - "Community 11"
-Cohesion: 0.36
-Nodes (9): IndexCard(), IndexCardProps, PoolCard(), LiveIndexStatus, PoolData, PoolStatus, fmtUsdShort(), formatPoolName() (+1 more)
+Cohesion: 0.23
+Nodes (14): DEMO_POOLS, IndexCard(), IndexCardProps, UserHolding, LiveIndexesSectionProps, PoolCard(), VaultPositionsModal(), LiveIndexPool (+6 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.11
@@ -270,8 +272,8 @@ Cohesion: 0.14
 Nodes (12): computeValue(), Dir, IndexCompositionSection(), INITIAL_MARKETS, KIND_META, LiveState, makeInitialState(), MarketDef (+4 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.09
-Nodes (14): FEATURES, ORDER_BOOK_ASKS, ORDER_BOOK_BIDS, steps, GradientHeading(), GradientHeadingProps, ANIMATION, fadeInLeft (+6 more)
+Cohesion: 0.15
+Nodes (9): FEATURES, ORDER_BOOK_ASKS, ORDER_BOOK_BIDS, ANIMATION, fadeInLeft, fadeInRight, fadeInUp, staggerDelay() (+1 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.12
@@ -290,8 +292,8 @@ Cohesion: 0.17
 Nodes (13): Action, ActionType, actionTypes, addToRemoveQueue(), dispatch(), genId(), listeners, memoryState (+5 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.19
-Nodes (10): PendingBaseDeposit, PendingBaseDepositsResponse, PendingBaseDepositStatus, UserHoldingsResponse, useUserHoldingForPool(), useUserPendingBaseDeposits(), PendingBaseDepositsBanner(), Props (+2 more)
+Cohesion: 0.17
+Nodes (12): PendingBaseDeposit, PendingBaseDepositsResponse, PendingBaseDepositStatus, UserHoldingsResponse, useUserHoldingForPool(), useUserHoldings(), useUserPendingBaseDeposits(), Home() (+4 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.13
@@ -322,16 +324,16 @@ Cohesion: 0.18
 Nodes (4): Item(), ItemMedia(), itemMediaVariants, itemVariants
 
 ### Community 30 - "Community 30"
-Cohesion: 0.16
-Nodes (7): buildMarkets(), usePools(), Footer(), Exchange(), EXPLAINERS, SortKey, queryClient
+Cohesion: 0.17
+Nodes (12): Prepared, AllocationProposal, GammaMarket, MarketClobData, MarketSide, MarketStatus, MarketType, RejectedMarket (+4 more)
 
 ### Community 31 - "Community 31"
-Cohesion: 0.17
-Nodes (11): useBaseUsdcDeposit(), api, baseDepositStatusLabel(), DepositModal(), DepositModalProps, formatRawTokenAmount(), Network, NETWORK_CONFIG (+3 more)
+Cohesion: 0.10
+Nodes (17): encodeBalanceOf(), fetchUsdcBalance(), CHAIN_METADATA, TxStatus, useBaseUsdcDeposit(), WalletTx, api, BASE_CHAIN (+9 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.12
-Nodes (14): ApiError, BaseChainDeposit, BaseUsdcDepositTxResponse, LimitlessBetFormatted, LimitlessBetResult, LimitlessTeamMarket, PoolPositionsResponse, PoolResponse (+6 more)
+Cohesion: 0.11
+Nodes (16): ApiError, BaseChainDeposit, BaseUsdcDepositTxResponse, HealthResponse, LimitlessBetFormatted, LimitlessBetResult, LimitlessTeamMarket, PoolPositionsResponse (+8 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.15
@@ -354,12 +356,12 @@ Cohesion: 0.17
 Nodes (9): FormControl, FormDescription, FormFieldContext, FormFieldContextValue, FormItem, FormItemContext, FormItemContextValue, FormLabel (+1 more)
 
 ### Community 40 - "Community 40"
-Cohesion: 0.16
-Nodes (15): DEMO_POOLS, UserHolding, UserHoldingChainBreakdown, fmtShares(), fmtUsd(), LiveIndexCard(), LiveIndexCardProps, LiveIndexStatus (+7 more)
+Cohesion: 0.23
+Nodes (10): UserHoldingChainBreakdown, fmtShares(), fmtUsd(), LiveIndexCard(), LiveIndexCardProps, LiveIndexStatus, statusConfig, fmt() (+2 more)
 
 ### Community 41 - "Community 41"
-Cohesion: 0.15
-Nodes (17): PoolBalances, PoolPositionsSummary, asNumber(), CashBreakdown(), fmtNumber4(), fmtPct(), fmtPlainDetailed(), fmtPriceDetailed() (+9 more)
+Cohesion: 0.14
+Nodes (16): getAdminKey(), PoolBalances, PoolPositionsSummary, asNumber(), CashBreakdown(), fmtNumber4(), fmtPct(), fmtPlainDetailed() (+8 more)
 
 ### Community 42 - "Community 42"
 Cohesion: 0.18
@@ -370,8 +372,8 @@ Cohesion: 0.18
 Nodes (7): ChartConfig, ChartContainer, ChartContext, ChartContextProps, ChartLegendContent, ChartTooltipContent, THEMES
 
 ### Community 44 - "Community 44"
-Cohesion: 0.19
-Nodes (6): encodeBalanceOf(), fetchUsdcBalance(), CHAIN_METADATA, TxStatus, WalletTx, BASE_CHAIN
+Cohesion: 0.28
+Nodes (3): steps, GradientHeading(), GradientHeadingProps
 
 ### Community 45 - "Community 45"
 Cohesion: 0.14
@@ -473,6 +475,10 @@ Nodes (8): Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, Ta
 Cohesion: 0.60
 Nodes (4): main(), normalizePrivateKey(), ownableAbi, requiredEnv()
 
+### Community 70 - "Community 70"
+Cohesion: 0.40
+Nodes (4): ExoticIndexCard(), ExoticIndexCardProps, EXOTIC_INDEXES, ExoticIndexesSection()
+
 ### Community 71 - "Community 71"
 Cohesion: 0.25
 Nodes (7): compilerOptions, outDir, rootDir, types, extends, include, references
@@ -538,12 +544,12 @@ Cohesion: 0.29
 Nodes (6): compilerOptions, outDir, rootDir, types, extends, include
 
 ### Community 89 - "Community 89"
-Cohesion: 0.19
-Nodes (15): NAV_LINKS, useUsdcBalance(), useUserHoldings(), Navbar(), Dashboard(), fmtShares(), fmtUsd(), HoldingRow() (+7 more)
+Cohesion: 0.21
+Nodes (13): NAV_LINKS, useUsdcBalance(), Navbar(), Dashboard(), fmtShares(), fmtUsd(), HoldingRow(), GoldButton() (+5 more)
 
 ### Community 90 - "Community 90"
-Cohesion: 0.16
-Nodes (10): ExoticIndexCard(), ExoticIndexCardProps, EXOTIC_INDEXES, ExoticIndexesSection(), HeroSection(), HeroTextBlock(), proofPoints, CtaSection() (+2 more)
+Cohesion: 0.20
+Nodes (8): HeroSection(), HeroTextBlock(), proofPoints, CtaSection(), CtaSectionProps, Footer(), LiveIndexesSection(), scrollToId()
 
 ### Community 91 - "Community 91"
 Cohesion: 0.40
@@ -638,23 +644,23 @@ Cohesion: 0.50
 Nodes (3): ToggleGroup, ToggleGroupContext, ToggleGroupItem
 
 ## Knowledge Gaps
-- **830 isolated node(s):** `version`, `configurations`, `allow`, `PreToolUse`, `artifactDir` (+825 more)
+- **831 isolated node(s):** `version`, `configurations`, `allow`, `PreToolUse`, `artifactDir` (+826 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **47 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **48 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `GradientHeading()` connect `Community 17` to `Community 102`, `Community 40`, `Community 16`, `Community 89`, `Community 90`, `Community 91`, `Community 92`, `Community 93`, `Community 30`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
+- **Why does `GradientHeading()` connect `Community 44` to `Community 0`, `Community 70`, `Community 102`, `Community 105`, `Community 11`, `Community 16`, `Community 17`, `Community 89`, `Community 90`, `Community 91`, `Community 92`, `Community 93`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **Why does `formatPoolName()` connect `Community 11` to `Community 0`, `Community 89`, `Community 31`?**
-  _High betweenness centrality (0.003) - this node is a cross-community bridge._
-- **Why does `MarketSide` connect `Community 4` to `Community 9`, `Community 41`?**
+  _High betweenness centrality (0.004) - this node is a cross-community bridge._
+- **Why does `MarketSide` connect `Community 30` to `Community 9`, `Community 4`, `Community 41`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **What connects `version`, `configurations`, `allow` to the rest of the system?**
-  _830 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _831 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.05583972719522592 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05261261261261261 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.03125 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**

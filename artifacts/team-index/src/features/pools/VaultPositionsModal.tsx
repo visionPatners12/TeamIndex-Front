@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, TrendingUp, TrendingDown, Loader2, BarChart2, AlertTriangle,
-  Wallet, Landmark, Activity, Hash, Clock3,
+  Wallet, Landmark, Activity, Hash, Clock3, Coins, CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { VaultPosition, MarketType, MarketSide } from '@/types/polymarket';
 import { api, type PoolBalances, type PoolPositionsSummary } from '@/lib/api';
+import { getAdminKey } from '@/lib/admin';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -125,7 +126,73 @@ function EmptyState() {
 
 // ─── Position Row ─────────────────────────────────────────────────────────────
 
-function PositionRow({ pos }: { pos: VaultPosition }) {
+function RedeemButton({
+  poolId,
+  pos,
+  adminKey,
+  onRedeemed,
+}: {
+  poolId: string;
+  pos: VaultPosition;
+  adminKey: string;
+  onRedeemed: () => void;
+}) {
+  const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const run = async () => {
+    setState('loading');
+    setMsg(null);
+    try {
+      const conditionId = pos.conditionId;
+      const body =
+        typeof conditionId === 'string' && conditionId.startsWith('0x')
+          ? { conditionId }
+          : { marketId: pos.marketId };
+      await api.redeemPosition(poolId, body, adminKey);
+      setState('done');
+      onRedeemed();
+    } catch (e) {
+      setState('error');
+      setMsg((e as Error).message || 'redeem failed');
+    }
+  };
+
+  if (state === 'done') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-green-400">
+        <CheckCircle2 className="w-3.5 h-3.5" /> Redeemed
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={run}
+        disabled={state === 'loading'}
+        className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[11px] font-semibold bg-primary/15 text-primary border border-primary/30 hover:bg-primary/25 disabled:opacity-60 transition-colors"
+      >
+        {state === 'loading' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Coins className="w-3.5 h-3.5" />}
+        Redeem
+      </button>
+      {state === 'error' && msg && <span className="text-[10px] text-red-400 break-all">{msg}</span>}
+    </div>
+  );
+}
+
+function PositionRow({
+  pos,
+  poolId,
+  adminKey,
+  onRedeemed,
+}: {
+  pos: VaultPosition;
+  poolId: string;
+  adminKey: string | null;
+  onRedeemed: () => void;
+}) {
   const f = pos.formatted ?? {};
   const pnl = pos.valuation?.unrealizedPnl ?? pos.unrealizedPnl;
   const pnlPct = pos.valuation?.unrealizedPnlPct ?? pos.unrealizedPnlPct;
@@ -145,6 +212,11 @@ function PositionRow({ pos }: { pos: VaultPosition }) {
             <MarketTypeBadge type={pos.marketType} />
             <SideBadge side={pos.selectedSide} />
             <StatusBadge status={pos.status} />
+            {pos.resolved && pos.status === 'open' && (
+              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full border bg-amber-500/15 text-amber-400 border-amber-500/30">
+                Résolu · à réclamer
+              </span>
+            )}
             {pos.endsAt && (
               <span className="text-[9px] text-white/30">
                 Ends {new Date(pos.endsAt).toLocaleDateString()}
@@ -205,6 +277,13 @@ function PositionRow({ pos }: { pos: VaultPosition }) {
           mono={false}
         />
       </div>
+
+      {adminKey && pos.status === 'open' && pos.resolved && (
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/8 pt-3">
+          <span className="text-[10px] uppercase tracking-wider text-white/35">Admin · claim payout</span>
+          <RedeemButton poolId={poolId} pos={pos} adminKey={adminKey} onRedeemed={onRedeemed} />
+        </div>
+      )}
     </div>
   );
 }
@@ -310,29 +389,26 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
   const [summary, setSummary] = useState<PoolPositionsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const adminKey = getAdminKey();
+
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      const data = await api.getPoolPositions(poolId);
+      setPositions(data.positions ?? []);
+      setBalances(data.balances ?? null);
+      setSummary(data.summary ?? null);
+    } catch (err) {
+      setError((err as Error).message || 'Failed to load positions');
+    } finally {
+      setLoading(false);
+    }
+  }, [poolId]);
 
   useEffect(() => {
-    let cancelled = false;
     setLoading(true);
-    setError(null);
-
-    api.getPoolPositions(poolId)
-      .then(data => {
-        if (!cancelled) {
-          setPositions(data.positions ?? []);
-          setBalances(data.balances ?? null);
-          setSummary(data.summary ?? null);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError((err as Error).message || 'Failed to load positions');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [poolId]);
+    void load();
+  }, [load]);
 
   const openPositions   = positions.filter(p => p.status === 'open');
   const closedPositions = positions.filter(p => p.status !== 'open');
@@ -395,6 +471,12 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
             ) : (
               <>
                 {balances && <CashBreakdown balances={balances} summary={summary} />}
+                {summary?.redeemableCount ? (
+                  <div className="mx-4 mt-3 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+                    <Coins className="w-4 h-4 shrink-0" />
+                    <span>{summary.redeemableCount} position(s) résolue(s) à réclamer.</span>
+                  </div>
+                ) : null}
                 <SummaryBar positions={positions} />
 
                 {openPositions.length > 0 && (
@@ -403,7 +485,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
                       Open ({openPositions.length})
                     </p>
                     {openPositions.map((p: VaultPosition) => (
-                      <PositionRow key={p.id ?? p.clobOrderId ?? `${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
+                      <PositionRow key={p.id ?? p.clobOrderId ?? `${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} poolId={poolId} adminKey={adminKey} onRedeemed={load} />
                     ))}
                   </div>
                 )}
@@ -414,7 +496,7 @@ export function VaultPositionsModal({ poolId, poolName, onClose }: VaultPosition
                       Settled / Closed ({closedPositions.length})
                     </p>
                     {closedPositions.map((p: VaultPosition) => (
-                      <PositionRow key={p.id ?? p.clobOrderId ?? `${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} />
+                      <PositionRow key={p.id ?? p.clobOrderId ?? `${p.conditionId}-${p.selectedSide}-${p.status}`} pos={p} poolId={poolId} adminKey={adminKey} onRedeemed={load} />
                     ))}
                   </div>
                 )}

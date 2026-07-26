@@ -187,6 +187,10 @@ export interface VaultPosition {
   unrealizedPnlPct: number;
   realizedPnl?: number;
   status: MarketStatus;
+  /** Market resolution flags (enriched server-side for open positions). */
+  resolved?: boolean;
+  redeemable?: boolean;
+  won?: boolean | null;
   endsAt: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;

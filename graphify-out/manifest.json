@@ -460,13 +460,13 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/sections/live-indexes/LiveIndexCard.tsx": {
-    "mtime": 1780567485.5230532,
-    "ast_hash": "fef0b22816091d4ffa49e49e19ccb8e3",
+    "mtime": 1783166713.2327945,
+    "ast_hash": "b04f54a505d743be0d2f1e0aae56259c",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/sections/live-indexes/LiveIndexesSection.tsx": {
-    "mtime": 1779974759.1436737,
-    "ast_hash": "b93ebff7f5232fe7af60bdf61869aa15",
+    "mtime": 1784956738.0113177,
+    "ast_hash": "981237bfb46bd3eced861d2668995c06",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/components/sections/marketplace/MarketplaceSection.tsx": {
@@ -905,8 +905,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/features/pools/VaultPositionsModal.tsx": {
-    "mtime": 1782961338.0490174,
-    "ast_hash": "4a4cadd33a1de92e90005a6aaf5b5017",
+    "mtime": 1783185606.5084646,
+    "ast_hash": "92fce419f2e8d47a6b6cbaccd53985a0",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/hooks/use-mobile.tsx": {
@@ -940,8 +940,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/lib/api.ts": {
-    "mtime": 1782961240.8721354,
-    "ast_hash": "f736121ddef55f9aea0a154dc5d4f458",
+    "mtime": 1784956704.8158019,
+    "ast_hash": "7ce04843969058b2138a7a510059b388",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/lib/config.ts": {
@@ -960,8 +960,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Admin.tsx": {
-    "mtime": 1782926573.306841,
-    "ast_hash": "c2357a1c305b63d218d7a55861df5494",
+    "mtime": 1783043128.2915337,
+    "ast_hash": "f4eb0d30f800db01d66f72b6c60e3ffc",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/pages/Dashboard.tsx": {
@@ -985,8 +985,8 @@
     "semantic_hash": ""
   },
   "artifacts/team-index/src/types/polymarket.ts": {
-    "mtime": 1782961240.870513,
-    "ast_hash": "0e97c68f37be61a2f76fdd4d521e451e",
+    "mtime": 1783185552.0180283,
+    "ast_hash": "39e99df66f6a68b3ea778bbc0fbc9efe",
     "semantic_hash": ""
   },
   "artifacts/team-index/src/types/pool.ts": {
@@ -1392,6 +1392,11 @@
   "scripts/src/transfer-factory-ownership.ts": {
     "mtime": 1782811237.1628053,
     "ast_hash": "a06645261760d47aa914fb1937a909ba",
+    "semantic_hash": ""
+  },
+  "artifacts/team-index/src/lib/admin.ts": {
+    "mtime": 1783168128.597574,
+    "ast_hash": "9ade14f63a37ddcdfc51bc31105fca2d",
     "semantic_hash": ""
   }
 }

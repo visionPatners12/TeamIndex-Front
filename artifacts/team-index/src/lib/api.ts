@@ -12,6 +12,23 @@ export class ApiError extends Error {
   }
 }
 
+export interface TradingCapability {
+  mode: "VAULT_DIRECT";
+  status: "BLOCKED" | "READY";
+  canTrade: boolean;
+  canBootstrap: boolean;
+  custody: "TEAMINDEX_VAULT";
+  code: string;
+  reason: string;
+  documentationUrl: string;
+}
+
+export interface HealthResponse {
+  ok: boolean;
+  db: boolean;
+  trading?: TradingCapability;
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -235,10 +252,12 @@ export interface PoolPositionsSummary {
   openPositionCount: number;
   settledPositionCount: number;
   cancelledPositionCount: number;
+  redeemableCount?: number;
 }
 
 export interface PoolPositionsResponse {
   ok: boolean;
+  trading?: TradingCapability;
   balances: PoolBalances;
   summary: PoolPositionsSummary;
   positions: VaultPosition[];
@@ -248,6 +267,8 @@ export type { VaultPosition } from '@/types/polymarket';
 import type { VaultPosition, AllocationProposal, SelectedMarket } from '@/types/polymarket';
 
 export const api = {
+  getHealth: () => apiFetch<HealthResponse>("/health"),
+
   getTeams: () =>
     apiFetch<{ ok: boolean; teams: TeamEntry[] }>(`/teams?limitlessOnly=1`),
 
@@ -313,6 +334,21 @@ export const api = {
       {
         method: "POST",
         body: JSON.stringify({ txHash }),
+      }
+    ),
+
+  /** Admin: redeem a resolved position's payout via the pool server wallet. */
+  redeemPosition: (
+    poolId: string,
+    body: { marketId?: string; conditionId?: string },
+    adminKey: string
+  ) =>
+    apiFetch<{ ok: boolean; conditionId: string; result: unknown }>(
+      `/pools/${poolId}/positions/redeem`,
+      {
+        method: "POST",
+        headers: { "x-admin-key": adminKey },
+        body: JSON.stringify(body),
       }
     ),
 

@@ -19,6 +19,8 @@ export type LiveIndexCardProps = {
   buttonLabel?: string;
   disabled?: boolean;
   onEnter?: () => void;
+  /** Opens the vault positions modal for this pool. */
+  onViewPositions?: () => void;
   /** Auth + user position context (optional — card works without them) */
   isAuthenticated?: boolean;
   /** USD value of the user's holding in this pool */
@@ -65,6 +67,7 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
   buttonLabel,
   disabled = false,
   onEnter,
+  onViewPositions,
   isAuthenticated,
   userValueUsd,
   userShares,
@@ -220,18 +223,32 @@ export const LiveIndexCard: React.FC<LiveIndexCardProps> = ({
         })}
       </div>
 
-      {/* CTA Button */}
-      <button
-        className={`w-full h-10 mt-auto rounded-full text-base font-semibold transition-all ${
-          disabled || isClosed
-            ? "bg-[#23201A] text-[#555] border border-[#232323] cursor-not-allowed"
-            : "bg-[#1e1b09] border border-white/10 text-white hover:bg-[#252010] active:scale-95"
-        }`}
-        disabled={disabled || isClosed}
-        onClick={!disabled && !isClosed ? onEnter : undefined}
-      >
-        {resolvedButtonLabel}
-      </button>
+      {/* CTA + secondary actions */}
+      <div className="mt-auto flex flex-col gap-2">
+        {onViewPositions && (
+          <button
+            type="button"
+            onClick={onViewPositions}
+            className="w-full h-9 rounded-full text-sm font-semibold text-white/70 border border-white/10 bg-white/[0.02] hover:bg-white/[0.06] hover:text-white transition-all flex items-center justify-center gap-1.5"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18" /><rect x="7" y="12" width="3" height="6" /><rect x="12" y="8" width="3" height="10" /><rect x="17" y="5" width="3" height="13" />
+            </svg>
+            View positions
+          </button>
+        )}
+        <button
+          className={`w-full h-10 rounded-full text-base font-semibold transition-all ${
+            disabled || isClosed
+              ? "bg-[#23201A] text-[#555] border border-[#232323] cursor-not-allowed"
+              : "bg-[#1e1b09] border border-white/10 text-white hover:bg-[#252010] active:scale-95"
+          }`}
+          disabled={disabled || isClosed}
+          onClick={!disabled && !isClosed ? onEnter : undefined}
+        >
+          {resolvedButtonLabel}
+        </button>
+      </div>
     </div>
   );
 };
